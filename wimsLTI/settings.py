@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,9 +22,7 @@ SECRET_KEY = '-qj!o^8$@!&7))^77^z8(-5rp*5x=7q(736)05x$h(inkfm^1#'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
 ALLOWED_HOSTS = []
-
 
 # Application definition
 INSTALLED_APPS = [
@@ -35,6 +34,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -64,7 +64,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wimsLTI.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 DATABASES = {
@@ -74,6 +73,50 @@ DATABASES = {
     }
 }
 
+# Logging informations
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '[%(asctime)-15s] %(levelname)s -- '
+                      'File: %(pathname)s line n°%(lineno)d -- %(message)s',
+            'datefmt': '%Y/%m/%d %H:%M:%S'
+        },
+        'simple': {
+            'format': '[%(asctime)-15s] %(levelname)s -- %(message)s',
+            'datefmt': '%Y/%m/%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -94,7 +137,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-
 # Define parameters which must be present in the LTI request
 LTI_MANDATORY = [
     'lti_message_type',
@@ -110,4 +152,5 @@ WIMSLTI_MANDATORY = [
     'lis_person_name_family',
     'lis_person_name_given',
     'roles',
+    'oauth_consumer_key',
 ]

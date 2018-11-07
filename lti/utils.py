@@ -1,6 +1,47 @@
+import logging
+import sys
 
+import oauth2
 from django.conf import settings
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponseForbidden
+
+
+logger = logging.getLogger(__name__)
+
+
+
+def is_valid_request(request, parameters):
+    """Check whether the request is valid and is accepted by oauth2.
+    
+    Returns an HttpResponse if the request is invalid, None otherwise."""
+    if parameters['lti_message_type'] != 'basic-lti-launch-request':
+        return HttpResponseBadRequest("LTI request is invalid, parameter 'lti_message_type' "
+                                      "must be equal to 'basic-lti-launch-request'")
+    
+    if not settings.LTI_OAUTH_CREDENTIALS:
+        logger.error("LTI Authentification aborted: "
+                     "Missing LTI_OAUTH_CREDENTIALS in settings")
+        return HttpResponseBadRequest("Missing LTI_OAUTH_CREDENTIALS in settings.")
+    
+    request_key = parameters['oauth_consumer_key']
+    secret = settings.LTI_OAUTH_CREDENTIALS.get(request_key)
+    if secret is None:
+        logger.warning(
+                "LTI Authentification aborted: Could not get a secret for key '%s'" % request_key)
+        return HttpResponseForbidden("Could not get a secret for key '%s'" % request_key)
+    
+    try:
+        if 'test' in sys.argv:
+            request_is_valid = True
+        else:
+            request_is_valid = is_valid_request(request_key, secret, request)
+    except oauth2.Error:
+        logger.exception("error attempting to validate LTI launch with parameters: %s", parameters)
+        request_is_valid = False
+    
+    if not request_is_valid:
+        logger.warning("LTI Authentification aborted: signature check failed.")
+        raise HttpResponseForbidden("Invalid request: signature check failed.")
 
 
 
@@ -20,51 +61,51 @@ def check_parameters(param):
 
 
 
-def parse_parameters(param):
+def parse_parameters(p):
     """Returns the a dictionnary of the LTI request parameters,
     replacing missing parameters with None."""
     
     return {
-        'context_id': param.get('context_id'),
-        'context_label': param.get('context_label'),
-        'context_title': param.get('context_title'),
-        'context_type': param.get('context_type'),
-        'custom_canvas_account_id': param.get('custom_canvas_account_id'),
-        'custom_canvas_account_sis_id': param.get('custom_canvas_account_sis_id'),
-        'custom_canvas_api_domain': param.get('custom_canvas_api_domain'),
-        'custom_canvas_course_id': param.get('custom_canvas_course_id'),
-        'custom_canvas_enrollment_state': param.get('custom_canvas_enrollment_state'),
-        'custom_canvas_membership_roles': param.get('custom_canvas_membership_roles','').split(','),
-        'custom_canvas_user_id': param.get('custom_canvas_user_id'),
-        'custom_canvas_user_login_id': param.get('custom_canvas_user_login_id'),
-        'launch_presentation_css_url': param.get('launch_presentation_css_url'),
-        'launch_presentation_document_target': param.get('launch_presentation_document_target'),
-        'launch_presentation_height': param.get('launch_presentation_height'),
-        'launch_presentation_locale': param.get('launch_presentation_locale'),
-        'launch_presentation_return_url': param.get('launch_presentation_return_url'),
-        'launch_presentation_width': param.get('launch_presentation_width'),
-        'lis_course_offering_sourcedid': param.get('lis_course_offering_sourcedid'),
-        'lis_outcome_service_url': param.get('lis_outcome_service_url'),
-        'lis_result_sourcedid': param.get('lis_result_sourcedid'),
-        'lis_person_contact_email_primary': param.get('lis_person_contact_email_primary'),
-        'lis_person_name_family': param.get('lis_person_name_family'),
-        'lis_person_name_full': param.get('lis_person_name_full'),
-        'lis_person_name_given': param.get('lis_person_name_given'),
-        'lis_person_sourcedid': param.get('lis_person_sourcedid'),
-        'lti_message_type': param.get('lti_message_type'),
-        'oauth_consumer_key': param.get('oauth_consumer_key'),
-        'resource_link_description': param.get('resource_link_description'),
-        'resource_link_id': param.get('resource_link_id'),
-        'resource_link_title': param.get('resource_link_title'),
-        'roles': param.get('roles', '').split(','),
-        'selection_directive': param.get('selection_directive'),
-        'tool_consumer_info_product_family_code': param.get('tool_consumer_info_product_family_code'),
-        'tool_consumer_info_version': param.get('tool_consumer_info_version'),
-        'tool_consumer_instance_contact_email': param.get('tool_consumer_instance_contact_email'),
-        'tool_consumer_instance_description': param.get('tool_consumer_instance_description'),
-        'tool_consumer_instance_guid': param.get('tool_consumer_instance_guid'),
-        'tool_consumer_instance_name': param.get('tool_consumer_instance_name'),
-        'tool_consumer_instance_url': param.get('tool_consumer_instance_url'),
-        'user_id': param.get('user_id'),
-        'user_image' : param.get('user_image'),
+        'context_id': p.get('context_id'),
+        'context_label': p.get('context_label'),
+        'context_title': p.get('context_title'),
+        'context_type': p.get('context_type'),
+        'custom_canvas_account_id': p.get('custom_canvas_account_id'),
+        'custom_canvas_account_sis_id': p.get('custom_canvas_account_sis_id'),
+        'custom_canvas_api_domain': p.get('custom_canvas_api_domain'),
+        'custom_canvas_course_id': p.get('custom_canvas_course_id'),
+        'custom_canvas_enrollment_state': p.get('custom_canvas_enrollment_state'),
+        'custom_canvas_membership_roles': p.get('custom_canvas_membership_roles', '').split(','),
+        'custom_canvas_user_id': p.get('custom_canvas_user_id'),
+        'custom_canvas_user_login_id': p.get('custom_canvas_user_login_id'),
+        'launch_presentation_css_url': p.get('launch_presentation_css_url'),
+        'launch_presentation_document_target': p.get('launch_presentation_document_target'),
+        'launch_presentation_height': p.get('launch_presentation_height'),
+        'launch_presentation_locale': p.get('launch_presentation_locale'),
+        'launch_presentation_return_url': p.get('launch_presentation_return_url'),
+        'launch_presentation_width': p.get('launch_presentation_width'),
+        'lis_course_offering_sourcedid': p.get('lis_course_offering_sourcedid'),
+        'lis_outcome_service_url': p.get('lis_outcome_service_url'),
+        'lis_result_sourcedid': p.get('lis_result_sourcedid'),
+        'lis_person_contact_email_primary': p.get('lis_person_contact_email_primary'),
+        'lis_person_name_family': p.get('lis_person_name_family'),
+        'lis_person_name_full': p.get('lis_person_name_full'),
+        'lis_person_name_given': p.get('lis_person_name_given'),
+        'lis_person_sourcedid': p.get('lis_person_sourcedid'),
+        'lti_message_type': p.get('lti_message_type'),
+        'oauth_consumer_key': p.get('oauth_consumer_key'),
+        'resource_link_description': p.get('resource_link_description'),
+        'resource_link_id': p.get('resource_link_id'),
+        'resource_link_title': p.get('resource_link_title'),
+        'roles': p.get('roles', '').split(','),
+        'selection_directive': p.get('selection_directive'),
+        'tool_consumer_info_product_family_code': p.get('tool_consumer_info_product_family_code'),
+        'tool_consumer_info_version': p.get('tool_consumer_info_version'),
+        'tool_consumer_instance_contact_email': p.get('tool_consumer_instance_contact_email'),
+        'tool_consumer_instance_description': p.get('tool_consumer_instance_description'),
+        'tool_consumer_instance_guid': p.get('tool_consumer_instance_guid'),
+        'tool_consumer_instance_name': p.get('tool_consumer_instance_name'),
+        'tool_consumer_instance_url': p.get('tool_consumer_instance_url'),
+        'user_id': p.get('user_id'),
+        'user_image': p.get('user_image'),
     }
