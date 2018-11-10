@@ -11,10 +11,13 @@ logger = logging.getLogger(__name__)
 
 
 
-@require_POST()
+@require_POST
 def toWims(request):
     parameters = parse_parameters(request.POST)
-    check_parameters(parameters)
+    
+    response = check_parameters(parameters)
+    if response is not None:
+        return response
     
     logger.info("Request received from '%s'" % request.META['HTTP_REFERER'])
     

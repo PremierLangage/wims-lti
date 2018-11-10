@@ -41,7 +41,7 @@ def is_valid_request(request, parameters):
     
     if not request_is_valid:
         logger.warning("LTI Authentification aborted: signature check failed.")
-        raise HttpResponseForbidden("Invalid request: signature check failed.")
+        return HttpResponseForbidden("Invalid request: signature check failed.")
 
 
 
@@ -51,12 +51,12 @@ def check_parameters(param):
     
     if not all([param[i] is not None for i in settings.LTI_MANDATORY]):
         missing = [i for i in settings.LTI_MANDATORY if param[i] is None]
-        raise HttpResponseBadRequest("LTI request is invalid, missing parameter(s): "
+        return HttpResponseBadRequest("LTI request is invalid, missing parameter(s): "
                                      + str(missing))
     
     if not all([param[i] is not None for i in settings.WIMSLTI_MANDATORY]):
         missing = [i for i in settings.WIMSLTI_MANDATORY if param[i] is None]
-        raise HttpResponseBadRequest("LTI request is invalid, WIMS LTI require parameter(s): "
+        return HttpResponseBadRequest("LTI request is invalid, WIMS LTI require parameter(s): "
                                      + str(missing))
 
 
@@ -66,6 +66,7 @@ def parse_parameters(p):
     replacing missing parameters with None."""
     
     return {
+        'lti_version': p.get('lti_version'),
         'context_id': p.get('context_id'),
         'context_label': p.get('context_label'),
         'context_title': p.get('context_title'),

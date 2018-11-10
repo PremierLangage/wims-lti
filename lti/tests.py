@@ -1,57 +1,63 @@
 import uuid
 
-from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.test import TestCase
 
-
-ROLES = {
-    "Administrator": "urn:lti:role:ims/lis/Administrator",
-    "Observer": "urn:lti:role:ims/lis/Observer",
-    "Learner": "urn:lti:role:ims/lis/Learner",
-    "Instructor": "urn:lti:role:ims/lis/Instructor",
-    "ContentDeveloper": "urn:lti:role:ims/lis/ContentDeveloper",
-}
-
-REQUEST_LTI_1P1 = {
-    'lti_message_type': 'basic-lti-launch-request',
-    'lti_version': 'LTI-1p0',
-    'launch_presentation_locale': 'fr-FR',
-    'resource_link_id': None,
-}
-
-FAKE_CREDENTIALS = {
-    'provider1': 'secret1',
-    'provider2': 'secret2',
-}
+from lti import utils
 
 
 
-class LTITestCase(TestCase):
+class UtilsTestCase(TestCase):
     
-    def test_wrong_key(self):
+    def test_check_parameters_ok(self):
         params = {
-            **REQUEST_LTI_1P1,
-            **{
-                'resource_link_id': str(uuid.uuid4()),
-                'oauth_consumer_key': 'wrong',
-                'oauth_consumer_secret': 'wrong',
-            }
+            'lti_message_type': 'basic-lti-launch-request',
+            'lti_version': 'LTI-1p0',
+            'launch_presentation_locale': 'fr-FR',
+            'resource_link_id': 'X',
+            'context_id': 'X',
+            'context_title': "A title",
+            'user_id': 'X',
+            'lis_person_contact_email_primary': 'X',
+            'lis_person_name_family': 'X',
+            'lis_person_name_given': 'X',
+            'oauth_consumer_key': 'provider1',
+            'roles': "Learner"
         }
-        c = Client()
-        response = c.post('/', data=params, follow=True)
-        self.assertEqual(response.status_code, 200)
+        params = utils.parse_parameters(params)
+        self.assertIsNone(utils.check_parameters(params))
     
     
-    def test_right_key(self):
+    def test_check_parameters_missing_lti_mandatory(self):
         params = {
-            **REQUEST_LTI_1P1,
-            **{
-                'resource_link_id': str(uuid.uuid4()),
-                'oauth_consumer_key': 'provider1',
-                'oauth_consumer_secret': 'secret1',
-            }
+            'lti_version': 'LTI-1p0',
+            'launch_presentation_locale': 'fr-FR',
+            'resource_link_id': 'X',
+            'context_id': 'X',
+            'context_title': "A title",
+            'user_id': 'X',
+            'lis_person_contact_email_primary': 'X',
+            'lis_person_name_family': 'X',
+            'lis_person_name_given': 'X',
+            'oauth_consumer_key': 'provider1',
+            'roles': "Learner"
         }
-        c = Client()
-        response = c.post('/', data=dict(params), follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(User.objects.all())
+        params = utils.parse_parameters(params)
+        self.assertIsNotNone(utils.check_parameters(params))
+    
+    
+    def test_check_parameters_wimslti_mandatory(self):
+        params = {
+            'lti_message_type': 'basic-lti-launch-request',
+            'lti_version': 'LTI-1p0',
+            'launch_presentation_locale': 'fr-FR',
+            'resource_link_id': 'X',
+            'context_id': 'X',
+            'context_title': "A title",
+            'lis_person_contact_email_primary': 'X',
+            'lis_person_name_family': 'X',
+            'lis_person_name_given': 'X',
+            'oauth_consumer_key': 'provider1',
+            'roles': "Learner"
+        }
+        params = utils.parse_parameters(params)
+        self.assertIsNotNone(utils.check_parameters(params))
