@@ -26,11 +26,10 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
-    'lti',
+    'lti_app',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
@@ -117,20 +116,8 @@ LOGGING = {
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'lti.backends.LTIAuthBackend',
+    'lti_app.backends.LTIAuthBackend',
 ]
-
-LTI_OAUTH_CREDENTIALS = {
-    'moodle': 'secret',
-}
-
-# Internationalization
-# https://docs.djangoproject.com/en/2.1/topics/i18n/
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
 
 # Define parameters which must be present in the LTI request
 LTI_MANDATORY = [
@@ -149,3 +136,16 @@ WIMSLTI_MANDATORY = [
     'roles',
     'oauth_consumer_key',
 ]
+
+# LTI Credentials
+LTI_OAUTH_CREDENTIALS = {
+    'moodle': 'secret',
+}
+
+# Internationalization
+# https://docs.djangoproject.com/en/2.1/topics/i18n/
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True

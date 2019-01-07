@@ -1,8 +1,6 @@
-import uuid
-
 from django.test import TestCase
 
-from lti import utils
+from lti_app import utils
 
 
 

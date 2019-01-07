@@ -5,6 +5,9 @@ import oauth2
 from django.conf import settings
 from django.http import HttpResponseBadRequest, HttpResponseForbidden
 
+from lti_app.exceptions import BadRequestException
+from lti.contrib.django import DjangoToolProvider
+from lti_app.request_validator import RequestValidator
 
 logger = logging.getLogger(__name__)
 
@@ -15,26 +18,27 @@ def is_valid_request(request, parameters):
     
     Returns an HttpResponse if the request is invalid, None otherwise."""
     if parameters['lti_message_type'] != 'basic-lti-launch-request':
-        return HttpResponseBadRequest("LTI request is invalid, parameter 'lti_message_type' "
+        raise BadRequestException("LTI request is invalid, parameter 'lti_message_type' "
                                       "must be equal to 'basic-lti-launch-request'")
     
     if not settings.LTI_OAUTH_CREDENTIALS:
         logger.error("LTI Authentification aborted: "
                      "Missing LTI_OAUTH_CREDENTIALS in settings")
-        return HttpResponseBadRequest("Missing LTI_OAUTH_CREDENTIALS in settings.")
+        raise BadRequestException("Missing LTI_OAUTH_CREDENTIALS in settings.")
     
     request_key = parameters['oauth_consumer_key']
     secret = settings.LTI_OAUTH_CREDENTIALS.get(request_key)
     if secret is None:
         logger.warning(
                 "LTI Authentification aborted: Could not get a secret for key '%s'" % request_key)
-        return HttpResponseForbidden("Could not get a secret for key '%s'" % request_key)
+        raise BadRequestException("Could not get a secret for key '%s'" % request_key)
     
     try:
         if 'test' in sys.argv:
             request_is_valid = True
         else:
-            request_is_valid = is_valid_request(request_key, secret, request)
+            tool_provider = DjangoToolProvider.from_django_request(request=request)
+            request_is_valid = tool_provider.is_valid_request(RequestValidator())
     except oauth2.Error:
         logger.exception("error attempting to validate LTI launch with parameters: %s", parameters)
         request_is_valid = False
@@ -51,13 +55,13 @@ def check_parameters(param):
     
     if not all([param[i] is not None for i in settings.LTI_MANDATORY]):
         missing = [i for i in settings.LTI_MANDATORY if param[i] is None]
-        return HttpResponseBadRequest("LTI request is invalid, missing parameter(s): "
-                                     + str(missing))
+        raise BadRequestException("LTI request is invalid, missing parameter(s): "
+                                  + str(missing))
     
     if not all([param[i] is not None for i in settings.WIMSLTI_MANDATORY]):
         missing = [i for i in settings.WIMSLTI_MANDATORY if param[i] is None]
-        return HttpResponseBadRequest("LTI request is invalid, WIMS LTI require parameter(s): "
-                                     + str(missing))
+        raise BadRequestException("LTI request is invalid, WIMS LTI require parameter(s): "
+                                  + str(missing))
 
 
 
