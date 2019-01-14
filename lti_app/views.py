@@ -28,7 +28,8 @@ def toWims(request):
     first_name = parameters["lis_person_name_given"]
     last_name = parameters["lis_person_name_family"]
     user_id = parameters["user_id"]
+    role = parameters["roles"]
     username = (first_name[0].lower() + last_name.lower())
     
     return HttpResponse(
-        "OK\\n%s\n%s\n%s\n%s\n%s\n" % (email, first_name, last_name, user_id, username))
+        "OK<br>mail: %s<br>first_name: %s<br>lastname: %s<br>user_id: %s<br>username: %s<br>roles: %s" % (email, first_name, last_name, user_id, username, str(role)))
