@@ -2,6 +2,7 @@ import logging
 
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 
 from lti_app.exceptions import BadRequestException
 from lti_app.utils import check_parameters, is_valid_request, parse_parameters
@@ -10,7 +11,7 @@ from lti_app.utils import check_parameters, is_valid_request, parse_parameters
 logger = logging.getLogger(__name__)
 
 
-
+@csrf_exempt
 @require_POST
 def toWims(request):
     logger.info("Request received from '%s'" % request.META['HTTP_REFERER'])
