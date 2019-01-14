@@ -1,5 +1,5 @@
 Django<2.3
 oauthlib
 requests
-wimsapi
 lti
+wimsapi

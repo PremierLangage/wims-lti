@@ -3,23 +3,27 @@ import sys
 
 import oauth2
 from django.conf import settings
-from django.http import HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponseForbidden
+from lti.contrib.django import DjangoToolProvider
 
 from lti_app.exceptions import BadRequestException
-from lti.contrib.django import DjangoToolProvider
 from lti_app.request_validator import RequestValidator
+
 
 logger = logging.getLogger(__name__)
 
 
 
-def is_valid_request(request, parameters):
+def is_valid_request(request):
     """Check whether the request is valid and is accepted by oauth2.
     
     Returns an HttpResponse if the request is invalid, None otherwise."""
+    
+    parameters = parse_parameters(request.POST)
+    
     if parameters['lti_message_type'] != 'basic-lti-launch-request':
         raise BadRequestException("LTI request is invalid, parameter 'lti_message_type' "
-                                      "must be equal to 'basic-lti-launch-request'")
+                                  "must be equal to 'basic-lti-launch-request'")
     
     if not settings.LTI_OAUTH_CREDENTIALS:
         logger.error("LTI Authentification aborted: "
