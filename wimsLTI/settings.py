@@ -149,3 +149,13 @@ WIMSLTI_MANDATORY = [
     'roles',
     'oauth_consumer_key',
 ]
+
+
+# Allow a file 'wimsLTI/config.py' to override these settings.
+try:
+    from wimsLTI.config import *
+except:
+    if "VERBOSE" in os.environ:
+        logger = logging.getLogger(__name__)
+        logger.exception("No config file found.")
+    pass
