@@ -1,6 +1,6 @@
 import logging
 
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
@@ -12,8 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
-@require_POST
 def toWims(request):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed")
+	
     logger.info("Request received from '%s'" % request.META['HTTP_REFERER'])
     
     parameters = parse_parameters(request.POST)
@@ -22,7 +24,7 @@ def toWims(request):
         is_valid_request(request)
     except BadRequestException as e:
         logger.info(str(e))
-        return HttpResponseBadRequest(str(e))
+        return HttpResponseBadRequest("400:" + str(e))
     
     email = parameters["lis_person_contact_email_primary"]
     first_name = parameters["lis_person_name_given"]
