@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+#
+#  settings.py
+#
+#  Authors:
+#       - Coumes Quentin <coumes.quentin@gmail.com>
+#
+
+
 """
 Django settings for wimsLTI project.
 
@@ -11,6 +20,9 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+import logging
+
+from wims.enums import Role
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -26,7 +38,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
-    'lti_app',
+    'wims',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,10 +54,10 @@ ROOT_URLCONF = 'wimsLTI.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'BACKEND' : 'django.template.backends.django.DjangoTemplates',
+        'DIRS'    : [],
         'APP_DIRS': True,
-        'OPTIONS': {
+        'OPTIONS' : {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -63,51 +75,51 @@ WSGI_APPLICATION = 'wimsLTI.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME'  : os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
 # Logging informations
 LOGGING = {
-    'version': 1,
+    'version'                 : 1,
     'disable_existing_loggers': False,
-    'filters': {
+    'filters'                 : {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse',
         },
-        'require_debug_true': {
+        'require_debug_true' : {
             '()': 'django.utils.log.RequireDebugTrue',
         },
     },
-    'formatters': {
+    'formatters'              : {
         'verbose': {
-            'format': '[%(asctime)-15s] %(levelname)s -- '
-                      'File: %(pathname)s line n°%(lineno)d -- %(message)s',
+            'format' : '[%(asctime)-15s] %(levelname)s -- '
+                       'File: %(pathname)s line n°%(lineno)d -- %(message)s',
             'datefmt': '%Y/%m/%d %H:%M:%S'
         },
-        'simple': {
-            'format': '[%(asctime)-15s] %(levelname)s -- %(message)s',
+        'simple' : {
+            'format' : '[%(asctime)-15s] %(levelname)s -- %(message)s',
             'datefmt': '%Y/%m/%d %H:%M:%S'
         },
     },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler',
+    'handlers'                : {
+        'console'    : {
+            'level'    : 'DEBUG',
+            'filters'  : ['require_debug_true'],
+            'class'    : 'logging.StreamHandler',
             'formatter': 'simple'
         },
         'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
+            'level'       : 'ERROR',
+            'class'       : 'django.utils.log.AdminEmailHandler',
             'include_html': True,
-            'formatter': 'verbose'
+            'formatter'   : 'verbose'
         }
     },
-    'loggers': {
+    'loggers'                 : {
         '': {
             'handlers': ['console', 'mail_admins'],
-            'level': 'INFO',
+            'level'   : 'INFO',
         },
     },
 }
@@ -116,7 +128,6 @@ LOGGING = {
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'lti_app.backends.LTIAuthBackend',
 ]
 
 # Define parameters which must be present in the LTI request
@@ -142,6 +153,13 @@ LTI_OAUTH_CREDENTIALS = {
     'moodle': 'secret',
 }
 
+# List of Roles that are allowed to create new classes on the WIMS servers
+ROLES_ALLOWED_CREATE_WIMS_CLASS = [
+    Role.ADMINISTRATOR,
+    Role.INSTRUCTOR,
+    Role.STAFF,
+]
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 LANGUAGE_CODE = 'en-us'
@@ -151,10 +169,4 @@ USE_L10N = True
 USE_TZ = True
 
 # Allow a file 'wimsLTI/config.py' to override these settings.
-try:
-    from wimsLTI.config import *
-except:
-    if "VERBOSE" in os.environ:
-        logger = logging.getLogger(__name__)
-        logger.exception("No config file found.")
-    pass
+from wimsLTI.config import *

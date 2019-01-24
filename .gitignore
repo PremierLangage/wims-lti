@@ -1,4 +1,6 @@
-wimsLTI/config.py
+# Django's migrations
+*/migrations/*
+!*/migrations/__init__.py
 
 
 # Byte-compiled / optimized / DLL files

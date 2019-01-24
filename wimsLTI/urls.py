@@ -1,10 +1,16 @@
-from django.contrib import admin
-from django.urls import path
+# -*- coding: utf-8 -*-
+#
+#  urls.py
+#
+#  Authors:
+#       - Coumes Quentin <coumes.quentin@gmail.com>
 
-from lti_app.views import toWims
+
+from django.contrib import admin
+from django.urls import include, path
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', toWims)
+    path('wims/', include('wims.urls', namespace='wims'))
 ]

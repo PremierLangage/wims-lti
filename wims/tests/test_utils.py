@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from lti_app import utils
+from wims import utils
 
 
 
