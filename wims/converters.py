@@ -12,11 +12,9 @@ class DNSConverter:
     regex = r"\w(-?\w)*(\.\w(-?\w)*)*"
     
     
-    @staticmethod
-    def to_python(value):
+    def to_python(self, value):
         return value
     
     
-    @staticmethod
-    def to_url(value):
+    def to_url(self, value):
         return value
