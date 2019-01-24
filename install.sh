@@ -18,6 +18,15 @@ echo "Python >= 3.5: OK !"
 command -v pip3 >/dev/null 2>&1 || { echo >&2 "ERROR: pip3 should be installed"; exit 1; }
 echo "pip3: OK !"
 
+# Checking if git is installed
+command -v git >/dev/null 2>&1 || { echo >&2 "ERROR: git should be installed"; exit 1; }
+echo "git: OK !"
+
+
+
+# Making sure changes to wimsLTI/config.py are not pushed
+git update-index --no-skip-worktree wimsLTI/config.py
+
 
 
 # Checking if inside a python venv
