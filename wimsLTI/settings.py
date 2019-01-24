@@ -168,5 +168,5 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Allow a file 'wimsLTI/config.py' to override these settings.
+# Allow the file 'wimsLTI/config.py' to override these settings.
 from wimsLTI.config import *
