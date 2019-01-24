@@ -1,11 +1,19 @@
+# -*- coding: utf-8 -*-
+#
+#  validator.py
+#
+#  Authors:
+#       - Coumes Quentin <coumes.quentin@gmail.com>
+#
+
 import time
 
 from django.conf import settings
-from oauthlib.oauth1 import RequestValidator as RV
+from oauthlib.oauth1 import RequestValidator as BaseRequestValidator
 
 
 
-class RequestValidator(RV):
+class RequestValidator(BaseRequestValidator):
     """Implements a RequestValidator according to
     https://oauthlib.readthedocs.io/en/latest/oauth1/validator.html"""
     

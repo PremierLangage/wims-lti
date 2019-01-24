@@ -3,3 +3,5 @@ oauthlib
 requests
 lti
 wimsapi
+-e git://github.com/qcoumes/django-enumfields.git#egg=django-enumfields
+oauth2
