@@ -42,12 +42,17 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'wimsLTI.urls'
@@ -159,6 +164,10 @@ ROLES_ALLOWED_CREATE_WIMS_CLASS = [
     Role.INSTRUCTOR,
     Role.STAFF,
 ]
+
+# Static files
+STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'staticfiles'))
+STATIC_URL = '/static/'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
