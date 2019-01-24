@@ -7,7 +7,7 @@
 #
 
 
-from enum import auto, unique
+from enum import auto
 
 from enumfields import Enum
 
@@ -73,13 +73,13 @@ class Role(Enum):
     @classmethod
     def map_label(cls):
         """Returns a dictionnary mapping label to their corresponding enum."""
-        return {r.label: r for r in list(Role)}
+        return {r.label: r for r in iter(Role)}
     
     
     @classmethod
     def map_urn(cls):
         """Returns a dictionnary mapping URN to their corresponding enum."""
-        return {r.urn: r for r in list(Role)}
+        return {r.urn: r for r in iter(Role)}
     
     
     @staticmethod
