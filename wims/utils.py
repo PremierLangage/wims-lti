@@ -7,7 +7,7 @@
 #
 
 import logging
-import secrets
+import random
 import string
 import sys
 
@@ -140,8 +140,8 @@ def create_class(rclass, parameters):
     mail = parameters["lis_person_contact_email_primary"]
     title = parameters["context_title"]
     institution = parameters["tool_consumer_instance_description"]
-    cpassword = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20))
-    upassword = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20))
+    cpassword = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
+    upassword = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     supervisor = User("supervisor", "Moodle", "Moodle", upassword, mail)
     
     return Class(rclass, title, institution, mail, cpassword, supervisor)
@@ -174,7 +174,7 @@ def get_or_create_class(lms, wims_srv, api, parameters):
 
 
 def create_user(parameters):
-    password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20))
+    password = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     lastname = parameters['lis_person_name_family']
     firstname = parameters['lis_person_name_given']
     mail = parameters["lis_person_contact_email_primary"]
