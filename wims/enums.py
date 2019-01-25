@@ -7,28 +7,26 @@
 #
 
 
-from enum import auto
-
 from enumfields import Enum
 
 
 
 class Role(Enum):
     """Used by .models.Profile to define the user's role."""
-    STUDENT = auto()
-    FACULTY = auto()
-    MEMBER = auto()
-    LEARNER = auto()
-    INSTRUCTOR = auto()
-    MENTOR = auto()
-    STAFF = auto()
-    ALUMNI = auto()
-    PROSPECTIVESTUDENT = auto()
-    GUEST = auto()
-    OTHER = auto()
-    ADMINISTRATOR = auto()
-    OBSERVER = auto()
-    NONE = auto()
+    STUDENT = 0
+    FACULTY = 1
+    MEMBER = 2
+    LEARNER = 3
+    INSTRUCTOR = 4
+    MENTOR = 5
+    STAFF = 6
+    ALUMNI = 7
+    PROSPECTIVESTUDENT = 8
+    GUEST = 9
+    OTHER = 10
+    ADMINISTRATOR = 11
+    OBSERVER = 12
+    NONE = 13
     
     
     class Label:
