@@ -8,33 +8,18 @@
 
 import logging
 
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
-from django.shortcuts import get_object_or_404, redirect
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
+from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from wimsapi import AdmRawError, WimsAPI
 
 from wims.exceptions import BadRequestException
 from wims.models import LMS, WIMS
-from wims.utils import (check_parameters, get_or_create_class, get_or_create_user,
-                        is_valid_request, parse_parameters)
+from wims.utils import (get_or_create_class, get_or_create_user, lti_request_is_valid,
+                        parse_parameters)
 
 
 logger = logging.getLogger(__name__)
-
-
-
-def lti_request_is_invalid(request):
-    """Returns None if the  LTI request is valid, an HttpResponseBadRequest
-    otherwise."""
-    parameters = parse_parameters(request.POST)
-    
-    try:
-        logger.info("Request received from '%s'" % request.META['HTTP_REFERER'])
-        check_parameters(parameters)
-        is_valid_request(request)
-    except BadRequestException as e:
-        logger.info(str(e))
-        return HttpResponseBadRequest(str(e))
 
 
 
@@ -57,7 +42,10 @@ def redirect_to_wims(request, wims_srv):
     parameters = parse_parameters(request.POST)
     
     # Retrieve LMS
-    lms = get_object_or_404(LMS, uuid=parameters["tool_consumer_instance_guid"])
+    try:
+        lms = LMS.objects.get(uuid=parameters["tool_consumer_instance_guid"])
+    except LMS.DoesNotExist:
+        raise Http404("No LMS found with uuid '%s'" % parameters["tool_consumer_instance_guid"])
     wapi = WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
     
     try:
@@ -91,8 +79,18 @@ def from_dns(request, dns):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed")
     
-    return (lti_request_is_invalid(request)
-            or redirect_to_wims(request, get_object_or_404(WIMS, dns=dns)))
+    try:
+        lti_request_is_valid(request)
+    except BadRequestException as e:
+        logger.info(str(e))
+        return HttpResponseBadRequest(str(e))
+    
+    try:
+        wims = WIMS.objects.get(dns=dns)
+    except WIMS.DoesNotExist:
+        raise Http404("No WIMS found with dns '%s'" % dns)
+    
+    return redirect_to_wims(request, wims)
 
 
 
@@ -102,5 +100,15 @@ def from_id(request, pk):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed")
     
-    return (lti_request_is_invalid(request)
-            or redirect_to_wims(request, get_object_or_404(WIMS, pk=pk)))
+    try:
+        lti_request_is_valid(request)
+    except BadRequestException as e:
+        logger.info(str(e))
+        return HttpResponseBadRequest(str(e))
+    
+    try:
+        wims = WIMS.objects.get(pk=pk)
+    except WIMS.DoesNotExist:
+        raise Http404("No WIMS found with id '%d'" % pk)
+    
+    return redirect_to_wims(request, wims)
