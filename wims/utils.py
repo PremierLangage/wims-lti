@@ -14,7 +14,7 @@ import sys
 import oauth2
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from lti_app.contrib.django import DjangoToolProvider
+from lti.contrib.django import DjangoToolProvider
 from wimsapi import AdmRawError, Class, User
 
 from wims.enums import Role
