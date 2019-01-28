@@ -14,7 +14,7 @@ import sys
 import oauth2
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from lti.contrib.django import DjangoToolProvider
+from lti_app.contrib.django import DjangoToolProvider
 from wimsapi import AdmRawError, Class, User
 
 from wims.enums import Role
@@ -48,7 +48,7 @@ def is_valid_request(request):
     secret = settings.LTI_OAUTH_CREDENTIALS.get(request_key)
     if secret is None:
         logger.info(
-                "LTI Authentification aborted: Could not get a secret for key '%s'" % request_key)
+            "LTI Authentification aborted: Could not get a secret for key '%s'" % request_key)
         raise BadRequestException("Could not get a secret for key '%s'" % request_key)
     
     try:
@@ -82,6 +82,15 @@ def check_parameters(param):
         missing = [i for i in settings.WIMSLTI_MANDATORY if param[i] is None]
         raise BadRequestException("LTI request is invalid, WIMS LTI require parameter(s): "
                                   + str(missing))
+
+
+
+def lti_request_is_valid(request):
+    """Raises wims.exceptions.BadRequestException if LTI request is invalid."""
+    parameters = parse_parameters(request.POST)
+    logger.info("Request received from '%s'" % request.META['HTTP_REFERER'])
+    check_parameters(parameters)
+    is_valid_request(request)
 
 
 
@@ -165,8 +174,8 @@ def get_or_create_class(lms, wims_srv, api, parameters):
         wclass = create_class(wims_srv.rclass, parameters)
         wclass.save(api.url, api.ident, api.passwd)
         wclass_db = WimsClass.objects.create(
-                lms=lms, lms_uuid=parameters["tool_consumer_instance_guid"],
-                wims=wims_srv, wims_uuid=wclass.qclass
+            lms=lms, lms_uuid=parameters["tool_consumer_instance_guid"],
+            wims=wims_srv, wims_uuid=wclass.qclass
         )
     
     return wclass_db, wclass
@@ -215,8 +224,8 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
                 user.quser += str(i)
         
         user_db = WimsUser.objects.create(
-                lms=lms, lms_uuid=parameters["tool_consumer_instance_guid"],
-                wclass=wclass_db, quser=user.quser
+            lms=lms, lms_uuid=parameters["tool_consumer_instance_guid"],
+            wclass=wclass_db, quser=user.quser
         )
     
     return user_db, user
