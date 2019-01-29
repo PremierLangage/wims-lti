@@ -89,8 +89,10 @@ class Role(Enum):
         urn, label = Role.map_urn(), Role.map_label()
         
         ret = []
-        for r in [r.split().title() if ":" in r else r.split() for r in role.split(",")]:
+        for r in [r.strip().title() if ":" in r else r.strip() for r in role.split(",")]:
             if ":" in r and r in urn:
                 ret.append(urn[r])
             elif r in label:
                 ret.append(label[r])
+        return ret
+
