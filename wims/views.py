@@ -69,7 +69,7 @@ def redirect_to_wims(request, wims_srv):
         logger.info(str(e))
         return HttpResponse(str(e), status=421)
     
-    return redirect(response["home"])
+    return redirect(response["home_url"])
 
 
 
@@ -77,7 +77,7 @@ def redirect_to_wims(request, wims_srv):
 def from_dns(request, dns):
     """Use the DNS to retrieve the WIMS model from the database."""
     if request.method != "POST":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed")
+        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
     
     try:
         lti_request_is_valid(request)
@@ -98,7 +98,7 @@ def from_dns(request, dns):
 def from_id(request, pk):
     """Use the PK to retrieve the WIMS model from the database."""
     if request.method != "POST":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed")
+        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
     
     try:
         lti_request_is_valid(request)
