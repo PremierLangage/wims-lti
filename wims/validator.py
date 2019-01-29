@@ -19,6 +19,8 @@ class RequestValidator(BaseRequestValidator):
     
     
     def validate_client_key(self, client_key, request):
+        if client_key in settings.LTI_OAUTH_CREDENTIALS:
+            logger.info("Invalid LTI request: '%s' not in LTI_OAUTH_CREDENTIALS")
         return client_key in settings.LTI_OAUTH_CREDENTIALS
     
     
@@ -32,7 +34,10 @@ class RequestValidator(BaseRequestValidator):
     
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce, request,
                                      request_token=None, access_token=None):
-        return int(time.time()) - int(timestamp) < 1800
+        b = int(time.time()) - int(timestamp) < 1800
+        if b:
+            logger.info("Invalid LTI request: timestamp outdated")
+        return b
     
     
     def validate_redirect_uri(self, client_key, redirect_uri, request):
