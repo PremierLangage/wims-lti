@@ -61,7 +61,7 @@ ROOT_URLCONF = 'wimsLTI.urls'
 TEMPLATES = [
     {
         'BACKEND' : 'django.template.backends.django.DjangoTemplates',
-        'DIRS'    : [],
+        'DIRS'    : [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS' : {
             'context_processors': [
@@ -156,7 +156,7 @@ WIMSLTI_MANDATORY = [
 
 # LTI Credentials
 LTI_OAUTH_CREDENTIALS = {
-    'moodle': 'secret',
+    'wimslti': 'password',
 }
 
 # List of Roles that are allowed to create new classes on the WIMS servers
@@ -180,3 +180,4 @@ USE_TZ = True
 
 # Allow the file 'wimsLTI/config.py' to override these settings.
 from wimsLTI.config import *
+
