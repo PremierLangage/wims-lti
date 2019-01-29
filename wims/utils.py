@@ -158,7 +158,7 @@ def create_class(rclass, parameters):
     institution = parameters["tool_consumer_instance_description"]
     cpassword = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     upassword = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
-    supervisor = User("supervisor", "Moodle", "Moodle", upassword, mail)
+    supervisor = User("supervisor", "Supervisor", "", upassword, mail)
     
     return Class(rclass, title, institution, mail, cpassword, supervisor)
 
@@ -205,7 +205,7 @@ def create_user(parameters):
 def get_or_create_user(lms, wclass_db, wclass, parameters):
     try:
         role = Role.parse_role_lti(parameters["roles"])
-        if set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
+        if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
             user_db = WimsUser.objects.get(lms=lms, lms_uuid=None, wclass=wclass_db)
         else:
             user_db = WimsUser.objects.get(lms=lms, lms_uuid=parameters['user_id'],
