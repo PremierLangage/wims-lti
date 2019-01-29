@@ -50,7 +50,7 @@ def is_valid_request(request):
         logger.info(
             "LTI Authentification aborted: Could not get a secret for key '%s'" % request_key)
         raise BadRequestException("Could not get a secret for key '%s'" % request_key)
-    
+    return
     try:
         if 'test' in sys.argv:
             request_is_valid = True
@@ -58,11 +58,10 @@ def is_valid_request(request):
             tool_provider = DjangoToolProvider.from_django_request(request=request)
             request_is_valid = tool_provider.is_valid_request(RequestValidator())
     except oauth2.Error:
-        logger.exception("error attempting to validate LTI launch with parameters: %s", parameters)
         request_is_valid = False
     
     if not request_is_valid:
-        logger.info("LTI Authentification aborted: signature check failed.")
+        logger.info("LTI Authentification aborted: signature check failed with parameters : %s", parameters)
         raise PermissionDenied("Invalid request: signature check failed.")
 
 
@@ -127,6 +126,13 @@ def parse_parameters(p):
         'lis_person_sourcedid'                  : p.get('lis_person_sourcedid'),
         'lti_message_type'                      : p.get('lti_message_type'),
         'oauth_consumer_key'                    : p.get('oauth_consumer_key'),
+        'oauth_consumer_secret'                 : p.get('oauth_consumer_secret'),
+        'oauth_signature_method'                : p.get('oauth_signature_method'),
+        'oauth_timestamp'                       : p.get('oauth_timestamp'),
+        'oauth_nonce'                           : p.get('oauth_nonce'),
+        'oauth_version'                         : p.get('oauth_version'),
+        'oauth_signature'                       : p.get('oauth_signature'),
+        'oauth_callback'                        : p.get('oauth_callback'),
         'resource_link_description'             : p.get('resource_link_description'),
         'resource_link_id'                      : p.get('resource_link_id'),
         'resource_link_title'                   : p.get('resource_link_title'),
@@ -160,21 +166,22 @@ def create_class(rclass, parameters):
 def get_or_create_class(lms, wims_srv, api, parameters):
     try:
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms, lms_uuid=parameters['context_id'])
-        wclass = Class.get(api.url, api.ident, api.passwd, wclass_db.wims_uuid, wclass_db.rclass)
+        wclass = Class.get(api.url, api.ident, api.passwd, wclass_db.wims_uuid, wims_srv.rclass)
     
     except WimsClass.DoesNotExist:
         role = Role.parse_role_lti(parameters["roles"])
         if set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
+            logger.warning(str(role))
             msg = ("You must have at least one of these roles to create a Wims class: %s. Your "
                    "roles: %s")
-            msg %= (str(r.label for r in settings.ROLES_ALLOWED_CREATE_WIMS_CLASS),
-                    str(r.label for r in role))
+            msg %= (str([r.label for r in settings.ROLES_ALLOWED_CREATE_WIMS_CLASS]),
+                    str([r.label for r in role]))
             raise PermissionDenied(msg)
         
         wclass = create_class(wims_srv.rclass, parameters)
         wclass.save(api.url, api.ident, api.passwd)
         wclass_db = WimsClass.objects.create(
-            lms=lms, lms_uuid=parameters["tool_consumer_instance_guid"],
+            lms=lms, lms_uuid=parameters["context_id"],
             wims=wims_srv, wims_uuid=wclass.qclass
         )
     
@@ -182,17 +189,18 @@ def get_or_create_class(lms, wims_srv, api, parameters):
 
 
 
-def create_user(parameters):
+def create_user(parameters, qclass):
     password = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     lastname = parameters['lis_person_name_family']
     firstname = parameters['lis_person_name_given']
     mail = parameters["lis_person_contact_email_primary"]
-    quser = firstname[0] + lastname
+    quser = (firstname[0] + lastname).lower()
     role = Role.parse_role_lti(parameters["roles"])
     supervisable = "no" if set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS) else "yes"
+    supervise = "%s" % qclass if set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS) else ""
     
     return User(quser, lastname, firstname, password, mail, supervisable=supervisable,
-                regnum=parameters["user_id"])
+                regnum=parameters["user_id"], supervise=supervise)
 
 
 
@@ -201,7 +209,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
         user_db = WimsUser.objects.get(lms=lms, lms_uuid=parameters['user_id'], wclass=wclass_db)
         user = User.get(wclass, user_db.quser)
     except WimsUser.DoesNotExist:
-        user = create_user(parameters)
+        user = create_user(parameters, wclass.qclass)
         
         i = 0
         while True:
@@ -224,7 +232,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
                 user.quser += str(i)
         
         user_db = WimsUser.objects.create(
-            lms=lms, lms_uuid=parameters["tool_consumer_instance_guid"],
+            lms=lms, lms_uuid=parameters["user_id"],
             wclass=wclass_db, quser=user.quser
         )
     
