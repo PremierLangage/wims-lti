@@ -73,7 +73,7 @@ class WimsClass(models.Model):
 class WimsUser(models.Model):
     """Represent an user on a WIMS server."""
     lms = models.ForeignKey(LMS, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256)
+    lms_uuid = models.CharField(max_length=256, null=True)
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
     quser = models.CharField(max_length=256)
     
