@@ -6,10 +6,14 @@
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
 
+import logging
 import time
 
 from django.conf import settings
 from oauthlib.oauth1 import RequestValidator as BaseRequestValidator
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -19,9 +23,10 @@ class RequestValidator(BaseRequestValidator):
     
     
     def validate_client_key(self, client_key, request):
-        if client_key in settings.LTI_OAUTH_CREDENTIALS:
+        b = client_key in settings.LTI_OAUTH_CREDENTIALS
+        if not b:
             logger.info("Invalid LTI request: '%s' not in LTI_OAUTH_CREDENTIALS")
-        return client_key in settings.LTI_OAUTH_CREDENTIALS
+        return b
     
     
     def validate_request_token(self, client_key, token, reques):
@@ -35,7 +40,7 @@ class RequestValidator(BaseRequestValidator):
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce, request,
                                      request_token=None, access_token=None):
         b = int(time.time()) - int(timestamp) < 1800
-        if b:
+        if not b:
             logger.info("Invalid LTI request: timestamp outdated")
         return b
     
