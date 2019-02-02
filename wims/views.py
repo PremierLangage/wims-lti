@@ -76,6 +76,9 @@ def redirect_to_wims(request, wims_srv):
 @csrf_exempt
 def from_dns(request, dns):
     """Use the DNS to retrieve the WIMS model from the database."""
+    if request.method == "GET":
+        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget"
+                                                "trailing '/' ?")
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
     
@@ -88,7 +91,7 @@ def from_dns(request, dns):
     try:
         wims = WIMS.objects.get(dns=dns)
     except WIMS.DoesNotExist:
-        raise Http404("No WIMS found with dns '%s'" % dns)
+        raise Http404("Unknown WIMS server '%s'" % dns)
     
     return redirect_to_wims(request, wims)
 
@@ -97,6 +100,9 @@ def from_dns(request, dns):
 @csrf_exempt
 def from_id(request, pk):
     """Use the PK to retrieve the WIMS model from the database."""
+    if request.method == "GET":
+        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget"
+                                                "trailing '/' ?")
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
     
@@ -109,6 +115,6 @@ def from_id(request, pk):
     try:
         wims = WIMS.objects.get(pk=pk)
     except WIMS.DoesNotExist:
-        raise Http404("No WIMS found with id '%d'" % pk)
+        raise Http404("Unknown WIMS server of id '%d'" % pk)
     
     return redirect_to_wims(request, wims)
