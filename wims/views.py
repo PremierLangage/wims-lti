@@ -9,7 +9,7 @@
 import logging
 
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render, reverse
 from django.views.decorators.csrf import csrf_exempt
 from wimsapi import AdmRawError, WimsAPI
 
@@ -77,7 +77,7 @@ def redirect_to_wims(request, wims_srv):
 def from_dns(request, dns):
     """Use the DNS to retrieve the WIMS model from the database."""
     if request.method == "GET":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget"
+        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
                                                 "trailing '/' ?")
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
@@ -101,7 +101,7 @@ def from_dns(request, dns):
 def from_id(request, pk):
     """Use the PK to retrieve the WIMS model from the database."""
     if request.method == "GET":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget"
+        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
                                                 "trailing '/' ?")
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
@@ -118,3 +118,17 @@ def from_id(request, pk):
         raise Http404("Unknown WIMS server of id '%d'" % pk)
     
     return redirect_to_wims(request, wims)
+
+
+
+@csrf_exempt
+def list(request):
+    """List all available LMS and WIMS server."""
+    wserver = WIMS.objects.all()
+    for w in wserver:
+        w.lti_url = request.build_absolute_uri(reverse("wims:from_dns", args=[w.dns]))
+    
+    return render(request, 'wims/list.html', {
+        "LMS":  LMS.objects.all(),
+        "WIMS": wserver,
+    })

@@ -17,6 +17,7 @@ register_converter(converters.DNSConverter, 'dns')
 app_name = "wims"
 
 urlpatterns = [
-    path('dns/<dns:dns>/', views.from_dns),
-    path('id/<int:pk>/', views.from_id),
+    path('dns/<dns:dns>/', views.from_dns, name="from_dns"),
+    path('id/<int:pk>/', views.from_id, name="from_id"),
+    path('list/', views.list, name="list"),
 ]
