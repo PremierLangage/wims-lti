@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
 
 from wims import models
 
@@ -25,3 +26,7 @@ class WIMSClassAdmin(admin.ModelAdmin):
 @admin.register(models.WimsUser)
 class WIMSUserAdmin(admin.ModelAdmin):
     list_display = ('id', 'lms', 'lms_uuid', 'wclass', 'quser')
+
+
+
+admin.site.unregister(Group)
