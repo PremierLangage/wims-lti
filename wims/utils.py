@@ -98,61 +98,62 @@ def parse_parameters(p):
     """Returns the a dictionnary of the LTI request parameters,
     replacing missing parameters with None."""
     return {
-        'lti_version'                           : p.get('lti_version'),
-        'context_id'                            : p.get('context_id'),
-        'context_label'                         : p.get('context_label'),
-        'context_title'                         : p.get('context_title'),
-        'context_type'                          : p.get('context_type'),
-        'custom_canvas_account_id'              : p.get('custom_canvas_account_id'),
-        'custom_canvas_account_sis_id'          : p.get('custom_canvas_account_sis_id'),
-        'custom_canvas_api_domain'              : p.get('custom_canvas_api_domain'),
-        'custom_canvas_course_id'               : p.get('custom_canvas_course_id'),
-        'custom_canvas_enrollment_state'        : p.get('custom_canvas_enrollment_state'),
-        'custom_canvas_membership_roles'        : p.get('custom_canvas_membership_roles', ''),
-        'custom_canvas_user_id'                 : p.get('custom_canvas_user_id'),
-        'custom_canvas_user_login_id'           : p.get('custom_canvas_user_login_id'),
-        'launch_presentation_css_url'           : p.get('launch_presentation_css_url'),
-        'launch_presentation_document_target'   : p.get('launch_presentation_document_target'),
-        'launch_presentation_height'            : p.get('launch_presentation_height'),
-        'launch_presentation_locale'            : p.get('launch_presentation_locale'),
-        'launch_presentation_return_url'        : p.get('launch_presentation_return_url'),
-        'launch_presentation_width'             : p.get('launch_presentation_width'),
-        'lis_course_offering_sourcedid'         : p.get('lis_course_offering_sourcedid'),
-        'lis_outcome_service_url'               : p.get('lis_outcome_service_url'),
-        'lis_result_sourcedid'                  : p.get('lis_result_sourcedid'),
-        'lis_person_contact_email_primary'      : p.get('lis_person_contact_email_primary'),
-        'lis_person_name_family'                : p.get('lis_person_name_family'),
-        'lis_person_name_full'                  : p.get('lis_person_name_full'),
-        'lis_person_name_given'                 : p.get('lis_person_name_given'),
-        'lis_person_sourcedid'                  : p.get('lis_person_sourcedid'),
-        'lti_message_type'                      : p.get('lti_message_type'),
-        'oauth_consumer_key'                    : p.get('oauth_consumer_key'),
-        'oauth_consumer_secret'                 : p.get('oauth_consumer_secret'),
-        'oauth_signature_method'                : p.get('oauth_signature_method'),
-        'oauth_timestamp'                       : p.get('oauth_timestamp'),
-        'oauth_nonce'                           : p.get('oauth_nonce'),
-        'oauth_version'                         : p.get('oauth_version'),
-        'oauth_signature'                       : p.get('oauth_signature'),
-        'oauth_callback'                        : p.get('oauth_callback'),
-        'resource_link_description'             : p.get('resource_link_description'),
-        'resource_link_id'                      : p.get('resource_link_id'),
-        'resource_link_title'                   : p.get('resource_link_title'),
-        'roles'                                 : p.get('roles', ''),
-        'selection_directive'                   : p.get('selection_directive'),
+        'lti_version':                            p.get('lti_version'),
+        'context_id':                             p.get('context_id'),
+        'context_label':                          p.get('context_label'),
+        'context_title':                          p.get('context_title'),
+        'context_type':                           p.get('context_type'),
+        'custom_canvas_account_id':               p.get('custom_canvas_account_id'),
+        'custom_canvas_account_sis_id':           p.get('custom_canvas_account_sis_id'),
+        'custom_canvas_api_domain':               p.get('custom_canvas_api_domain'),
+        'custom_canvas_course_id':                p.get('custom_canvas_course_id'),
+        'custom_canvas_enrollment_state':         p.get('custom_canvas_enrollment_state'),
+        'custom_canvas_membership_roles':         p.get('custom_canvas_membership_roles', ''),
+        'custom_canvas_user_id':                  p.get('custom_canvas_user_id'),
+        'custom_canvas_user_login_id':            p.get('custom_canvas_user_login_id'),
+        'launch_presentation_css_url':            p.get('launch_presentation_css_url'),
+        'launch_presentation_document_target':    p.get('launch_presentation_document_target'),
+        'launch_presentation_height':             p.get('launch_presentation_height'),
+        'launch_presentation_locale':             p.get('launch_presentation_locale'),
+        'launch_presentation_return_url':         p.get('launch_presentation_return_url'),
+        'launch_presentation_width':              p.get('launch_presentation_width'),
+        'lis_course_offering_sourcedid':          p.get('lis_course_offering_sourcedid'),
+        'lis_outcome_service_url':                p.get('lis_outcome_service_url'),
+        'lis_result_sourcedid':                   p.get('lis_result_sourcedid'),
+        'lis_person_contact_email_primary':       p.get('lis_person_contact_email_primary'),
+        'lis_person_name_family':                 p.get('lis_person_name_family'),
+        'lis_person_name_full':                   p.get('lis_person_name_full'),
+        'lis_person_name_given':                  p.get('lis_person_name_given'),
+        'lis_person_sourcedid':                   p.get('lis_person_sourcedid'),
+        'lti_message_type':                       p.get('lti_message_type'),
+        'oauth_consumer_key':                     p.get('oauth_consumer_key'),
+        'oauth_consumer_secret':                  p.get('oauth_consumer_secret'),
+        'oauth_signature_method':                 p.get('oauth_signature_method'),
+        'oauth_timestamp':                        p.get('oauth_timestamp'),
+        'oauth_nonce':                            p.get('oauth_nonce'),
+        'oauth_version':                          p.get('oauth_version'),
+        'oauth_signature':                        p.get('oauth_signature'),
+        'oauth_callback':                         p.get('oauth_callback'),
+        'resource_link_description':              p.get('resource_link_description'),
+        'resource_link_id':                       p.get('resource_link_id'),
+        'resource_link_title':                    p.get('resource_link_title'),
+        'roles':                                  p.get('roles', ''),
+        'selection_directive':                    p.get('selection_directive'),
         'tool_consumer_info_product_family_code': p.get('tool_consumer_info_product_family_code'),
-        'tool_consumer_info_version'            : p.get('tool_consumer_info_version'),
-        'tool_consumer_instance_contact_email'  : p.get('tool_consumer_instance_contact_email'),
-        'tool_consumer_instance_description'    : p.get('tool_consumer_instance_description'),
-        'tool_consumer_instance_guid'           : p.get('tool_consumer_instance_guid'),
-        'tool_consumer_instance_name'           : p.get('tool_consumer_instance_name'),
-        'tool_consumer_instance_url'            : p.get('tool_consumer_instance_url'),
-        'user_id'                               : p.get('user_id'),
-        'user_image'                            : p.get('user_image'),
+        'tool_consumer_info_version':             p.get('tool_consumer_info_version'),
+        'tool_consumer_instance_contact_email':   p.get('tool_consumer_instance_contact_email'),
+        'tool_consumer_instance_description':     p.get('tool_consumer_instance_description'),
+        'tool_consumer_instance_guid':            p.get('tool_consumer_instance_guid'),
+        'tool_consumer_instance_name':            p.get('tool_consumer_instance_name'),
+        'tool_consumer_instance_url':             p.get('tool_consumer_instance_url'),
+        'user_id':                                p.get('user_id'),
+        'user_image':                             p.get('user_image'),
     }
 
 
 
 def create_class(rclass, parameters):
+    """Create an instance of wimsapi.Class with the given LTI request's parameters and rclass."""
     mail = parameters["lis_person_contact_email_primary"]
     title = parameters["context_title"]
     institution = parameters["tool_consumer_instance_description"]
@@ -166,6 +167,16 @@ def create_class(rclass, parameters):
 
 
 def get_or_create_class(lms, wims_srv, api, parameters):
+    """Get the WIMS' class database and wimsapi.Class instances, create them if they does not
+    exists.
+    
+    Raises:
+        - exceptions.PermissionDenied if the class does not exists and none of the roles in the LTI
+              request's parameters is in ROLES_ALLOWED_CREATE_WIMS_CLASS.
+        - wimsapi.AdmRawError if the WIMS' server denied a request or could not be joined.
+    
+    Returns a tuple (wclass_db, wclass) where wclas_db is an instance of models.WimsClass and wclass
+    an instance of wimsapi.Class."""
     try:
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms, lms_uuid=parameters['context_id'])
         wclass = Class.get(api.url, api.ident, api.passwd, wclass_db.wims_uuid, wims_srv.rclass)
@@ -187,23 +198,34 @@ def get_or_create_class(lms, wims_srv, api, parameters):
             wims=wims_srv, wims_uuid=wclass.qclass
         )
         WimsUser.objects.create(lms=lms, wclass=wclass_db, quser="supervisor")
-
+    
     return wclass_db, wclass
 
 
 
 def create_user(parameters):
+    """Create an instance of wimsapi.User with the given LTI request's parameters."""
     password = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     lastname = parameters['lis_person_name_family']
     firstname = parameters['lis_person_name_given']
     mail = parameters["lis_person_contact_email_primary"]
     quser = (firstname[0] + lastname).lower()
-
+    
     return User(quser, lastname, firstname, password, mail, regnum=parameters["user_id"])
 
 
 
 def get_or_create_user(lms, wclass_db, wclass, parameters):
+    """Get the WIMS' user database and wimsapi.User instances, create them if they does not exists.
+    
+    If at least one of the roles in the LTI request's parameters is in
+    ROLES_ALLOWED_CREATE_WIMS_CLASS, the user will be connected as supervisor.
+    
+    Raises:
+        - wimsapi.AdmRawError if the WIMS' server denied a request or could not be joined.
+
+    Returns a tuple (user_db, user) where user_db is an instance of models.WimsUser and
+    user an instance of wimsapi.User."""
     try:
         role = Role.parse_role_lti(parameters["roles"])
         if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
@@ -226,7 +248,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
                 # jdoe2, ...), stopping after 100 tries.
                 
                 # Can also be raised if an error occured while communicating with the
-                # WIMS server, hence the follow test.
+                # WIMS server, hence the following test.
                 if "user already exists" not in str(e) or i >= 100:
                     raise
                 

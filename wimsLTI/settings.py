@@ -60,10 +60,10 @@ ROOT_URLCONF = 'wimsLTI.urls'
 
 TEMPLATES = [
     {
-        'BACKEND' : 'django.template.backends.django.DjangoTemplates',
-        'DIRS'    : [os.path.join(BASE_DIR, 'templates')],
+        'BACKEND':  'django.template.backends.django.DjangoTemplates',
+        'DIRS':     [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
-        'OPTIONS' : {
+        'OPTIONS':  {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -81,51 +81,51 @@ WSGI_APPLICATION = 'wimsLTI.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME'  : os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME':   os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
 # Logging informations
 LOGGING = {
-    'version'                 : 1,
+    'version':                  1,
     'disable_existing_loggers': False,
-    'filters'                 : {
+    'filters':                  {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse',
         },
-        'require_debug_true' : {
+        'require_debug_true':  {
             '()': 'django.utils.log.RequireDebugTrue',
         },
     },
-    'formatters'              : {
+    'formatters':               {
         'verbose': {
-            'format' : '[%(asctime)-15s] %(levelname)s -- '
+            'format':  '[%(asctime)-15s] %(levelname)s -- '
                        'File: %(pathname)s line n°%(lineno)d -- %(message)s',
             'datefmt': '%Y/%m/%d %H:%M:%S'
         },
-        'simple' : {
-            'format' : '[%(asctime)-15s] %(levelname)s -- %(message)s',
+        'simple':  {
+            'format':  '[%(asctime)-15s] %(levelname)s -- %(message)s',
             'datefmt': '%Y/%m/%d %H:%M:%S'
         },
     },
-    'handlers'                : {
-        'console'    : {
-            'level'    : 'DEBUG',
-            'filters'  : ['require_debug_true'],
-            'class'    : 'logging.StreamHandler',
+    'handlers':                 {
+        'console':     {
+            'level':     'DEBUG',
+            'filters':   ['require_debug_true'],
+            'class':     'logging.StreamHandler',
             'formatter': 'simple'
         },
         'mail_admins': {
-            'level'       : 'ERROR',
-            'class'       : 'django.utils.log.AdminEmailHandler',
+            'level':        'ERROR',
+            'class':        'django.utils.log.AdminEmailHandler',
             'include_html': True,
-            'formatter'   : 'verbose'
+            'formatter':    'verbose'
         }
     },
-    'loggers'                 : {
+    'loggers':                  {
         '': {
             'handlers': ['console', 'mail_admins'],
-            'level'   : 'INFO',
+            'level':    'INFO',
         },
     },
 }
@@ -180,4 +180,3 @@ USE_TZ = True
 
 # Allow the file 'wimsLTI/config.py' to override these settings.
 from wimsLTI.config import *
-
