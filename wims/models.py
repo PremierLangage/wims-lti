@@ -37,6 +37,7 @@ class WIMS(models.Model):
         max_length=2048, unique=True, db_index=True,
         validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")]
     )
+    name = models.CharField(max_length=2048)
     ident = models.CharField(max_length=2048, help_text=wims_help)
     passwd = models.CharField(max_length=2048, help_text=wims_help)
     rclass = models.CharField(max_length=2048, help_text=wims_help)
@@ -50,6 +51,10 @@ class LMS(models.Model):
     """Represents a LMS."""
     uuid = models.CharField(max_length=2048, primary_key=True)
     name = models.CharField(max_length=2048, null=False)
+    url = models.CharField(
+        max_length=2048,
+        validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")]
+    )
     
     class Meta:
         verbose_name_plural = "LMS"
