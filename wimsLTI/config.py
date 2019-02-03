@@ -16,10 +16,12 @@ one in settings.py.
 
 In any case, you should at least override DEBUG to False, SECRET_KEY and ALLOWED_HOSTS.
 
-You may also consider overriding CSRF_COOKIE_SECURE, SESSION_COOKIE_SECURE, DATABASES,
-LOGGING, EMAIL_BACKEND and its related settings.
+You may also consider overriding DATABASES, LOGGING, EMAIL_BACKEND and its related settings.
 
 For more informations, see:
  - Django's settings | https://docs.djangoproject.com/en/2.1/ref/settings/
  - Deployment checklist | https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 """
+
+# THE LINE BELOW MUST BE UNCOMMENTED BEFORE DEPLOYEMENT
+# DEBUG = False
