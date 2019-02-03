@@ -83,7 +83,11 @@ def check_parameters(param):
 
 
 def lti_request_is_valid(request):
-    """Raises wims.exceptions.BadRequestException if LTI request is invalid."""
+    """Check that the LTI request is valid.
+    Raises :
+        - wims.exceptions.BadRequestException if LTI request is invalid.
+        - PermissioNDenied if signature check failed.
+    """
     parameters = parse_parameters(request.POST)
     logger.info("Request received from '%s'" % request.META['HTTP_REFERER'])
     check_parameters(parameters)
