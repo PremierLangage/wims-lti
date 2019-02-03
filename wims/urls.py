@@ -7,7 +7,7 @@
 #
 
 
-from django.urls import path, re_path, register_converter
+from django.urls import path, register_converter
 
 from wims import converters, views
 
@@ -21,5 +21,5 @@ urlpatterns = [
     path('id/<int:pk>/', views.from_id, name="from_id"),
     path('list/', views.ls, name="ls"),
     path('', views.about, name="about"),
-    re_path('about/(?P<lang>[a-z]{2})/', views.about, name="about"),
+    path('about/<str:lang>/', views.about, name="about"),
 ]
