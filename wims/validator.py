@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 class RequestValidator(BaseRequestValidator):
     """Implements a RequestValidator according to
     https://oauthlib.readthedocs.io/en/latest/oauth1/validator.html"""
-    
+
+    client_key_length = (3, 100)
+    nonce_length = (3, 100)
     
     def validate_client_key(self, client_key, request):
         b = client_key in settings.LTI_OAUTH_CREDENTIALS
@@ -66,7 +68,7 @@ class RequestValidator(BaseRequestValidator):
     
     
     def get_client_secret(self, client_key, request):
-        return settings.LTI_OAUTH_CREDENTIALS.get("client_key", "dummy")
+        return settings.LTI_OAUTH_CREDENTIALS.get(client_key, "dummy")
     
     
     def get_request_token_secret(self, client_key, token, reques):
