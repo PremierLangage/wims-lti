@@ -142,17 +142,23 @@ LTI_MANDATORY = [
     'lti_message_type',
     'lti_version',
     'resource_link_id',
+    'oauth_consumer_key',
+    'oauth_signature_method',
+    'oauth_timestamp',
+    'oauth_nonce',
+    'oauth_signature',
 ]
 
 WIMSLTI_MANDATORY = [
     'context_id',
     'context_title',
     'user_id',
+    'tool_consumer_instance_description',
+    'launch_presentation_locale',
     'lis_person_contact_email_primary',
     'lis_person_name_family',
     'lis_person_name_given',
     'roles',
-    'oauth_consumer_key',
 ]
 
 # LTI Credentials

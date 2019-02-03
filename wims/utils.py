@@ -188,8 +188,8 @@ def get_or_create_class(lms, wims_srv, api, parameters):
             logger.warning(str(role))
             msg = ("You must have at least one of these roles to create a Wims class: %s. Your "
                    "roles: %s")
-            msg %= (str([r.label for r in settings.ROLES_ALLOWED_CREATE_WIMS_CLASS]),
-                    str([r.label for r in role]))
+            msg %= (str([r.value for r in settings.ROLES_ALLOWED_CREATE_WIMS_CLASS]),
+                    str([r.value for r in role]))
             raise PermissionDenied(msg)
         
         wclass = create_class(wims_srv.rclass, parameters)
