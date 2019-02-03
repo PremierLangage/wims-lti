@@ -53,7 +53,8 @@ def is_valid_request(request):
     try:
         tool_provider = DjangoToolProvider.from_django_request(request=request)
         request_is_valid = tool_provider.is_valid_request(RequestValidator())
-    except oauth2.Error:
+    except oauth2.Error as e:  # pragma: no cover
+        logger.warning("Oauth authentication failed : %s" % str(e))
         request_is_valid = False
     
     if not request_is_valid:
