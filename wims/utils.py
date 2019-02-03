@@ -9,7 +9,6 @@
 import logging
 import random
 import string
-import sys
 
 import oauth2
 from django.conf import settings
@@ -52,15 +51,12 @@ def is_valid_request(request):
         raise BadRequestException("Could not get a secret for key '%s'" % request_key)
     
     try:
-        if 'test' in sys.argv:
-            request_is_valid = True
-        else:
-            tool_provider = DjangoToolProvider.from_django_request(request=request)
-            request_is_valid = tool_provider.is_valid_request(RequestValidator())
+        tool_provider = DjangoToolProvider.from_django_request(request=request)
+        request_is_valid = tool_provider.is_valid_request(RequestValidator())
     except oauth2.Error:
         request_is_valid = False
     
-    if not request_is_valid and False:  # FIXME LTI signature not working
+    if not request_is_valid:
         logger.info("LTI Authentification aborted: signature check failed with parameters : %s",
                     parameters)
         raise PermissionDenied("Invalid request: signature check failed.")
