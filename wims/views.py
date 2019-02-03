@@ -73,7 +73,8 @@ def redirect_to_wims(request, wims_srv):
 
 
 def from_dns(request, dns):
-    """Use the DNS to retrieve the WIMS model from the database."""
+    """Use <dns> to retrieve the WIMS model from the database.
+    Raises Http404 if the WIMS model corresponding to <dns> could not be found."""
     if request.method == "GET":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
                                                 "trailing '/' ?")
@@ -96,7 +97,8 @@ def from_dns(request, dns):
 
 
 def from_id(request, pk):
-    """Use the PK to retrieve the WIMS model from the database."""
+    """Use the <pk> to retrieve the WIMS model from the database.
+    Raises Http404 if the WIMS model corresponding to <pk> could not be found."""
     if request.method == "GET":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
                                                 "trailing '/' ?")
