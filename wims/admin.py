@@ -13,7 +13,7 @@ class LMSAdmin(admin.ModelAdmin):
 
 @admin.register(models.WIMS)
 class WIMSAdmin(admin.ModelAdmin):
-    list_display = ('id', 'dns', 'url')
+    list_display = ('id', 'name', 'dns', 'url')
 
 
 
