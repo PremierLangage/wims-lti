@@ -13,7 +13,8 @@ from wims.converters import DNSConverter
 
 
 wims_help = "See 'https://wimsapi.readthedocs.io/#configuration' for more informations"
-
+lms_uuid_help = ("Must be equal to the parameter 'tool_consumer_instance_guid' sent by the LMS in "
+                 "the LTI request.")
 
 
 class WIMS(models.Model):
@@ -35,7 +36,8 @@ class WIMS(models.Model):
     )
     url = models.CharField(
         max_length=2048, unique=True, db_index=True,
-        validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")]
+        validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")],
+        help_text = "URL must point to the WIMS' server cgi."
     )
     name = models.CharField(max_length=2048)
     ident = models.CharField(max_length=2048, help_text=wims_help)
@@ -49,7 +51,7 @@ class WIMS(models.Model):
 
 class LMS(models.Model):
     """Represents a LMS."""
-    uuid = models.CharField(max_length=2048, primary_key=True)
+    uuid = models.CharField(max_length=2048, primary_key=True, help_text=lms_uuid_help)
     name = models.CharField(max_length=2048, null=False)
     url = models.CharField(
         max_length=2048,
