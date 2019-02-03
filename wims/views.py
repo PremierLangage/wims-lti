@@ -73,7 +73,6 @@ def redirect_to_wims(request, wims_srv):
 
 
 
-@csrf_exempt
 def from_dns(request, dns):
     """Use the DNS to retrieve the WIMS model from the database."""
     if request.method == "GET":
@@ -97,7 +96,6 @@ def from_dns(request, dns):
 
 
 
-@csrf_exempt
 def from_id(request, pk):
     """Use the PK to retrieve the WIMS model from the database."""
     if request.method == "GET":
@@ -121,9 +119,8 @@ def from_id(request, pk):
 
 
 
-@csrf_exempt
-def list(request):
-    """List all available LMS and WIMS server."""
+def ls(request):
+    """List all available LMS and WIMS server and their URL."""
     wserver = WIMS.objects.all()
     for w in wserver:
         w.lti_url = request.build_absolute_uri(reverse("wims:from_dns", args=[w.dns]))
@@ -131,4 +128,18 @@ def list(request):
     return render(request, 'wims/list.html', {
         "LMS":  LMS.objects.all(),
         "WIMS": wserver,
+    })
+
+
+def about(request, lang="en"):
+    """Display the README of the project in the given language.
+    Raises Http404 if the translation of the README for the given language does not exists."""
+    try:
+        with open("README.md" if lang == "en" else "translation/README_%s.md" % lang) as f:
+            content = f.read()
+    except OSError:
+        raise Http404("Unknown language : '%s'" % lang)
+    
+    return render(request, 'wims/about.html', {
+        "README": content,
     })

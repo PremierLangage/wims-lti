@@ -1,0 +1,12 @@
+{% load markdown %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>WIMS - LTI</title>
+    </head>
+    <body>
+        {{ README | markdown | safe }}
+    </body>
+</html>
