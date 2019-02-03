@@ -10,7 +10,6 @@ import logging
 
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.shortcuts import redirect, render, reverse
-from django.views.decorators.csrf import csrf_exempt
 from wimsapi import AdmRawError, WimsAPI
 
 from wims.exceptions import BadRequestException
@@ -129,6 +128,7 @@ def ls(request):
         "LMS":  LMS.objects.all(),
         "WIMS": wserver,
     })
+
 
 
 def about(request, lang="en"):
