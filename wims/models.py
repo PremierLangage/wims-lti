@@ -17,6 +17,7 @@ lms_uuid_help = ("Must be equal to the parameter 'tool_consumer_instance_guid' s
                  "the LTI request.")
 
 
+
 class WIMS(models.Model):
     """Represents a WIMS server.
     
@@ -37,7 +38,7 @@ class WIMS(models.Model):
     url = models.CharField(
         max_length=2048, unique=True, db_index=True,
         validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")],
-        help_text = "URL must point to the WIMS' server cgi."
+        help_text="URL must point to the WIMS' server cgi."
     )
     name = models.CharField(max_length=2048)
     ident = models.CharField(max_length=2048, help_text=wims_help)

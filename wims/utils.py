@@ -241,7 +241,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
         i = 0
         while True:
             try:
-                user.save(wclass)
+                wclass.additem(user)
                 break
             except AdmRawError as e:
                 # Raised if an user with an user with the same quser already exists,
