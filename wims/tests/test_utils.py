@@ -351,6 +351,19 @@ class CheckParametersTestCase(TestCase):
 
 class GetOrCreateClassTestCase(TestCase):
     
+    def tearDown(self):
+        """Delete created class with known ID."""
+        api = WimsAPI(WIMS_URL, "myself", "toto")
+        api.delclass(60000, "myclass")
+        api.delclass(60001, "myclass")
+        api.delclass(60002, "myclass")
+        api.delclass(60003, "myclass")
+        api.delclass(60004, "myclass")
+        api.delclass(60005, "myclass")
+        api.delclass(60006, "myclass")
+        super().tearDown()
+    
+    
     def test_get_or_create_class_create_ok(self):
         params = {
             'lti_message_type':                   'basic-lti-launch-request',
@@ -373,7 +386,7 @@ class GetOrCreateClassTestCase(TestCase):
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
-                                   ident="X", passwd="X", rclass="X")
+                                   ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         api = WimsAPI(WIMS_URL, "myself", "toto")
@@ -388,8 +401,6 @@ class GetOrCreateClassTestCase(TestCase):
         self.assertEqual(wclass.institution, params["tool_consumer_instance_description"])
         self.assertEqual(wclass.lang, params["launch_presentation_locale"][:2])
         self.assertEqual(wclass.supervisor.email, params["lis_person_contact_email_primary"])
-        
-        wclass.delete()
     
     
     def test_get_or_create_create_class_forbidden(self):
@@ -414,7 +425,7 @@ class GetOrCreateClassTestCase(TestCase):
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
-                                   ident="X", passwd="X", rclass="X")
+                                   ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         api = WimsAPI(WIMS_URL, "myself", "toto")
@@ -448,7 +459,7 @@ class GetOrCreateClassTestCase(TestCase):
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
-                                   ident="X", passwd="X", rclass="X")
+                                   ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         wclass_db1 = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
@@ -501,7 +512,7 @@ class GetOrCreateUserTestCase(TestCase):
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
-                                   ident="X", passwd="X", rclass="X")
+                                   ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
@@ -522,8 +533,6 @@ class GetOrCreateUserTestCase(TestCase):
         self.assertEqual(user.lastname, params["lis_person_name_family"])
         self.assertEqual(user.firstname, params["lis_person_name_given"])
         self.assertEqual(user.email, params["lis_person_contact_email_primary"])
-        
-        wclass.delete()
     
     
     def test_get_or_create_user_create_username_already_exists(self):
@@ -548,7 +557,7 @@ class GetOrCreateUserTestCase(TestCase):
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
-                                   ident="X", passwd="X", rclass="X")
+                                   ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
@@ -576,8 +585,60 @@ class GetOrCreateUserTestCase(TestCase):
         self.assertEqual(user.lastname, params["lis_person_name_family"])
         self.assertEqual(user.firstname, params["lis_person_name_given"])
         self.assertEqual(user.email, params["lis_person_contact_email_primary"])
+    
+    
+    def test_get_or_create_user_create_username_already_exists2(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            '77',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'Doe',
+            'lis_person_name_given':              'Jhon',
+            'tool_consumer_instance_description': 'UPEM',
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              "None",
+        }
         
-        wclass.delete()
+        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+                                   name="WIMS UPEM",
+                                   ident="X", passwd="X", rclass="myclass")
+        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM")
+        wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
+                                             wims_uuid="60004")
+        WimsUser.objects.create(lms=lms, lms_uuid='66', wclass=wclass_db, quser="jdoe")
+        WimsUser.objects.create(lms=lms, lms_uuid='67', wclass=wclass_db, quser="jdoe1")
+        supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
+        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
+                       supervisor, lang="fr", qclass=wclass_db.wims_uuid)
+        wclass.save(WIMS_URL, "myself", "toto")
+        
+        lastname = params['lis_person_name_family']
+        firstname = params['lis_person_name_given']
+        mail = params["lis_person_contact_email_primary"]
+        quser = (firstname[0] + lastname).lower()
+        wclass.additem(User(quser, lastname, firstname, "password", mail))
+        wclass.additem(User(quser + "1", lastname, firstname, "password", mail))
+        
+        user_db, user = utils.get_or_create_user(lms, wclass_db, wclass, params)
+        
+        self.assertEqual(user_db.lms, lms)
+        self.assertEqual(user_db.lms_uuid, params["user_id"])
+        self.assertEqual(user_db.wclass, wclass_db)
+        self.assertEqual(user_db.quser, "jdoe2")
+        
+        self.assertEqual(user.quser, "jdoe2")
+        self.assertEqual(user.lastname, params["lis_person_name_family"])
+        self.assertEqual(user.firstname, params["lis_person_name_given"])
+        self.assertEqual(user.email, params["lis_person_contact_email_primary"])
     
     
     def test_get_or_create_user_get(self):
@@ -602,11 +663,11 @@ class GetOrCreateUserTestCase(TestCase):
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
-                                   ident="X", passwd="X", rclass="X")
+                                   ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
-                                             wims_uuid="60004")
+                                             wims_uuid="60005")
         user_db1 = WimsUser.objects.create(lms=lms, lms_uuid='77', wclass=wclass_db, quser="jdoe")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
@@ -631,8 +692,6 @@ class GetOrCreateUserTestCase(TestCase):
         self.assertEqual(user1.lastname, user2.lastname)
         self.assertEqual(user1.firstname, user2.firstname)
         self.assertEqual(user1.email, user2.email)
-        
-        wclass.delete()
     
     
     def test_get_or_create_user_get_supervisor(self):
@@ -645,8 +704,8 @@ class GetOrCreateUserTestCase(TestCase):
             'context_title':                      "A title",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
-            'lis_person_name_family':             'Doe',
-            'lis_person_name_given':              'Jhon',
+            'lis_person_name_family':             'Jean',
+            'lis_person_name_given':              'Dupont',
             'tool_consumer_instance_description': 'UPEM',
             'oauth_consumer_key':                 'provider1',
             'oauth_signature_method':             'HMAC-SHA1',
@@ -657,12 +716,12 @@ class GetOrCreateUserTestCase(TestCase):
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
-                                   ident="X", passwd="X", rclass="X")
+                                   ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
-                                             wims_uuid="60005")
-        WimsUser.objects.create(lms=lms, lms_uuid='66', wclass=wclass_db, quser="jdoe")
+                                             wims_uuid="60006")
+        WimsUser.objects.create(lms=lms, lms_uuid=None, wclass=wclass_db, quser="supervisor")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.wims_uuid)
@@ -679,5 +738,3 @@ class GetOrCreateUserTestCase(TestCase):
         self.assertEqual(user.lastname, "Supervisor")
         self.assertEqual(user.firstname, "")
         self.assertEqual(user.email, params["lis_person_contact_email_primary"])
-        
-        wclass.delete()
