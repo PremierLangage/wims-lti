@@ -7,7 +7,9 @@
 #
 
 import logging
+import os
 
+from django.conf import settings
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.shortcuts import redirect, render, reverse
 from wimsapi import AdmRawError, WimsAPI
@@ -137,11 +139,13 @@ def about(request, lang="en"):
     """Display the README of the project in the given language.
     Raises Http404 if the translation of the README for the given language does not exists."""
     try:
-        with open("README.md" if lang == "en" else "translation/README_%s.md" % lang) as f:
+        path = os.path.join(settings.BASE_DIR,
+                            "README.md" if lang == "en" else "translation/README_%s.md" % lang)
+        with open(path) as f:
             content = f.read()
-    except OSError:
+    except OSError as e:
+        logger.warning("About, lang: %s, %s" % (lang, str(e)))
         raise Http404("Unknown language : '%s'" % lang)
-    
     return render(request, 'wims/about.html', {
         "README": content,
     })
