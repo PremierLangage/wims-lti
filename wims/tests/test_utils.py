@@ -7,11 +7,11 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import reverse
 from django.test import RequestFactory, TestCase, override_settings
+from wimsapi import Class, User, WimsAPI
 
 from wims import utils
 from wims.exceptions import BadRequestException
 from wims.models import LMS, WIMS, WimsClass, WimsUser
-from wimsapi import Class, User, WimsAPI
 
 
 FAKE_CREDENTIALS = {
@@ -452,7 +452,7 @@ class GetOrCreateClassTestCase(TestCase):
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         wclass_db1 = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
-                                              wims_uuid="66666")
+                                              wims_uuid="60001")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass1 = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                         supervisor, lang="fr", qclass=wclass_db1.wims_uuid)
@@ -505,7 +505,7 @@ class GetOrCreateUserTestCase(TestCase):
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
-                                             wims_uuid="66666")
+                                             wims_uuid="60002")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.wims_uuid)
@@ -552,8 +552,8 @@ class GetOrCreateUserTestCase(TestCase):
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
-                                             wims_uuid="66666")
-        WimsUser.objects.create(lms=lms, lms_uuid=66, wclass=wclass_db, quser="jdoe")
+                                             wims_uuid="60003")
+        WimsUser.objects.create(lms=lms, lms_uuid='66', wclass=wclass_db, quser="jdoe")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.wims_uuid)
@@ -606,8 +606,8 @@ class GetOrCreateUserTestCase(TestCase):
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
-                                             wims_uuid="66666")
-        user_db1 = WimsUser.objects.create(lms=lms, lms_uuid=66, wclass=wclass_db, quser="jdoe")
+                                             wims_uuid="60004")
+        user_db1 = WimsUser.objects.create(lms=lms, lms_uuid='77', wclass=wclass_db, quser="jdoe")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.wims_uuid)
@@ -626,7 +626,7 @@ class GetOrCreateUserTestCase(TestCase):
         self.assertEqual(user_db1.lms_uuid, user_db2.lms_uuid)
         self.assertEqual(user_db1.wclass, user_db2.wclass)
         self.assertEqual(user_db1.quser, user_db2.quser)
-
+        
         self.assertEqual(user1.quser, user2.quser)
         self.assertEqual(user1.lastname, user2.lastname)
         self.assertEqual(user1.firstname, user2.firstname)
@@ -661,8 +661,8 @@ class GetOrCreateUserTestCase(TestCase):
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
-                                             wims_uuid="66666")
-        WimsUser(lms=lms, lms_uuid=66, wclass=wclass_db, quser="jdoe")
+                                             wims_uuid="60005")
+        WimsUser.objects.create(lms=lms, lms_uuid='66', wclass=wclass_db, quser="jdoe")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.wims_uuid)
