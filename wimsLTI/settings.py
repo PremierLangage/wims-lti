@@ -20,7 +20,6 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-import logging
 
 from wims.enums import Role
 
@@ -188,4 +187,4 @@ USE_L10N = True
 USE_TZ = True
 
 # Allow the file 'wimsLTI/config.py' to override these settings.
-from wimsLTI.config import *
+from wimsLTI.config import *  # noqa: E402 F401 F403

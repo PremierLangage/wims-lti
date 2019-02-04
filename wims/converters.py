@@ -6,6 +6,7 @@
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
 
+
 class DNSConverter:
     """Implements a DNS converter to use in urls."""
     
