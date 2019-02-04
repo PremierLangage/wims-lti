@@ -250,7 +250,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
                 
                 # Can also be raised if an error occured while communicating with the
                 # WIMS server, hence the following test.
-                if "user already exists" not in str(e) or i >= 100:  # pragme: no cover
+                if "user already exists" not in str(e) or i >= 100:  # pragma: no cover
                     raise
                 
                 if i:
