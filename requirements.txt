@@ -5,7 +5,3 @@ lti
 wimsapi
 oauth2
 markdown
-
-# For tests
-coverage
-django_coverage_plugin
