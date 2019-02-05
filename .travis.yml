@@ -24,6 +24,8 @@ before_install:
   - docker container start wims
   - docker exec -it wims ./bin/apache-config
   - docker exec -it wims service apache2 restart
+  - python3 manage.py makemigrations
+  - python3 manage.py migrate
 
 
 install:
