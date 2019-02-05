@@ -152,6 +152,7 @@ WIMSLTI_MANDATORY = [
     'context_id',
     'context_title',
     'user_id',
+    'tool_consumer_instance_guid',
     'tool_consumer_instance_description',
     'launch_presentation_locale',
     'lis_person_contact_email_primary',
