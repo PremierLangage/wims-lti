@@ -58,7 +58,7 @@ echo ""
 echo "Configuring database..."
 python3 manage.py makemigrations || { echo>&2 "ERROR: python3 manage.py makemigrations failed" ; exit 1; }
 python3 manage.py migrate || { echo>&2 "ERROR: python3 manage.py migrate failed" ; exit 1; }
-
+python3 manage.py collectstatic || { echo>&2 "ERROR: python3 manage.py collectstatic failed" ; exit 1; }
 
 
 
