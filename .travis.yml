@@ -32,9 +32,4 @@ install:
   - pip install coveralls
 
 
-before_script:
-  - python3 manage.py makemigrations
-  - python3 manage.py migrate
-
-
 script: tox
