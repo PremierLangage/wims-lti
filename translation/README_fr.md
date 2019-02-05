@@ -1,3 +1,9 @@
+[![Build Status](https://travis-ci.org/PremierLangage/wims-lti.svg?branch=master)](https://travis-ci.org/PremierLangage/wims-lti)
+[![Coverage Status](https://coveralls.io/repos/github/PremierLangage/wims-lti/badge.svg?branch=master)](https://coveralls.io/github/PremierLangage/wims-lti?branch=master)
+[![Python 3.4+](https://img.shields.io/badge/python-3.5+-brightgreen.svg)](#)
+[![GPLv3](https://img.shields.io/badge/license-GPLv3-brightgreen.svg)](#)
+
+
 # WIMS-LTI
 
 **WIMS-LTI** est un serveur servant de passerelle entre un *LMS* et un serveur
