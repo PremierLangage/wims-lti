@@ -63,7 +63,7 @@ def redirect_to_wims(request, wims_srv):
         
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
-        if not bol:
+        if not bol:  # pragma: no cover
             raise AdmRawError(response['message'])
         url = response["home_url"]
     
