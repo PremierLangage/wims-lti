@@ -4,7 +4,7 @@
 [![GPLv3](https://img.shields.io/badge/license-GPLv3-brightgreen.svg)](#)
 
 
-# WIMS-LTI
+# WIMS-LTI
 
 **WIMS-LTI** est un serveur servant de passerelle entre un *LMS* et un serveur
 *WIMS* grâce à la norme *LTI*.
