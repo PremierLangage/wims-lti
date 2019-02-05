@@ -1,0 +1,17 @@
+dist: xenial
+
+sudo: false
+
+language: python
+
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+
+install:
+    - pip install -U wheel setuptools
+    - pip install tox-travis
+    - pip install coveralls
+
+script: tox
