@@ -89,7 +89,7 @@ def lti_request_is_valid(request):
         - PermissioNDenied if signature check failed.
     """
     parameters = parse_parameters(request.POST)
-    logger.info("Request received from '%s'" % request.META['HTTP_REFERER'])
+    logger.info("Request received from '%s'" % request.META.get('HTTP_REFERER', "Unknown"))
     check_parameters(parameters)
     is_valid_request(request)
 
