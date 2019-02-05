@@ -65,12 +65,13 @@ def redirect_to_wims(request, wims_srv):
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
         if not bol:
             raise AdmRawError(response['message'])
+        url = response["home_url"]
     
     except AdmRawError as e:  # WIMS server responded with ERROR
         logger.info(str(e))
         return HttpResponse(str(e), status=421)
     
-    return redirect(response["home_url"])
+    return redirect(url)
 
 
 
