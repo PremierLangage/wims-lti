@@ -39,6 +39,7 @@ voici ce qu'il se passe :
 ![flowchart](flowchart_fr.png)
 
 
+___
 
 ## Installation
 
@@ -81,6 +82,8 @@ n'oubliez pas de le lancer.***
 Il ne reste maintenant plus qu'à configurer *Apache*, voir
 [la documentation](https://docs.djangoproject.com/fr/2.1/howto/deployment/wsgi/modwsgi/).
 
+
+___
 
 ## Configuration
 
