@@ -1,7 +1,7 @@
-Django<2.3
-oauthlib
-requests
-lti
-wimsapi
-oauth2
-markdown
+django==2.1.5
+lti==0.9.4
+markdown==3.0.1
+oauth2==1.9.0.post1
+oauthlib==3.0.1
+requests==2.21.0
+wimsapi==0.3.8
