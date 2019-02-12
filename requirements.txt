@@ -1,4 +1,4 @@
-django==2.1.5
+django<=2.2.0
 lti==0.9.4
 markdown==3.0.1
 oauth2==1.9.0.post1
