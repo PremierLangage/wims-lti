@@ -15,12 +15,12 @@ import oauth2
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from lti.contrib.django import DjangoToolProvider
-from wimsapi import AdmRawError, Class, User
 
 from wims.enums import Role
 from wims.exceptions import BadRequestException
 from wims.models import WimsClass, WimsUser
 from wims.validator import RequestValidator
+from wimsapi import AdmRawError, Class, User
 
 
 logger = logging.getLogger(__name__)
@@ -165,7 +165,8 @@ def create_class(wclass_db, parameters):
     supervisor = User("supervisor", "Supervisor", "", upassword, mail)
     
     return Class(wclass_db.rclass, title, institution, mail, cpassword, supervisor, lang=lang,
-                 expiration=datetime.now() + wclass_db.expiration, limit=wclass_db.class_limit)
+                 expiration=(datetime.now() + wclass_db.expiration).strftime("%Y%m%d"),
+                 limit=wclass_db.class_limit)
 
 
 
