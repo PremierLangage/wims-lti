@@ -6,6 +6,8 @@
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
 
+from datetime import timedelta
+
 from django.core.validators import RegexValidator, URLValidator
 from django.db import models
 
@@ -14,7 +16,14 @@ from wims.converters import DNSConverter
 
 wims_help = "See 'https://wimsapi.readthedocs.io/#configuration' for more informations"
 lms_uuid_help = ("Must be equal to the parameter 'tool_consumer_instance_guid' sent by the LMS in "
-                 "the LTI request.")
+                 "the LTI request. It is commonly the DNS of the LMS.")
+class_limit_help = ("This is the classes default maximum student. This parameter is used at "
+                    "class creation and can be later changed individually for each class on the "
+                    "WIMS server by the supervisor.")
+expiration_help = ("This is the classes default duration (format is 'day hours:minutes:seconds', "
+                   "default is 13 months) before expiration. This parameter is used at class "
+                   "creation and can be later changed individually for each class on the ""WIMS "
+                   "server by the supervisor.")
 
 
 
@@ -32,15 +41,22 @@ class WIMS(models.Model):
         * passwd - Password of the wims server.
         * rclass - Identifier used for each class of this WIMS server."""
     dns = models.CharField(
-        max_length=253, unique=True, db_index=True,
+        max_length=253, unique=True, db_index=True, verbose_name="DNS",
         validators=[RegexValidator("^" + DNSConverter.regex + "$", "Please enter a valid DNS")]
     )
     url = models.CharField(
-        max_length=2048, unique=True, db_index=True,
+        max_length=2048, unique=True, db_index=True, verbose_name="URL",
         validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")],
-        help_text="URL must point to the WIMS' server cgi."
+        help_text="URL must point to the WIMS' server cgi.",
     )
     name = models.CharField(max_length=2048)
+    class_limit = models.PositiveSmallIntegerField(
+        verbose_name="Default student limit", help_text=class_limit_help, default=150,
+    )
+    expiration = models.DurationField(
+        verbose_name="Default expiration date", help_text=expiration_help,
+        default=timedelta(days=3 * 365 + 30),
+    )
     ident = models.CharField(max_length=2048, help_text=wims_help)
     passwd = models.CharField(max_length=2048, help_text=wims_help)
     rclass = models.CharField(max_length=2048, help_text=wims_help)
@@ -52,10 +68,12 @@ class WIMS(models.Model):
 
 class LMS(models.Model):
     """Represents a LMS."""
-    uuid = models.CharField(max_length=2048, primary_key=True, help_text=lms_uuid_help)
+    uuid = models.CharField(
+        max_length=2048, primary_key=True, help_text=lms_uuid_help, verbose_name="UUID"
+    )
     name = models.CharField(max_length=2048, null=False)
     url = models.CharField(
-        max_length=2048,
+        max_length=2048, verbose_name="URL",
         validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")]
     )
     
