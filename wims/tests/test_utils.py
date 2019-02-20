@@ -1,5 +1,6 @@
 import os
 import time
+from datetime import date, datetime, timedelta
 
 import oauth2
 import oauthlib.oauth1.rfc5849.signature as oauth_signature
@@ -412,6 +413,73 @@ class GetOrCreateClassTestCase(TestCase):
         self.assertEqual(wclass.institution, params["tool_consumer_instance_description"])
         self.assertEqual(wclass.lang, params["launch_presentation_locale"][:2])
         self.assertEqual(wclass.supervisor.email, params["lis_person_contact_email_primary"])
+    
+    
+    def test_get_or_create_class_create_expiration(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            'X',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'X',
+            'lis_person_name_given':              'X',
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
+        }
+        
+        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+                                   name="WIMS UPEM", expiration=timedelta(days=400),
+                                   ident="X", passwd="X", rclass="myclass")
+        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM")
+        api = WimsAPI(WIMS_URL, "myself", "toto")
+        utils.get_or_create_class(lms, wims, api, params)  # Create and save
+        wclass_db, wclass = utils.get_or_create_class(lms, wims, api, params)  # Retrieve from WIMS
+        
+        self.assertEqual(wclass.expiration,
+                         datetime.strftime((date.today() + wims.expiration), "%Y%m%d"))
+    
+    
+    def test_get_or_create_class_create_limit(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            'X',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'X',
+            'lis_person_name_given':              'X',
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
+        }
+        
+        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+                                   name="WIMS UPEM", class_limit=77,
+                                   ident="X", passwd="X", rclass="myclass")
+        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM")
+        api = WimsAPI(WIMS_URL, "myself", "toto")
+        utils.get_or_create_class(lms, wims, api, params)  # Create and save
+        wclass_db, wclass = utils.get_or_create_class(lms, wims, api, params)  # Retrieve from WIMS
+        
+        self.assertEqual(wclass.limit, wims.class_limit)
     
     
     def test_get_or_create_create_class_forbidden(self):
