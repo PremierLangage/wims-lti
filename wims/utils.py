@@ -9,17 +9,18 @@
 import logging
 import random
 import string
+from datetime import datetime
 
 import oauth2
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from lti.contrib.django import DjangoToolProvider
-from wimsapi import AdmRawError, Class, User
 
 from wims.enums import Role
 from wims.exceptions import BadRequestException
 from wims.models import WimsClass, WimsUser
 from wims.validator import RequestValidator
+from wimsapi import AdmRawError, Class, User
 
 
 logger = logging.getLogger(__name__)
@@ -153,7 +154,7 @@ def parse_parameters(p):
 
 
 
-def create_class(rclass, parameters):
+def create_class(wclass_db, parameters):
     """Create an instance of wimsapi.Class with the given LTI request's parameters and rclass."""
     mail = parameters["lis_person_contact_email_primary"]
     title = parameters["context_title"]
@@ -163,7 +164,9 @@ def create_class(rclass, parameters):
     upassword = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     supervisor = User("supervisor", "Supervisor", "", upassword, mail)
     
-    return Class(rclass, title, institution, mail, cpassword, supervisor, lang=lang)
+    return Class(wclass_db.rclass, title, institution, mail, cpassword, supervisor, lang=lang,
+                 expiration=(datetime.now() + wclass_db.expiration).strftime("%Y%m%d"),
+                 limit=wclass_db.class_limit)
 
 
 
@@ -172,14 +175,17 @@ def get_or_create_class(lms, wims_srv, api, parameters):
     exists.
     
     Raises:
-        - exceptions.PermissionDenied if the class does not exists and none of the roles in the LTI
+        - exceptions.PermissionDenied if the class does not exists and none of the roles in
+        the LTI
               request's parameters is in ROLES_ALLOWED_CREATE_WIMS_CLASS.
         - wimsapi.AdmRawError if the WIMS' server denied a request or could not be joined.
     
-    Returns a tuple (wclass_db, wclass) where wclas_db is an instance of models.WimsClass and wclass
+    Returns a tuple (wclass_db, wclass) where wclas_db is an instance of models.WimsClass and
+    wclass
     an instance of wimsapi.Class."""
     try:
-        wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms, lms_uuid=parameters['context_id'])
+        wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
+                                          lms_uuid=parameters['context_id'])
         wclass = Class.get(api.url, api.ident, api.passwd, wclass_db.wims_uuid, wims_srv.rclass)
     
     except WimsClass.DoesNotExist:
@@ -192,7 +198,7 @@ def get_or_create_class(lms, wims_srv, api, parameters):
                     str([r.value for r in role]))
             raise PermissionDenied(msg)
         
-        wclass = create_class(wims_srv.rclass, parameters)
+        wclass = create_class(wims_srv, parameters)
         wclass.save(api.url, api.ident, api.passwd)
         wclass_db = WimsClass.objects.create(
             lms=lms, lms_uuid=parameters["context_id"],
@@ -217,7 +223,8 @@ def create_user(parameters):
 
 
 def get_or_create_user(lms, wclass_db, wclass, parameters):
-    """Get the WIMS' user database and wimsapi.User instances, create them if they does not exists.
+    """Get the WIMS' user database and wimsapi.User instances, create them if they does not
+    exists.
     
     If at least one of the roles in the LTI request's parameters is in
     ROLES_ALLOWED_CREATE_WIMS_CLASS, the user will be connected as supervisor.
