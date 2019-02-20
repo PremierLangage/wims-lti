@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/PremierLangage/wims-lti.svg?branch=master)](https://travis-ci.org/PremierLangage/wims-lti)
-[![Coverage Status](https://coveralls.io/repos/github/PremierLangage/wims-lti/badge.svg?branch=master)](https://coveralls.io/github/PremierLangage/wims-lti?branch=master)
-[![Python 3.4+](https://img.shields.io/badge/python-3.5+-brightgreen.svg)](#)
+[![codecov](https://codecov.io/gh/PremierLangage/wims-lti/branch/master/graph/badge.svg)](https://codecov.io/gh/PremierLangage/wims-lti)
 [![GPLv3](https://img.shields.io/badge/license-GPLv3-brightgreen.svg)](#)
 
 
