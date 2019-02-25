@@ -1,4 +1,10 @@
-# WIMS-LTI
+[![Build Status](https://travis-ci.org/PremierLangage/wims-lti.svg?branch=master)](https://travis-ci.org/PremierLangage/wims-lti)
+[![Coverage Status](https://coveralls.io/repos/github/PremierLangage/wims-lti/badge.svg?branch=master)](https://coveralls.io/github/PremierLangage/wims-lti?branch=master)
+[![Python 3.4+](https://img.shields.io/badge/python-3.5+-brightgreen.svg)](#)
+[![GPLv3](https://img.shields.io/badge/license-GPLv3-brightgreen.svg)](#)
+
+
+# WIMS-LTI
 
 **WIMS-LTI** est un serveur servant de passerelle entre un *LMS* et un serveur
 *WIMS* grâce à la norme *LTI*.
@@ -30,23 +36,10 @@ n'importe quel *LMS* ajouté à **WIMS-LTI** afin de se connecter au serveur
 Lorsqu'un utilisateur du LMS clique sur un lien LTI depuis celui-ci,
 voici ce qu'il se passe :
 
-1. Si la classe associée à ce cours n'existe pas sur le serveur WIMS :
-    * Si l'utilisateur est professeur (ou autres rôles autorisés), la classe
-      est créée et l'utilisateur est connecté en tant que superviseur.
-    * Sinon, une réponse `403 Accès refusé` est envoyée à l'utilisateur.
-
-2. Si la classe existe :
-    * Si l'utilisateur est professeur (ou autres rôles autorisés), il est
-      connecté en tant que superviseur.
-    * Sinon, si l'élève associé à cette utilisateur existe dans la classe
-      *WIMS*, celui-ci est connecté en tant qu'étudiant.
-    * Enfin, si l'élève associé à cette utilisateur n'existe pas dans la classe
-      *WIMS*, il est créé avec pour nom pseudo
-      `[première lettre du prénom] + [nom]`, un entier étant ajouté à la fin si
-      ce pseudo est déjà pris. Une fois l'élève créer sur la classe WIMS,
-      celui-ci est connecté au serveur WIMS en tant qu'étudiant.
+![flowchart](flowchart_fr.png)
 
 
+___
 
 ## Installation
 
@@ -89,6 +82,8 @@ n'oubliez pas de le lancer.***
 Il ne reste maintenant plus qu'à configurer *Apache*, voir
 [la documentation](https://docs.djangoproject.com/fr/2.1/howto/deployment/wsgi/modwsgi/).
 
+
+___
 
 ## Configuration
 
