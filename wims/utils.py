@@ -12,6 +12,7 @@ import string
 from datetime import datetime
 
 import oauth2
+import wimsapi
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from lti.contrib.django import DjangoToolProvider
@@ -19,8 +20,7 @@ from lti.contrib.django import DjangoToolProvider
 from wims.enums import Role
 from wims.exceptions import BadRequestException
 from wims.models import WimsClass, WimsUser
-from wims.validator import RequestValidator
-from wimsapi import AdmRawError, Class, User
+from wims.validator import CustomParameterValidator, RequestValidator, validate
 
 
 logger = logging.getLogger(__name__)
@@ -83,6 +83,42 @@ def check_parameters(param):
 
 
 
+def check_custom_parameters(params):
+    """Checks that custom parameters, if given, are properly formatted.
+    
+    Raises wims.exceptions.BadRequestException if this is not the case."""
+    validate(
+        CustomParameterValidator.email_validator, params['custom_class_email'],
+        "Invalid parameter 'custom_class_email' (%s): invalid email" % params['custom_class_email']
+    )
+    validate(
+        CustomParameterValidator.email_validator, params['custom_supervisor_email'],
+        ("Invalid parameter 'custom_supervisor_email' (%s): invalid email"
+         % params['custom_supervisor_email'])
+    )
+    validate(
+        CustomParameterValidator.lang_validator, params['custom_class_lang'],
+        ("Invalid parameter 'custom_class_lang' ('%s'):  not a valid 'ISO 3166-1 alpha-2' code"
+         % params['custom_class_lang'])
+    )
+    validate(
+        CustomParameterValidator.level_validator, params['custom_class_level'],
+        ("Invalid parameter 'custom_class_level' ('%s'): not one of %s"
+         % (params['custom_class_level'], wimsapi.wclass.LEVEL))
+    )
+    validate(
+        CustomParameterValidator.expiration_validator, params['custom_class_expiration'],
+        ("Invalid parameter 'custom_class_expiration' ('%s'): must be formatted as 'YYYYMMDD'"
+         % params['custom_class_expiration'])
+    )
+    validate(
+        CustomParameterValidator.limit_validator, params['custom_class_limit'],
+        ("Invalid parameter 'custom_class_limit' ('%s'): must be formatted as 'YYYYMMDD'"
+         % params['custom_class_limit'])
+    )
+
+
+
 def lti_request_is_valid(request):
     """Check that the LTI request is valid.
     Raises :
@@ -99,6 +135,7 @@ def lti_request_is_valid(request):
 def parse_parameters(p):
     """Returns the a dictionnary of the LTI request parameters,
     replacing missing parameters with None."""
+    
     return {
         'lti_version':                            p.get('lti_version'),
         'context_id':                             p.get('context_id'),
@@ -150,6 +187,18 @@ def parse_parameters(p):
         'tool_consumer_instance_url':             p.get('tool_consumer_instance_url'),
         'user_id':                                p.get('user_id'),
         'user_image':                             p.get('user_image'),
+        'custom_class_name':                      p.get('custom_class_name'),
+        'custom_class_institution':               p.get('custom_class_institution'),
+        'custom_class_email':                     p.get('custom_class_email'),
+        'custom_class_lang':                      p.get('custom_class_lang'),
+        'custom_class_expiration':                p.get('custom_class_expiration'),
+        'custom_class_limit':                     p.get('custom_class_limit'),
+        'custom_class_level':                     p.get('custom_class_level'),
+        'custom_class_css':                       p.get('custom_class_css'),
+        'custom_supervisor_username':             p.get('custom_supervisor_username'),
+        'custom_supervisor_lastname':             p.get('custom_supervisor_lastname'),
+        'custom_supervisor_firstname':            p.get('custom_supervisor_firstname'),
+        'custom_supervisor_email':                p.get('custom_supervisor_email'),
     }
 
 
@@ -162,11 +211,12 @@ def create_class(wclass_db, parameters):
     lang = parameters["launch_presentation_locale"][:2]
     cpassword = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     upassword = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
-    supervisor = User("supervisor", "Supervisor", "", upassword, mail)
+    supervisor = wimsapi.User("supervisor", "Supervisor", "", upassword, mail)
     
-    return Class(wclass_db.rclass, title, institution, mail, cpassword, supervisor, lang=lang,
-                 expiration=(datetime.now() + wclass_db.expiration).strftime("%Y%m%d"),
-                 limit=wclass_db.class_limit)
+    return wimsapi.Class(wclass_db.rclass, title, institution, mail, cpassword, supervisor,
+                         lang=lang,
+                         expiration=(datetime.now() + wclass_db.expiration).strftime("%Y%m%d"),
+                         limit=wclass_db.class_limit)
 
 
 
@@ -186,7 +236,8 @@ def get_or_create_class(lms, wims_srv, api, parameters):
     try:
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
                                           lms_uuid=parameters['context_id'])
-        wclass = Class.get(api.url, api.ident, api.passwd, wclass_db.wims_uuid, wims_srv.rclass)
+        wclass = wimsapi.Class.get(api.url, api.ident, api.passwd, wclass_db.wims_uuid,
+                                   wims_srv.rclass)
     
     except WimsClass.DoesNotExist:
         role = Role.parse_role_lti(parameters["roles"])
@@ -218,7 +269,7 @@ def create_user(parameters):
     mail = parameters["lis_person_contact_email_primary"]
     quser = (firstname[0] + lastname).lower()
     
-    return User(quser, lastname, firstname, password, mail, regnum=parameters["user_id"])
+    return wimsapi.User(quser, lastname, firstname, password, mail, regnum=parameters["user_id"])
 
 
 
@@ -241,7 +292,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
         else:
             user_db = WimsUser.objects.get(lms=lms, lms_uuid=parameters['user_id'],
                                            wclass=wclass_db)
-        user = User.get(wclass, user_db.quser)
+        user = wimsapi.User.get(wclass, user_db.quser)
     except WimsUser.DoesNotExist:
         user = create_user(parameters)
         
@@ -250,7 +301,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
             try:
                 wclass.additem(user)
                 break
-            except AdmRawError as e:
+            except wimsapi.AdmRawError as e:
                 # Raised if an user with an user with the same quser already exists,
                 # in this case, keep trying by appending integer to quser (jdoe, jdoe1,
                 # jdoe2, ...), stopping after 100 tries.

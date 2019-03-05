@@ -6,14 +6,64 @@
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
 
+import datetime
 import logging
 import time
 
+import wimsapi
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
 from oauthlib.oauth1 import RequestValidator as BaseRequestValidator
+
+from wims.exceptions import BadRequestException
 
 
 logger = logging.getLogger(__name__)
+
+
+
+def validate(validator, value, message):
+    if not validator(value):
+        raise BadRequestException(message)
+
+
+
+class CustomParameterValidator:
+    
+    @staticmethod
+    def email_validator(email):
+        if email is not None:
+            try:
+                EmailValidator()(email)
+            except ValidationError:
+                return False
+        return True
+    
+    
+    @staticmethod
+    def lang_validator(lang):
+        return lang is None or lang in wimsapi.wclass.LANG
+    
+    
+    @staticmethod
+    def level_validator(level):
+        return level is None or level in wimsapi.wclass.LEVEL
+    
+    
+    @staticmethod
+    def expiration_validator(expiration):
+        if expiration is not None:
+            try:
+                datetime.datetime.strptime(expiration, "%Y%m%d")
+            except ValueError:
+                return False
+        return True
+    
+    
+    @staticmethod
+    def limit_validator(limit):
+        return limit.isdigit() and 0 < int(limit) < X
 
 
 
