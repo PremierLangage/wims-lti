@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 def validate(validator, value, message):
+    """Check <value> against the function <validator>.
+    Raising BadRequestException(message) if check failed."""
     if not validator(value):
         raise BadRequestException(message)
 
@@ -55,7 +57,7 @@ class CustomParameterValidator:
     def expiration_validator(expiration):
         if expiration is not None:
             try:
-                datetime.datetime.strptime(expiration, "%Y%m%d")
+                date = datetime.datetime.strptime(expiration, "%Y%m%d")
             except ValueError:
                 return False
         return True

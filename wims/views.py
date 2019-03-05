@@ -17,7 +17,7 @@ from wimsapi import AdmRawError, WimsAPI
 from wims.exceptions import BadRequestException
 from wims.models import LMS, WIMS
 from wims.utils import (get_or_create_class, get_or_create_user, lti_request_is_valid,
-                        parse_parameters)
+                        parse_parameters, che)
 
 
 logger = logging.getLogger(__name__)
@@ -42,11 +42,18 @@ def redirect_to_wims(request, wims_srv):
     
     parameters = parse_parameters(request.POST)
     
-    # Retrieve LMS
+    # Retrieve the LMS
     try:
         lms = LMS.objects.get(uuid=parameters["tool_consumer_instance_guid"])
     except LMS.DoesNotExist:
         raise Http404("No LMS found with uuid '%s'" % parameters["tool_consumer_instance_guid"])
+    
+    try:
+        lti_request_is_valid(request)
+    except BadRequestException as e:
+        logger.info(str(e))
+        return HttpResponseBadRequest(str(e))
+    
     wapi = WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
     
     try:
