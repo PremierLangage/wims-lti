@@ -68,7 +68,7 @@ class CustomParameterValidator:
     
     @staticmethod
     def limit_validator(limit):
-        return limit.isdigit() and 0 < int(limit) < 300
+        return limit is None or (limit.isdigit() and 0 < int(limit) < 300)
 
 
 

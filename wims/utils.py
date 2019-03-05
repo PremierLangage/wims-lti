@@ -209,31 +209,33 @@ def create_class(wclass_db, params):
     """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
     supervisor = {
         "quser":     params["custom_supervisor_username"] or "supervisor",
-        "firstname": (params['custom_supervisor_lastname']
+        "lastname":  (params['custom_supervisor_lastname']
                       or ("" if params['custom_supervisor_firstname'] else "Supervisor")),
-        "lastname":  params['custom_supervisor_firstname'] or "",
+        "firstname": params['custom_supervisor_firstname'] or "",
         "password":  ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
         "email":     (params["custom_supervisor_email"]
                       or params["lis_person_contact_email_primary"]),
     }
     supervisor = wimsapi.User(**supervisor)
     wclass = {
-        "title":       params["custom_class_name"] or params["context_title"],
+        "name":        params["custom_class_name"] or params["context_title"],
         "institution": (params["custom_class_institution"]
                         or params["tool_consumer_instance_description"]),
-        "mail":        params["custom_class_email"] or params["lis_person_contact_email_primary"],
+        "email":       params["custom_class_email"] or params["lis_person_contact_email_primary"],
         "lang":        params["custom_class_lang"] or params["launch_presentation_locale"][:2],
         "expiration":  (params["custom_class_expiration"]
                         or (datetime.now() + wclass_db.expiration).strftime("%Y%m%d")),
         "limit":       params["custom_class_limit"] or wclass_db.class_limit,
         "level":       params["custom_class_level"] or "H4",
         "css":         params["custom_class_css"] or "",
-        "cpassword":   ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
-        "supervisor": supervisor,
+        "password":    ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
+        "supervisor":  supervisor,
+        "rclass":      wclass_db.rclass,
     }
     
     return wimsapi.Class(**wclass)
-    
+
+
 
 def get_or_create_class(lms, wims_srv, api, parameters):
     """Get the WIMS' class database and wimsapi.Class instances, create them if they does not
@@ -275,6 +277,7 @@ def get_or_create_class(lms, wims_srv, api, parameters):
     return wclass_db, wclass
 
 
+
 def create_user(parameters):
     """Create an instance of wimsapi.User with the given LTI request's parameters."""
     password = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
@@ -285,6 +288,7 @@ def create_user(parameters):
     
     return wimsapi.User(quser, lastname, firstname, password, mail,
                         regnum=parameters["user_id"])
+
 
 
 def get_or_create_user(lms, wclass_db, wclass, parameters):
