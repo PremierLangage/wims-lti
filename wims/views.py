@@ -48,12 +48,6 @@ def redirect_to_wims(request, wims_srv):
     except LMS.DoesNotExist:
         raise Http404("No LMS found with uuid '%s'" % parameters["tool_consumer_instance_guid"])
     
-    try:
-        lti_request_is_valid(request)
-    except BadRequestException as e:
-        logger.info(str(e))
-        return HttpResponseBadRequest(str(e))
-    
     wapi = WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
     
     try:
