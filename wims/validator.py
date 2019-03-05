@@ -58,6 +58,9 @@ class CustomParameterValidator:
         if expiration is not None:
             try:
                 date = datetime.datetime.strptime(expiration, "%Y%m%d")
+                now = datetime.date.today()
+                year = datetime.date.today().replace(year=now.year + 1)
+                return now < date < year
             except ValueError:
                 return False
         return True
@@ -65,7 +68,7 @@ class CustomParameterValidator:
     
     @staticmethod
     def limit_validator(limit):
-        return limit.isdigit() and 0 < int(limit) < X
+        return limit.isdigit() and 0 < int(limit) < 300
 
 
 
