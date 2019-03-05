@@ -17,7 +17,7 @@ from wimsapi import AdmRawError, WimsAPI
 from wims.exceptions import BadRequestException
 from wims.models import LMS, WIMS
 from wims.utils import (get_or_create_class, get_or_create_user, lti_request_is_valid,
-                        parse_parameters, che)
+                        parse_parameters)
 
 
 logger = logging.getLogger(__name__)
