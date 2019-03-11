@@ -11,8 +11,8 @@ from datetime import timedelta
 from django.core.validators import RegexValidator, URLValidator
 from django.db import models
 
-from wims.validator import ModelsValidator
 from wims.converters import DNSConverter
+from wims.validator import ModelsValidator
 
 
 wims_help = "See 'https://wimsapi.readthedocs.io/#configuration' for more informations"
