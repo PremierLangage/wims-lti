@@ -10,6 +10,7 @@ import logging
 import random
 import string
 from datetime import datetime
+from string import ascii_letters, digits
 
 import oauth2
 import wimsapi
@@ -108,12 +109,12 @@ def check_custom_parameters(params):
     )
     validate(
         CustomParameterValidator.expiration_validator, params['custom_class_expiration'],
-        ("Invalid parameter 'custom_class_expiration' ('%s'): must be formatted as 'YYYYMMDD'"
-         % params['custom_class_expiration'])
+        (("Invalid parameter 'custom_class_expiration' ('%s'): must be formatted as 'YYYYMMDD' and "
+          "be less than a year from now") % params['custom_class_expiration'])
     )
     validate(
         CustomParameterValidator.limit_validator, params['custom_class_limit'],
-        ("Invalid parameter 'custom_class_limit' ('%s'): must be formatted as 'YYYYMMDD'"
+        ("Invalid parameter 'custom_class_limit' ('%s'): Must be in [1, 300]"
          % params['custom_class_limit'])
     )
 
@@ -128,6 +129,7 @@ def lti_request_is_valid(request):
     parameters = parse_parameters(request.POST)
     logger.info("Request received from '%s'" % request.META.get('HTTP_REFERER', "Unknown"))
     check_parameters(parameters)
+    check_custom_parameters(parameters)
     is_valid_request(request)
 
 
@@ -203,20 +205,35 @@ def parse_parameters(p):
 
 
 
-def create_class(wclass_db, parameters):
-    """Create an instance of wimsapi.Class with the given LTI request's parameters and rclass."""
-    mail = parameters["lis_person_contact_email_primary"]
-    title = parameters["context_title"]
-    institution = parameters["tool_consumer_instance_description"]
-    lang = parameters["launch_presentation_locale"][:2]
-    cpassword = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
-    upassword = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
-    supervisor = wimsapi.User("supervisor", "Supervisor", "", upassword, mail)
+def create_class(wclass_db, params):
+    """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
+    supervisor = {
+        "quser":     params["custom_supervisor_username"] or "supervisor",
+        "lastname":  (params['custom_supervisor_lastname']
+                      or ("" if params['custom_supervisor_firstname'] else "Supervisor")),
+        "firstname": params['custom_supervisor_firstname'] or "",
+        "password":  ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
+        "email":     (params["custom_supervisor_email"]
+                      or params["lis_person_contact_email_primary"]),
+    }
+    supervisor = wimsapi.User(**supervisor)
+    wclass = {
+        "name":        params["custom_class_name"] or params["context_title"],
+        "institution": (params["custom_class_institution"]
+                        or params["tool_consumer_instance_description"]),
+        "email":       params["custom_class_email"] or params["lis_person_contact_email_primary"],
+        "lang":        params["custom_class_lang"] or params["launch_presentation_locale"][:2],
+        "expiration":  (params["custom_class_expiration"]
+                        or (datetime.now() + wclass_db.expiration).strftime("%Y%m%d")),
+        "limit":       params["custom_class_limit"] or wclass_db.class_limit,
+        "level":       params["custom_class_level"] or "H4",
+        "css":         params["custom_class_css"] or "",
+        "password":    ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
+        "supervisor":  supervisor,
+        "rclass":      wclass_db.rclass,
+    }
     
-    return wimsapi.Class(wclass_db.rclass, title, institution, mail, cpassword, supervisor,
-                         lang=lang,
-                         expiration=(datetime.now() + wclass_db.expiration).strftime("%Y%m%d"),
-                         limit=wclass_db.class_limit)
+    return wimsapi.Class(**wclass)
 
 
 
@@ -269,7 +286,8 @@ def create_user(parameters):
     mail = parameters["lis_person_contact_email_primary"]
     quser = (firstname[0] + lastname).lower()
     
-    return wimsapi.User(quser, lastname, firstname, password, mail, regnum=parameters["user_id"])
+    return wimsapi.User(quser, lastname, firstname, password, mail,
+                        regnum=parameters["user_id"])
 
 
 

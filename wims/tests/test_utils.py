@@ -395,6 +395,7 @@ class GetOrCreateClassTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
         }
+        params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
@@ -435,6 +436,7 @@ class GetOrCreateClassTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
         }
+        params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM", expiration=timedelta(days=400),
@@ -469,9 +471,10 @@ class GetOrCreateClassTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
         }
+        params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
-                                   name="WIMS UPEM", class_limit=77,
+                                   name="WIMS UPEM", class_limit=123,
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
@@ -501,6 +504,7 @@ class GetOrCreateClassTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              "None",
         }
+        params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
@@ -535,6 +539,7 @@ class GetOrCreateClassTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
         }
+        params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
@@ -588,6 +593,7 @@ class GetOrCreateUserTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              "None",
         }
+        params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
@@ -633,6 +639,7 @@ class GetOrCreateUserTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              "None",
         }
+        params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
@@ -685,6 +692,7 @@ class GetOrCreateUserTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              "None",
         }
+        params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
@@ -739,6 +747,7 @@ class GetOrCreateUserTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              "None",
         }
+        params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
@@ -792,6 +801,7 @@ class GetOrCreateUserTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
         }
+        params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
