@@ -11,15 +11,16 @@ from datetime import timedelta
 from django.core.validators import RegexValidator, URLValidator
 from django.db import models
 
+from wims.validator import ModelsValidator
 from wims.converters import DNSConverter
 
 
 wims_help = "See 'https://wimsapi.readthedocs.io/#configuration' for more informations"
 lms_uuid_help = ("Must be equal to the parameter 'tool_consumer_instance_guid' sent by the LMS in "
                  "the LTI request. It is commonly the DNS of the LMS.")
-class_limit_help = ("This is the classes default maximum student. This parameter is used at "
-                    "class creation and can be later changed individually for each class on the "
-                    "WIMS server by the supervisor.")
+class_limit_help = ("This is the classes default maximum student (between [5, 500]. This parameter "
+                    "is used at class creation and can be later changed individually for each class"
+                    " on the WIMS server by the supervisor.")
 expiration_help = ("This is the classes default duration (format is 'day hours:minutes:seconds', "
                    "default is 13 months) before expiration. This parameter is used at class "
                    "creation and can be later changed individually for each class on the ""WIMS "
@@ -52,6 +53,7 @@ class WIMS(models.Model):
     name = models.CharField(max_length=2048)
     class_limit = models.PositiveSmallIntegerField(
         verbose_name="Default student limit", help_text=class_limit_help, default=150,
+        validators=[ModelsValidator.limit_validator],
     )
     expiration = models.DurationField(
         verbose_name="Default expiration date", help_text=expiration_help,
