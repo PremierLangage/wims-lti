@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 def validate(validator, value, message):
+    """Check <value> against the function <validator>.
+    Raising BadRequestException(message) if check failed."""
     if not validator(value):
         raise BadRequestException(message)
 
@@ -55,7 +57,10 @@ class CustomParameterValidator:
     def expiration_validator(expiration):
         if expiration is not None:
             try:
-                datetime.datetime.strptime(expiration, "%Y%m%d")
+                date = datetime.datetime.strptime(expiration, "%Y%m%d").date()
+                now = datetime.date.today()
+                year = datetime.date.today().replace(year=now.year + 1)
+                return now < date < year
             except ValueError:
                 return False
         return True
@@ -63,7 +68,16 @@ class CustomParameterValidator:
     
     @staticmethod
     def limit_validator(limit):
-        return limit.isdigit() and 0 < int(limit) < X
+        return limit is None or (limit.isdigit() and 5 <= int(limit) <= 500)
+
+
+
+class ModelsValidator:
+    
+    @staticmethod
+    def limit_validator(limit):
+        if not (5 <= int(limit) <= 500):
+            raise ValidationError("Default student limit must be in [5, 500].")
 
 
 

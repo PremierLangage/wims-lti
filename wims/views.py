@@ -42,11 +42,12 @@ def redirect_to_wims(request, wims_srv):
     
     parameters = parse_parameters(request.POST)
     
-    # Retrieve LMS
+    # Retrieve the LMS
     try:
         lms = LMS.objects.get(uuid=parameters["tool_consumer_instance_guid"])
     except LMS.DoesNotExist:
         raise Http404("No LMS found with uuid '%s'" % parameters["tool_consumer_instance_guid"])
+    
     wapi = WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
     
     try:
