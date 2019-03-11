@@ -474,7 +474,7 @@ class GetOrCreateClassTestCase(TestCase):
         params = utils.parse_parameters(params)
         
         wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
-                                   name="WIMS UPEM", class_limit=77,
+                                   name="WIMS UPEM", class_limit=123,
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
