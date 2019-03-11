@@ -9,7 +9,7 @@
 import datetime
 import logging
 import time
-from django.core.exceptions import ValidationError
+
 import wimsapi
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -76,7 +76,7 @@ class ModelsValidator:
     
     @staticmethod
     def limit_validator(limit):
-        if not CustomParameterValidator.limit_validator(limit):
+        if not (5 <= int(limit) <= 500):
             raise ValidationError("Default student limit must be in [5, 500].")
 
 
