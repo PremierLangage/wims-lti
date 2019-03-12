@@ -8,6 +8,7 @@
 
 import datetime
 import logging
+import re
 import time
 
 import wimsapi
@@ -44,6 +45,13 @@ class CustomParameterValidator:
     
     
     @staticmethod
+    def username_validator(username):
+        if username is not None:
+            return bool(re.compile(r'^[a-zA-Z_]\w*$').match(username))
+        return True
+    
+    
+    @staticmethod
     def lang_validator(lang):
         return lang is None or lang in wimsapi.wclass.LANG
     
@@ -59,8 +67,9 @@ class CustomParameterValidator:
             try:
                 date = datetime.datetime.strptime(expiration, "%Y%m%d").date()
                 now = datetime.date.today()
-                year = datetime.date.today().replace(year=now.year + 1)
-                return now < date < year
+                start = now + datetime.timedelta(days=31)
+                end = now + datetime.timedelta(days=365)
+                return start <= date <= end
             except ValueError:
                 return False
         return True
@@ -78,6 +87,17 @@ class ModelsValidator:
     def limit_validator(limit):
         if not (5 <= int(limit) <= 500):
             raise ValidationError("Default student limit must be in [5, 500].")
+
+
+    @staticmethod
+    def expiration_validator(expiration):
+        now = datetime.date.today()
+        start = now + datetime.timedelta(days=31)
+        test = now + expiration
+        end = now + datetime.timedelta(days=365)
+        if not (start <= test <= end):
+            raise ValidationError("Expiration date must be between '31 00:00:00' and"
+                                  "'365 00:00:00'")
 
 
 
