@@ -98,6 +98,12 @@ def check_custom_parameters(params):
          % params['custom_supervisor_email'])
     )
     validate(
+        CustomParameterValidator.username_validator, params['custom_supervisor_username'],
+        (("Invalid parameter 'custom_supervisor_username' (%s): Username can only contain "
+          "alphanumeric characters and underscores ('_') and cannot start with a number.")
+         % params['custom_supervisor_email'])
+    )
+    validate(
         CustomParameterValidator.lang_validator, params['custom_class_lang'],
         ("Invalid parameter 'custom_class_lang' ('%s'):  not a valid 'ISO 3166-1 alpha-2' code"
          % params['custom_class_lang'])
@@ -110,7 +116,8 @@ def check_custom_parameters(params):
     validate(
         CustomParameterValidator.expiration_validator, params['custom_class_expiration'],
         (("Invalid parameter 'custom_class_expiration' ('%s'): must be formatted as 'YYYYMMDD' and "
-          "be less than a year from now") % params['custom_class_expiration'])
+          "be more than a month and  less than a year from now")
+         % params['custom_class_expiration'])
     )
     validate(
         CustomParameterValidator.limit_validator, params['custom_class_limit'],
@@ -197,6 +204,7 @@ def parse_parameters(p):
         'custom_class_limit':                     p.get('custom_class_limit'),
         'custom_class_level':                     p.get('custom_class_level'),
         'custom_class_css':                       p.get('custom_class_css'),
+        'custom_clone_class':                     p.get('custom_clone_class'),
         'custom_supervisor_username':             p.get('custom_supervisor_username'),
         'custom_supervisor_lastname':             p.get('custom_supervisor_lastname'),
         'custom_supervisor_firstname':            p.get('custom_supervisor_firstname'),
@@ -205,8 +213,9 @@ def parse_parameters(p):
 
 
 
-def create_class(wclass_db, params):
-    """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
+def create_supervisor(params):
+    """Create an instance of wimapi.User corresponding to the class' supervisor with the given LTI
+    request's parameters."""
     supervisor = {
         "quser":     params["custom_supervisor_username"] or "supervisor",
         "lastname":  (params['custom_supervisor_lastname']
@@ -216,7 +225,12 @@ def create_class(wclass_db, params):
         "email":     (params["custom_supervisor_email"]
                       or params["lis_person_contact_email_primary"]),
     }
-    supervisor = wimsapi.User(**supervisor)
+    return wimsapi.User(**supervisor)
+
+
+
+def create_class(wclass_db, params):
+    """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
     wclass = {
         "name":        params["custom_class_name"] or params["context_title"],
         "institution": (params["custom_class_institution"]
@@ -229,7 +243,7 @@ def create_class(wclass_db, params):
         "level":       params["custom_class_level"] or "H4",
         "css":         params["custom_class_css"] or "",
         "password":    ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
-        "supervisor":  supervisor,
+        "supervisor":  create_supervisor(params),
         "rclass":      wclass_db.rclass,
     }
     
