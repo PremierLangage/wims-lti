@@ -1,9 +1,10 @@
 import datetime
 
-from django.test import TestCase
 from django.core.exceptions import ValidationError
+from django.test import TestCase
+
 from wims.exceptions import BadRequestException
-from wims.validator import CustomParameterValidator, validate, ModelsValidator
+from wims.validator import CustomParameterValidator, ModelsValidator, validate
 
 
 
@@ -14,13 +15,14 @@ class CustomParameterValidatorTestCase(TestCase):
         self.assertTrue(CustomParameterValidator.email_validator(None))
         self.assertFalse(CustomParameterValidator.email_validator("#wrong@h@st.com"))
     
+    
     def test_username_validator(self):
         self.assertTrue(CustomParameterValidator.username_validator("qcoumes"))
         self.assertTrue(CustomParameterValidator.username_validator("_42qcoumes42"))
         self.assertTrue(CustomParameterValidator.username_validator("qcoumes_"))
         self.assertFalse(CustomParameterValidator.username_validator("45qcoumes"))
         self.assertFalse(CustomParameterValidator.username_validator("with space"))
-        
+    
     
     def test_lang_validator(self):
         self.assertTrue(CustomParameterValidator.lang_validator("en"))
@@ -64,6 +66,7 @@ class CustomParameterValidatorTestCase(TestCase):
             validate(CustomParameterValidator.lang_validator, "abc", "Unknown language")
 
 
+
 class ModelsValidatorTestCase(TestCase):
     
     def test_expiration_validator(self):
@@ -80,8 +83,8 @@ class ModelsValidatorTestCase(TestCase):
             ModelsValidator.expiration_validator(less_than_a_month)
         with self.assertRaises(ValidationError):
             ModelsValidator.expiration_validator(more_than_a_year)
-
-
+    
+    
     def test_limit_validator(self):
         ModelsValidator.limit_validator(5)
         ModelsValidator.limit_validator(120)
