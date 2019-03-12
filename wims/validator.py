@@ -87,8 +87,8 @@ class ModelsValidator:
     def limit_validator(limit):
         if not (5 <= int(limit) <= 500):
             raise ValidationError("Default student limit must be in [5, 500].")
-
-
+    
+    
     @staticmethod
     def expiration_validator(expiration):
         now = datetime.date.today()
