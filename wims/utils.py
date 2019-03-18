@@ -93,17 +93,6 @@ def check_custom_parameters(params):
         "Invalid parameter 'custom_class_email' (%s): invalid email" % params['custom_class_email']
     )
     validate(
-        CustomParameterValidator.email_validator, params['custom_supervisor_email'],
-        ("Invalid parameter 'custom_supervisor_email' (%s): invalid email"
-         % params['custom_supervisor_email'])
-    )
-    validate(
-        CustomParameterValidator.username_validator, params['custom_supervisor_username'],
-        (("Invalid parameter 'custom_supervisor_username' (%s): Username can only contain "
-          "alphanumeric characters and underscores ('_') and cannot start with a number.")
-         % params['custom_supervisor_email'])
-    )
-    validate(
         CustomParameterValidator.lang_validator, params['custom_class_lang'],
         ("Invalid parameter 'custom_class_lang' ('%s'):  not a valid 'ISO 3166-1 alpha-2' code"
          % params['custom_class_lang'])
@@ -143,7 +132,16 @@ def lti_request_is_valid(request):
 
 def parse_parameters(p):
     """Returns the a dictionnary of the LTI request parameters,
-    replacing missing parameters with None."""
+    replacing missing parameters with None.
+    
+    Raises wims.exceptions.BadRequestException if one of the parameters
+    starts with 'custom_custom'."""
+    
+    custom_custom = [key for key in p if key.startswith("custom_custom")]
+    if custom_custom:
+        raise BadRequestException("Parameter(s) starting with 'custom_custom' found in the request,"
+                                  " maybe your LMS automatically prefix custom LTI parameters with "
+                                  "'custom_': %s" % str(custom_custom))
     
     return {
         'lti_version':                            p.get('lti_version'),
@@ -205,10 +203,8 @@ def parse_parameters(p):
         'custom_class_level':                     p.get('custom_class_level'),
         'custom_class_css':                       p.get('custom_class_css'),
         'custom_clone_class':                     p.get('custom_clone_class'),
-        'custom_supervisor_username':             p.get('custom_supervisor_username'),
         'custom_supervisor_lastname':             p.get('custom_supervisor_lastname'),
         'custom_supervisor_firstname':            p.get('custom_supervisor_firstname'),
-        'custom_supervisor_email':                p.get('custom_supervisor_email'),
     }
 
 
@@ -217,13 +213,12 @@ def create_supervisor(params):
     """Create an instance of wimapi.User corresponding to the class' supervisor with the given LTI
     request's parameters."""
     supervisor = {
-        "quser":     params["custom_supervisor_username"] or "supervisor",
+        "quser":     "supervisor",
         "lastname":  (params['custom_supervisor_lastname']
                       or ("" if params['custom_supervisor_firstname'] else "Supervisor")),
         "firstname": params['custom_supervisor_firstname'] or "",
         "password":  ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
-        "email":     (params["custom_supervisor_email"]
-                      or params["lis_person_contact_email_primary"]),
+        "email":     params["lis_person_contact_email_primary"],
     }
     return wimsapi.User(**supervisor)
 

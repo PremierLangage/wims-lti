@@ -16,14 +16,6 @@ class CustomParameterValidatorTestCase(TestCase):
         self.assertFalse(CustomParameterValidator.email_validator("#wrong@h@st.com"))
     
     
-    def test_username_validator(self):
-        self.assertTrue(CustomParameterValidator.username_validator("qcoumes"))
-        self.assertTrue(CustomParameterValidator.username_validator("_42qcoumes42"))
-        self.assertTrue(CustomParameterValidator.username_validator("qcoumes_"))
-        self.assertFalse(CustomParameterValidator.username_validator("45qcoumes"))
-        self.assertFalse(CustomParameterValidator.username_validator("with space"))
-    
-    
     def test_lang_validator(self):
         self.assertTrue(CustomParameterValidator.lang_validator("en"))
         self.assertTrue(CustomParameterValidator.lang_validator(None))

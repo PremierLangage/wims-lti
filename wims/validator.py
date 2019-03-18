@@ -8,7 +8,6 @@
 
 import datetime
 import logging
-import re
 import time
 
 import wimsapi
@@ -41,13 +40,6 @@ class CustomParameterValidator:
                 EmailValidator()(email)
             except ValidationError:
                 return False
-        return True
-    
-    
-    @staticmethod
-    def username_validator(username):
-        if username is not None:
-            return bool(re.compile(r'^[a-zA-Z_]\w*$').match(username))
         return True
     
     

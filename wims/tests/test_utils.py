@@ -303,6 +303,36 @@ class CheckParametersTestCase(TestCase):
         self.assertIsNone(utils.check_parameters(params))
     
     
+    def test_check_parameters_custom_custom(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-FR',
+            'resource_link_id':                   'X',
+            'context_id':                         'X',
+            'context_title':                      "A title",
+            'user_id':                            'X',
+            'lis_person_contact_email_primary':   'X',
+            'lis_person_name_family':             'X',
+            'lis_person_name_given':              'X',
+            'tool_consumer_instance_description': 'X',
+            'tool_consumer_instance_guid':        'elearning.u-pem.fr',
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'oauth_signature':                    oauth2.generate_nonce(),
+            'roles':                              "Learner",
+            'custom_custom_class_name':           "Custom",
+            'custom_custom_class_institution':    "Custom",
+        }
+        
+        with self.assertRaises(BadRequestException) as e:
+            utils.parse_parameters(params)
+        self.assertIn(str(['custom_custom_class_name', 'custom_custom_class_institution']),
+                      str(e.exception))
+    
+    
     def test_check_parameters_missing_lti_mandatory(self):
         params = {
             'lti_version':                        'LTI-1p0',
@@ -512,10 +542,8 @@ class GetOrCreateClassTestCase(TestCase):
                                                    + timedelta(days=31)).strftime("%Y%m%d"),
             'custom_class_limit':                 "250",
             'custom_class_level':                 "E1",
-            'custom_supervisor_username':         "customsup",
             'custom_supervisor_lastname':         "Custom lastname",
             'custom_supervisor_firstname':        "Custom firstname",
-            'custom_supervisor_email':            "custom@supervisor.mail",
         }
         params = utils.parse_parameters(params)
         
@@ -533,12 +561,10 @@ class GetOrCreateClassTestCase(TestCase):
         self.assertEqual(wclass.email, params["custom_class_email"])
         self.assertEqual(wclass.lang, params["custom_class_lang"])
         self.assertEqual(wclass.expiration, params["custom_class_expiration"])
-        self.assertEqual(wclass.limit, params["custom_class_limit"])
+        self.assertEqual(wclass.limit, int(params["custom_class_limit"]))
         self.assertEqual(wclass.level, params["custom_class_level"])
-        self.assertEqual(wclass.supervisor.quser, params["custom_supervisor_username"])
         self.assertEqual(wclass.supervisor.lastname, params["custom_supervisor_lastname"])
         self.assertEqual(wclass.supervisor.firstname, params["custom_supervisor_firstname"])
-        self.assertEqual(wclass.supervisor.email, params["custom_supervisor_email"])
     
     
     def test_get_or_create_create_class_forbidden(self):
