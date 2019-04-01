@@ -93,11 +93,6 @@ def check_custom_parameters(params):
         "Invalid parameter 'custom_class_email' (%s): invalid email" % params['custom_class_email']
     )
     validate(
-        CustomParameterValidator.email_validator, params['custom_supervisor_email'],
-        ("Invalid parameter 'custom_supervisor_email' (%s): invalid email"
-         % params['custom_supervisor_email'])
-    )
-    validate(
         CustomParameterValidator.lang_validator, params['custom_class_lang'],
         ("Invalid parameter 'custom_class_lang' ('%s'):  not a valid 'ISO 3166-1 alpha-2' code"
          % params['custom_class_lang'])
@@ -110,7 +105,8 @@ def check_custom_parameters(params):
     validate(
         CustomParameterValidator.expiration_validator, params['custom_class_expiration'],
         (("Invalid parameter 'custom_class_expiration' ('%s'): must be formatted as 'YYYYMMDD' and "
-          "be less than a year from now") % params['custom_class_expiration'])
+          "be more than a month and  less than a year from now")
+         % params['custom_class_expiration'])
     )
     validate(
         CustomParameterValidator.limit_validator, params['custom_class_limit'],
@@ -136,7 +132,16 @@ def lti_request_is_valid(request):
 
 def parse_parameters(p):
     """Returns the a dictionnary of the LTI request parameters,
-    replacing missing parameters with None."""
+    replacing missing parameters with None.
+    
+    Raises wims.exceptions.BadRequestException if one of the parameters
+    starts with 'custom_custom'."""
+    
+    custom_custom = [key for key in p if key.startswith("custom_custom")]
+    if custom_custom:
+        raise BadRequestException("Parameter(s) starting with 'custom_custom' found in the request,"
+                                  " maybe your LMS automatically prefix custom LTI parameters with "
+                                  "'custom_': %s" % str(custom_custom))
     
     return {
         'lti_version':                            p.get('lti_version'),
@@ -197,43 +202,62 @@ def parse_parameters(p):
         'custom_class_limit':                     p.get('custom_class_limit'),
         'custom_class_level':                     p.get('custom_class_level'),
         'custom_class_css':                       p.get('custom_class_css'),
-        'custom_supervisor_username':             p.get('custom_supervisor_username'),
+        'custom_clone_class':                     p.get('custom_clone_class'),
         'custom_supervisor_lastname':             p.get('custom_supervisor_lastname'),
         'custom_supervisor_firstname':            p.get('custom_supervisor_firstname'),
-        'custom_supervisor_email':                p.get('custom_supervisor_email'),
     }
 
 
 
-def create_class(wclass_db, params):
-    """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
+def create_supervisor(params):
+    """Create an instance of wimapi.User corresponding to the class' supervisor with the given LTI
+    request's parameters."""
     supervisor = {
-        "quser":     params["custom_supervisor_username"] or "supervisor",
+        "quser":     "supervisor",
         "lastname":  (params['custom_supervisor_lastname']
                       or ("" if params['custom_supervisor_firstname'] else "Supervisor")),
         "firstname": params['custom_supervisor_firstname'] or "",
         "password":  ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
-        "email":     (params["custom_supervisor_email"]
-                      or params["lis_person_contact_email_primary"]),
+        "email":     params["lis_person_contact_email_primary"],
     }
-    supervisor = wimsapi.User(**supervisor)
-    wclass = {
+    return wimsapi.User(**supervisor)
+
+
+
+def create_class(wims_srv, params):
+    """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
+    wclass_dic = {
         "name":        params["custom_class_name"] or params["context_title"],
         "institution": (params["custom_class_institution"]
                         or params["tool_consumer_instance_description"]),
         "email":       params["custom_class_email"] or params["lis_person_contact_email_primary"],
         "lang":        params["custom_class_lang"] or params["launch_presentation_locale"][:2],
         "expiration":  (params["custom_class_expiration"]
-                        or (datetime.now() + wclass_db.expiration).strftime("%Y%m%d")),
-        "limit":       params["custom_class_limit"] or wclass_db.class_limit,
+                        or (datetime.now() + wims_srv.expiration).strftime("%Y%m%d")),
+        "limit":       params["custom_class_limit"] or wims_srv.class_limit,
         "level":       params["custom_class_level"] or "H4",
         "css":         params["custom_class_css"] or "",
         "password":    ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
-        "supervisor":  supervisor,
-        "rclass":      wclass_db.rclass,
+        "supervisor":  create_supervisor(params),
+        "rclass":      wims_srv.rclass,
     }
     
-    return wimsapi.Class(**wclass)
+    if params["custom_clone_class"] is not None:
+        wapi = wimsapi.WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
+        bol, response = wapi.copyclass(params["custom_clone_class"], wims_srv.rclass)
+        if not bol:
+            raise wimsapi.AdmRawError(response['message'])
+        wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
+                                   response['new_class'], wims_srv.rclass)
+        for k, v in wclass_dic.items():
+            if k == "css":
+                continue
+            setattr(wclass, k, v)
+    else:
+        wclass = wimsapi.Class(**wclass_dic)
+    
+    return wclass
+
 
 
 
@@ -272,7 +296,11 @@ def get_or_create_class(lms, wims_srv, api, parameters):
             lms=lms, lms_uuid=parameters["context_id"],
             wims=wims_srv, wims_uuid=wclass.qclass
         )
+        logger.info("New class created (id : %d - wims id : %s - lms id : %s)"
+                    % (wclass_db.id, str(wclass.qclass), str(wclass_db.lms_uuid)))
         WimsUser.objects.create(lms=lms, wclass=wclass_db, quser="supervisor")
+        logger.info("New user created (wims id : supervisor - lms id : None) in class %d"
+                    % wclass_db.id)
     
     return wclass_db, wclass
 
@@ -338,5 +366,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
             lms=lms, lms_uuid=parameters["user_id"],
             wclass=wclass_db, quser=user.quser
         )
+        logger.info("New user created (wims id : %s - lms id : %s) in class %d"
+                    % (user.quser, str(user_db.lms_uuid), wclass_db.id))
     
     return user_db, user
