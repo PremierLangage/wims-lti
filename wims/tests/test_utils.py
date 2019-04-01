@@ -329,8 +329,8 @@ class CheckParametersTestCase(TestCase):
         
         with self.assertRaises(BadRequestException) as e:
             utils.parse_parameters(params)
-        self.assertIn(str(['custom_custom_class_name', 'custom_custom_class_institution']),
-                      str(e.exception))
+        self.assertIn('custom_custom_class_name', str(e.exception))
+        self.assertIn('custom_custom_class_institution', str(e.exception))
     
     
     def test_check_parameters_missing_lti_mandatory(self):
