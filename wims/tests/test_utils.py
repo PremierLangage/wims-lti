@@ -303,6 +303,36 @@ class CheckParametersTestCase(TestCase):
         self.assertIsNone(utils.check_parameters(params))
     
     
+    def test_check_parameters_custom_custom(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-FR',
+            'resource_link_id':                   'X',
+            'context_id':                         'X',
+            'context_title':                      "A title",
+            'user_id':                            'X',
+            'lis_person_contact_email_primary':   'X',
+            'lis_person_name_family':             'X',
+            'lis_person_name_given':              'X',
+            'tool_consumer_instance_description': 'X',
+            'tool_consumer_instance_guid':        'elearning.u-pem.fr',
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'oauth_signature':                    oauth2.generate_nonce(),
+            'roles':                              "Learner",
+            'custom_custom_class_name':           "Custom",
+            'custom_custom_class_institution':    "Custom",
+        }
+        
+        with self.assertRaises(BadRequestException) as e:
+            utils.parse_parameters(params)
+        self.assertIn(str(['custom_custom_class_name', 'custom_custom_class_institution']),
+                      str(e.exception))
+    
+    
     def test_check_parameters_missing_lti_mandatory(self):
         params = {
             'lti_version':                        'LTI-1p0',
@@ -483,6 +513,128 @@ class GetOrCreateClassTestCase(TestCase):
         wclass_db, wclass = utils.get_or_create_class(lms, wims, api, params)  # Retrieve from WIMS
         
         self.assertEqual(wclass.limit, wims.class_limit)
+    
+    
+    def test_get_or_create_class_create_custom_parameters(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            'X',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'X',
+            'lis_person_name_given':              'X',
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
+            'custom_class_name':                  "Custom class name",
+            'custom_class_institution':           "Custom class institution",
+            'custom_class_email':                 "custom@class.mail",
+            'custom_class_lang':                  "it",
+            'custom_class_expiration':            (date.today()
+                                                   + timedelta(days=31)).strftime("%Y%m%d"),
+            'custom_class_limit':                 "250",
+            'custom_class_level':                 "E1",
+            'custom_supervisor_lastname':         "Custom lastname",
+            'custom_supervisor_firstname':        "Custom firstname",
+        }
+        params = utils.parse_parameters(params)
+        
+        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+                                   name="WIMS UPEM",
+                                   ident="X", passwd="X", rclass="myclass")
+        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM")
+        api = WimsAPI(WIMS_URL, "myself", "toto")
+        utils.get_or_create_class(lms, wims, api, params)
+        _, wclass = utils.get_or_create_class(lms, wims, api, params)  # Retrieve from WIMS
+        
+        self.assertEqual(wclass.name, params["custom_class_name"])
+        self.assertEqual(wclass.institution, params["custom_class_institution"])
+        self.assertEqual(wclass.email, params["custom_class_email"])
+        self.assertEqual(wclass.lang, params["custom_class_lang"])
+        self.assertEqual(wclass.expiration, params["custom_class_expiration"])
+        self.assertEqual(wclass.limit, int(params["custom_class_limit"]))
+        self.assertEqual(wclass.level, params["custom_class_level"])
+        self.assertEqual(wclass.supervisor.lastname, params["custom_supervisor_lastname"])
+        self.assertEqual(wclass.supervisor.firstname, params["custom_supervisor_firstname"])
+    
+    
+    def test_get_or_create_class_copyclass(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            'X',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'X',
+            'lis_person_name_given':              'X',
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
+            'custom_class_name':                  "Custom class name",
+            'custom_class_institution':           "Custom class institution",
+            'custom_class_email':                 "custom@class.mail",
+            'custom_class_lang':                  "it",
+            'custom_class_expiration':            (date.today()
+                                                   + timedelta(days=31)).strftime("%Y%m%d"),
+            'custom_class_limit':                 "250",
+            'custom_class_level':                 "E1",
+            'custom_supervisor_lastname':         "Custom lastname",
+            'custom_supervisor_firstname':        "Custom firstname",
+        }
+        params = utils.parse_parameters(params)
+        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+                                   name="WIMS UPEM",
+                                   ident="X", passwd="X", rclass="myclass")
+        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM")
+        api = WimsAPI(WIMS_URL, "myself", "toto")
+        _, wclass = utils.get_or_create_class(lms, wims, api, params)
+        
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            'X',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'X',
+            'lis_person_name_given':              'X',
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
+            'custom_clone_class':                 wclass.qclass,
+        }
+        params = utils.parse_parameters(params)
+        _, wclass2 = utils.get_or_create_class(lms, wims, api, params)
+        
+        self.assertEqual(wclass.name, wclass2.name)
+        self.assertEqual(wclass.institution, wclass2.institution)
+        self.assertEqual(wclass.email, wclass2.email)
+        self.assertEqual(wclass.limit, wclass2.limit)
+        self.assertEqual(wclass.level, wclass2.level)
+        self.assertEqual(wclass.expiration, wclass2.expiration)
     
     
     def test_get_or_create_create_class_forbidden(self):
