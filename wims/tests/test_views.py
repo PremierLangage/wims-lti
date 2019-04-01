@@ -341,9 +341,8 @@ class FromIDTestCase(TestCase):
         request = RequestFactory().post(reverse("wims:from_id", args=[1]), secure=True)
         request.POST = params
         
-        wims = WIMS.objects.create(dns="dns", url=WIMS_URL,
-                                   name="WIMS UPEM",
-                                   ident="myself", passwd="toto", rclass="myclass")
+        wims = WIMS.objects.create(dns="dns", url=WIMS_URL, name="WIMS UPEM", ident="myself",
+                                   passwd="toto", rclass="myclass")
         LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM")
         r = views.from_id(request, wims.pk)

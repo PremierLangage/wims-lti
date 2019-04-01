@@ -22,7 +22,7 @@ class_limit_help = ("This is the classes default maximum student (between [5, 50
                     "is used at class creation and can be later changed individually for each class"
                     " on the WIMS server by the supervisor.")
 expiration_help = ("This is the classes default duration (format is 'day hours:minutes:seconds', "
-                   "default is 364 days) before expiration. This parameter is used at class "
+                   "default is 365 days) before expiration. This parameter is used at class "
                    "creation and can be later changed individually for each class on the ""WIMS "
                    "server by the supervisor.")
 
@@ -57,7 +57,7 @@ class WIMS(models.Model):
     )
     expiration = models.DurationField(
         verbose_name="Default expiration date", help_text=expiration_help,
-        default=timedelta(days=364),
+        default=timedelta(days=365), validators=[ModelsValidator.expiration_validator],
     )
     ident = models.CharField(max_length=2048, help_text=wims_help)
     passwd = models.CharField(max_length=2048, help_text=wims_help)
