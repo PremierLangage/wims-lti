@@ -249,7 +249,9 @@ def create_class(wims_srv, params):
             raise wimsapi.AdmRawError(response['message'])
         wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
                                    response['new_class'], wims_srv.rclass)
-        for k, v in wclass_dic:
+        for k, v in wclass_dic.items():
+            if k == "css":
+                continue
             setattr(wclass, k, v)
     else:
         wclass = wimsapi.Class(**wclass_dic)
@@ -294,7 +296,11 @@ def get_or_create_class(lms, wims_srv, api, parameters):
             lms=lms, lms_uuid=parameters["context_id"],
             wims=wims_srv, wims_uuid=wclass.qclass
         )
+        logger.info("New class created (id : %d - wims id : %s - lms id : %s)"
+                    % (wclass_db.id, str(wclass.qclass), str(wclass_db.lms_uuid)))
         WimsUser.objects.create(lms=lms, wclass=wclass_db, quser="supervisor")
+        logger.info("New user created (wims id : supervisor - lms id : None) in class %d"
+                    % wclass_db.id)
     
     return wclass_db, wclass
 
@@ -360,5 +366,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
             lms=lms, lms_uuid=parameters["user_id"],
             wclass=wclass_db, quser=user.quser
         )
+        logger.info("New user created (wims id : %s - lms id : %s) in class %d"
+                    % (user.quser, str(user_db.lms_uuid), wclass_db.id))
     
     return user_db, user
