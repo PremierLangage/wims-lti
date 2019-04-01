@@ -1,9 +1,10 @@
 import datetime
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from wims.exceptions import BadRequestException
-from wims.validator import CustomParameterValidator, validate
+from wims.validator import CustomParameterValidator, ModelsValidator, validate
 
 
 
@@ -36,13 +37,17 @@ class CustomParameterValidatorTestCase(TestCase):
     
     def test_expiration_validator(self):
         now = datetime.date.today()
-        months = now.replace(month=now.month + 7).strftime("%Y%m%d")
-        millenia = now.replace(year=now.year + 1000).strftime("%Y%m%d")
-        year_ago = now.replace(year=now.year - 1).strftime("%Y%m%d")
+        less_than_a_month = (now + datetime.timedelta(days=30)).strftime("%Y%m%d")
+        month = (now + datetime.timedelta(days=31)).strftime("%Y%m%d")
+        months = (now + datetime.timedelta(days=150)).strftime("%Y%m%d")
+        year = (now + datetime.timedelta(days=365)).strftime("%Y%m%d")
+        more_than_a_year = (now + datetime.timedelta(days=366)).strftime("%Y%m%d")
+        
+        self.assertTrue(CustomParameterValidator.expiration_validator(month))
         self.assertTrue(CustomParameterValidator.expiration_validator(months))
-        self.assertTrue(CustomParameterValidator.expiration_validator(None))
-        self.assertFalse(CustomParameterValidator.expiration_validator(millenia))
-        self.assertFalse(CustomParameterValidator.expiration_validator(year_ago))
+        self.assertTrue(CustomParameterValidator.expiration_validator(year))
+        self.assertFalse(CustomParameterValidator.expiration_validator(less_than_a_month))
+        self.assertFalse(CustomParameterValidator.expiration_validator(more_than_a_year))
         self.assertFalse(CustomParameterValidator.expiration_validator("Wrong format"))
     
     
@@ -51,3 +56,33 @@ class CustomParameterValidatorTestCase(TestCase):
         
         with self.assertRaisesMessage(BadRequestException, "Unknown language"):
             validate(CustomParameterValidator.lang_validator, "abc", "Unknown language")
+
+
+
+class ModelsValidatorTestCase(TestCase):
+    
+    def test_expiration_validator(self):
+        less_than_a_month = datetime.timedelta(days=30)
+        month = datetime.timedelta(days=31)
+        months = datetime.timedelta(days=150)
+        year = datetime.timedelta(days=365)
+        more_than_a_year = datetime.timedelta(days=366)
+        
+        ModelsValidator.expiration_validator(month)
+        ModelsValidator.expiration_validator(months)
+        ModelsValidator.expiration_validator(year)
+        with self.assertRaises(ValidationError):
+            ModelsValidator.expiration_validator(less_than_a_month)
+        with self.assertRaises(ValidationError):
+            ModelsValidator.expiration_validator(more_than_a_year)
+    
+    
+    def test_limit_validator(self):
+        ModelsValidator.limit_validator(5)
+        ModelsValidator.limit_validator(120)
+        ModelsValidator.limit_validator(500)
+        
+        with self.assertRaises(ValidationError):
+            ModelsValidator.limit_validator(0)
+        with self.assertRaises(ValidationError):
+            ModelsValidator.limit_validator(501)
