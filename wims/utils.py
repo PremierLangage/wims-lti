@@ -224,25 +224,38 @@ def create_supervisor(params):
 
 
 
-def create_class(wclass_db, params):
+def create_class(wims_srv, params):
     """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
-    wclass = {
+    wclass_dic = {
         "name":        params["custom_class_name"] or params["context_title"],
         "institution": (params["custom_class_institution"]
                         or params["tool_consumer_instance_description"]),
         "email":       params["custom_class_email"] or params["lis_person_contact_email_primary"],
         "lang":        params["custom_class_lang"] or params["launch_presentation_locale"][:2],
         "expiration":  (params["custom_class_expiration"]
-                        or (datetime.now() + wclass_db.expiration).strftime("%Y%m%d")),
-        "limit":       params["custom_class_limit"] or wclass_db.class_limit,
+                        or (datetime.now() + wims_srv.expiration).strftime("%Y%m%d")),
+        "limit":       params["custom_class_limit"] or wims_srv.class_limit,
         "level":       params["custom_class_level"] or "H4",
         "css":         params["custom_class_css"] or "",
         "password":    ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
         "supervisor":  create_supervisor(params),
-        "rclass":      wclass_db.rclass,
+        "rclass":      wims_srv.rclass,
     }
     
-    return wimsapi.Class(**wclass)
+    if params["custom_clone_class"] is not None:
+        wapi = wimsapi.WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
+        bol, response = wapi.copyclass(params["custom_clone_class"], wims_srv.rclass)
+        if not bol:
+            raise wimsapi.AdmRawError(response['message'])
+        wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
+                                   response['new_class'], wims_srv.rclass)
+        for k, v in wclass_dic:
+            setattr(wclass, k, v)
+    else:
+        wclass = wimsapi.Class(**wclass_dic)
+    
+    return wclass
+
 
 
 
