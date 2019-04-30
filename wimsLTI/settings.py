@@ -35,6 +35,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# alias used as sender when sending email
+EMAIL_ALIAS = None
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -179,6 +182,10 @@ ROLES_ALLOWED_CREATE_WIMS_CLASS = [
 # Static files
 STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'staticfiles'))
 STATIC_URL = '/static/'
+
+# Directory containing mail's title and body
+MAIL_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mail")
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
