@@ -7,6 +7,7 @@
 #
 
 import logging
+import os
 import random
 import string
 from datetime import datetime
@@ -16,6 +17,7 @@ import oauth2
 import wimsapi
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
 from lti.contrib.django import DjangoToolProvider
 
 from wims.enums import Role
@@ -217,47 +219,96 @@ def create_supervisor(params):
         "lastname":  (params['custom_supervisor_lastname']
                       or ("" if params['custom_supervisor_firstname'] else "Supervisor")),
         "firstname": params['custom_supervisor_firstname'] or "",
-        "password":  ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
+        "password":  ''.join(random.choice(ascii_letters + digits) for _ in range(10)),
         "email":     params["lis_person_contact_email_primary"],
     }
     return wimsapi.User(**supervisor)
 
 
 
-def create_class(wims_srv, params):
+def copy_class(wclass_db, params):
+    """Copy a wims' class with the given LTI request's parameters and wclass_db."""
+    wapi = wimsapi.WimsAPI(wclass_db.url, wclass_db.ident, wclass_db.passwd)
+    bol, response = wapi.copyclass(params["custom_clone_class"], wclass_db.rclass)
+    if not bol:  # pragma: no cover
+        raise wimsapi.AdmRawError(response['message'])
+        
+    wclass = wimsapi.Class.get(wclass_db.url, wclass_db.ident, wclass_db.passwd, response['new_class'],
+                               wclass_db.rclass)
+    wclass_dic = {
+        "name":        params["custom_class_name"],
+        "institution": params["custom_class_institution"],
+        "email":       params["custom_class_email"],
+        "lang":        params["custom_class_lang"],
+        "expiration":  params["custom_class_expiration"],
+        "limit":       params["custom_class_limit"],
+        "level":       params["custom_class_level"],
+        "css":         params["custom_class_css"],
+        "password":    ''.join(random.choice(ascii_letters + digits) for _ in range(10)),
+        "supervisor":  create_supervisor(params),
+        "rclass":      wclass_db.rclass,
+    }
+    for k, v in wclass_dic.items():
+        if v is None or k == "css":  # pragma: no cover
+            continue
+        setattr(wclass, k, v)
+    return wclass
+
+
+def create_class(wclass_db, params):
     """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
+    if params["custom_clone_class"] is not None:
+        return copy_class(wclass_db, params)
+
     wclass_dic = {
         "name":        params["custom_class_name"] or params["context_title"],
         "institution": (params["custom_class_institution"]
                         or params["tool_consumer_instance_description"]),
-        "email":       params["custom_class_email"] or params["lis_person_contact_email_primary"],
+        "email":       params["custom_class_email"] or params[
+            "lis_person_contact_email_primary"],
         "lang":        params["custom_class_lang"] or params["launch_presentation_locale"][:2],
         "expiration":  (params["custom_class_expiration"]
-                        or (datetime.now() + wims_srv.expiration).strftime("%Y%m%d")),
-        "limit":       params["custom_class_limit"] or wims_srv.class_limit,
+                        or (datetime.now() + wclass_db.expiration).strftime("%Y%m%d")),
+        "limit":       params["custom_class_limit"] or wclass_db.class_limit,
         "level":       params["custom_class_level"] or "H4",
         "css":         params["custom_class_css"] or "",
-        "password":    ''.join(random.choice(ascii_letters + digits) for _ in range(20)),
+        "password":    ''.join(random.choice(ascii_letters + digits) for _ in range(10)),
         "supervisor":  create_supervisor(params),
-        "rclass":      wims_srv.rclass,
+        "rclass":      wclass_db.rclass,
+    }
+    return wimsapi.Class(**wclass_dic)
+
+
+
+def generate_mail(wclass):
+    """Returns the title and the body of the credentials mail corresponding to
+    the language of the class."""
+    
+    params = {
+        "qclass":              wclass.qclass,
+        "name":                wclass.name,
+        "institution":         wclass.institution,
+        "email":               wclass.email,
+        "class_password":      wclass.password,
+        "supervisor_password": wclass.supervisor.password,
+        "expiration":          wclass.lang,
+        "limit":               wclass.limit,
+        "level":               wclass.level,
     }
     
-    if params["custom_clone_class"] is not None:
-        wapi = wimsapi.WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
-        bol, response = wapi.copyclass(params["custom_clone_class"], wims_srv.rclass)
-        if not bol:
-            raise wimsapi.AdmRawError(response['message'])
-        wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
-                                   response['new_class'], wims_srv.rclass)
-        for k, v in wclass_dic.items():
-            if k == "css":
-                continue
-            setattr(wclass, k, v)
-    else:
-        wclass = wimsapi.Class(**wclass_dic)
+    root = os.path.join(settings.MAIL_ROOT, wclass.lang)
+    tpath = os.path.join(root, "title.txt")
+    bpath = os.path.join(root, "body.txt")
+    if not (os.path.isfile(tpath) and os.path.isfile(bpath)):
+        root = os.path.join(settings.MAIL_ROOT, "en")
+        tpath = os.path.join(root, "title.txt")
+        bpath = os.path.join(root, "body.txt")
     
-    return wclass
-
+    with open(tpath) as t, open(bpath) as b:
+        title = t.read().format(**params)
+        body = b.read().format(**params)
+    
+    return title.rstrip(), body
 
 
 
@@ -292,6 +343,19 @@ def get_or_create_class(lms, wims_srv, api, parameters):
         
         wclass = create_class(wims_srv, parameters)
         wclass.save(api.url, api.ident, api.passwd)
+        
+        try:
+            title, body = generate_mail(wclass)
+            send_mail(
+                title,
+                body,
+                settings.EMAIL_ALIAS,
+                [wclass.supervisor.email],
+                fail_silently=False,
+            )
+        except Exception:  # pragma: no cover
+            logger.exception("An exception occurred while sending email:")
+        
         wclass_db = WimsClass.objects.create(
             lms=lms, lms_uuid=parameters["context_id"],
             wims=wims_srv, wims_uuid=wclass.qclass
