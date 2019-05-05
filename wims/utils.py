@@ -232,9 +232,9 @@ def copy_class(wclass_db, params):
     bol, response = wapi.copyclass(params["custom_clone_class"], wclass_db.rclass)
     if not bol:  # pragma: no cover
         raise wimsapi.AdmRawError(response['message'])
-        
-    wclass = wimsapi.Class.get(wclass_db.url, wclass_db.ident, wclass_db.passwd, response['new_class'],
-                               wclass_db.rclass)
+    
+    wclass = wimsapi.Class.get(wclass_db.url, wclass_db.ident, wclass_db.passwd,
+                               response['new_class'], wclass_db.rclass)
     wclass_dic = {
         "name":        params["custom_class_name"],
         "institution": params["custom_class_institution"],
@@ -255,11 +255,12 @@ def copy_class(wclass_db, params):
     return wclass
 
 
+
 def create_class(wclass_db, params):
     """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
     if params["custom_clone_class"] is not None:
         return copy_class(wclass_db, params)
-
+    
     wclass_dic = {
         "name":        params["custom_class_name"] or params["context_title"],
         "institution": (params["custom_class_institution"]
