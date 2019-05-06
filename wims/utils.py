@@ -350,11 +350,13 @@ def get_or_create_class(lms, wims_srv, api, parameters):
             send_mail(
                 title,
                 body,
-                settings.EMAIL_ALIAS,
+                settings.SERVER_EMAIL,
                 [wclass.supervisor.email],
                 fail_silently=False,
             )
-        except Exception:  # pragma: no cover
+        except Exception:
+            import traceback
+            traceback.print_exc()
             logger.exception("An exception occurred while sending email:")
         
         wclass_db = WimsClass.objects.create(
