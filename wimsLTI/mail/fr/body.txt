@@ -1,0 +1,11 @@
+Bonjour,
+
+
+Vous avez créé la classe {name} d'ID {qclass} sur WIMS en utilisant WIMS LTI.
+
+Le mot de passe de la classe est : {class_password}
+Le mot de passe du superviseur est : {supervisor_password}
+
+
+Cordialement,
+WIMS-LTI.
