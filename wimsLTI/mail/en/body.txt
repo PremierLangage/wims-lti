@@ -1,0 +1,7 @@
+Hello,
+
+You created the class {name} of id {qclass} on WIMS, using WIMS LTI.
+The class' password is : {class_password}
+the supervisor's password is : {supervisor_password}
+
+WIMS-LTI.

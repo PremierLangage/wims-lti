@@ -19,9 +19,12 @@ FAKE_CREDENTIALS = {
     'provider1': 'secret1',
 }
 
+FAKE_EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+
 
 
 @override_settings(LTI_OAUTH_CREDENTIALS=FAKE_CREDENTIALS)
+@override_settings(EMAIL_BACKEND=FAKE_EMAIL_BACKEND)
 class RedirectToWimsTestCase(TestCase):
     
     def test_redirect_to_wims_ok(self):
@@ -31,7 +34,7 @@ class RedirectToWimsTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -71,7 +74,7 @@ class RedirectToWimsTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -94,7 +97,7 @@ class RedirectToWimsTestCase(TestCase):
         request = RequestFactory().post(reverse("wims:from_dns", args=["dns"]), secure=True)
         request.POST = params
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         
@@ -110,7 +113,7 @@ class RedirectToWimsTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -133,7 +136,7 @@ class RedirectToWimsTestCase(TestCase):
         request = RequestFactory().post(reverse("wims:from_dns", args=["dns"]), secure=True)
         request.POST = params
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="wrong", passwd="wrong", rclass="myclass")
         LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -145,6 +148,7 @@ class RedirectToWimsTestCase(TestCase):
 
 
 @override_settings(LTI_OAUTH_CREDENTIALS=FAKE_CREDENTIALS)
+@override_settings(EMAIL_BACKEND=FAKE_EMAIL_BACKEND)
 class FromDNSTestCase(TestCase):
     
     def test_from_dns_ok(self):
@@ -154,7 +158,7 @@ class FromDNSTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -204,7 +208,7 @@ class FromDNSTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -237,7 +241,7 @@ class FromDNSTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -266,6 +270,7 @@ class FromDNSTestCase(TestCase):
 
 
 @override_settings(LTI_OAUTH_CREDENTIALS=FAKE_CREDENTIALS)
+@override_settings(EMAIL_BACKEND=FAKE_EMAIL_BACKEND)
 class FromIDTestCase(TestCase):
     
     def test_from_id_ok(self):
@@ -275,7 +280,7 @@ class FromIDTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -325,7 +330,7 @@ class FromIDTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -357,7 +362,7 @@ class FromIDTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -395,7 +400,7 @@ class ListTestCase(TestCase):
     
     
     def test_list(self):
-        WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/", name="WIMS UPEM",
+        WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL, name="WIMS UPEM",
                             ident="X", passwd="X", rclass="X")
         LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM")
@@ -407,8 +412,8 @@ class ListTestCase(TestCase):
                             html=True)
         self.assertContains(response,
                             '<td class="w-25">WIMS UPEM</td>'
-                            '<td>https://wims.u-pem.fr/</td>'
-                            '<td>http://testserver/dns/wims.upem.fr/</td>',
+                            + '<td>' + WIMS_URL + '</td>'
+                            + '<td>http://testserver/dns/wims.upem.fr/</td>',
                             html=True)
 
 
