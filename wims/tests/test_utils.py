@@ -6,6 +6,7 @@ import oauth2
 import oauthlib.oauth1.rfc5849.signature as oauth_signature
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.core import mail
 from django.shortcuts import reverse
 from django.test import RequestFactory, TestCase, override_settings
 from wimsapi import Class, User, WimsAPI
@@ -19,12 +20,15 @@ FAKE_CREDENTIALS = {
     'provider1': 'secret1',
 }
 
+FAKE_EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+
 # URL to the WIMS server used for tests, the server must recogned ident 'myself' and passwd 'toto'
 WIMS_URL = os.getenv("WIMS_URL") or "http://localhost:7777/wims/wims.cgi"
 
 
 
 @override_settings(LTI_OAUTH_CREDENTIALS=FAKE_CREDENTIALS)
+@override_settings(EMAIL_BACKEND=FAKE_EMAIL_BACKEND)
 class IsValidRequestTestCase(TestCase):
     
     def test_is_valid_request_ok(self):
@@ -34,7 +38,7 @@ class IsValidRequestTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -67,7 +71,7 @@ class IsValidRequestTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -105,7 +109,7 @@ class IsValidRequestTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -140,7 +144,7 @@ class IsValidRequestTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -174,7 +178,7 @@ class IsValidRequestTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -209,7 +213,7 @@ class IsValidRequestTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -238,6 +242,7 @@ class IsValidRequestTestCase(TestCase):
 
 
 @override_settings(LTI_OAUTH_CREDENTIALS=FAKE_CREDENTIALS)
+@override_settings(EMAIL_BACKEND=FAKE_EMAIL_BACKEND)
 class LTIRequestIValid(TestCase):
     
     def test_lti_request_is_valid_ok(self):
@@ -247,7 +252,7 @@ class LTIRequestIValid(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -284,7 +289,7 @@ class CheckParametersTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -310,7 +315,7 @@ class CheckParametersTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -339,7 +344,7 @@ class CheckParametersTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
@@ -353,6 +358,7 @@ class CheckParametersTestCase(TestCase):
             'oauth_signature':                    oauth2.generate_nonce(),
             'roles':                              "Learner"
         }
+        
         params = utils.parse_parameters(params)
         
         with self.assertRaises(BadRequestException) as r:
@@ -368,7 +374,7 @@ class CheckParametersTestCase(TestCase):
             'launch_presentation_locale':         'fr-FR',
             'resource_link_id':                   'X',
             'context_id':                         'X',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'lis_person_contact_email_primary':   'X',
             'lis_person_name_family':             'X',
             'lis_person_name_given':              'X',
@@ -402,6 +408,7 @@ class GetOrCreateClassTestCase(TestCase):
         api.delclass(60004, "myclass")
         api.delclass(60005, "myclass")
         api.delclass(60006, "myclass")
+        api.delclass(77777, "myclass")
         super().tearDown()
     
     
@@ -412,7 +419,7 @@ class GetOrCreateClassTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'X',
@@ -427,7 +434,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -446,14 +453,14 @@ class GetOrCreateClassTestCase(TestCase):
         self.assertEqual(wclass.supervisor.email, params["lis_person_contact_email_primary"])
     
     
-    def test_get_or_create_class_create_expiration(self):
+    def test_get_or_create_class_create_mail(self):
         params = {
             'lti_message_type':                   'basic-lti-launch-request',
             'lti_version':                        'LTI-1p0',
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "Title",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'X',
@@ -468,7 +475,43 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
+                                   name="WIMS UPEM",
+                                   ident="X", passwd="X", rclass="myclass")
+        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM")
+        api = WimsAPI(WIMS_URL, "myself", "toto")
+        wclass_db, wclass = utils.get_or_create_class(lms, wims, api, params)
+        
+        self.assertIn(wclass.name, mail.outbox[0].body)
+        self.assertIn(wclass.qclass, mail.outbox[0].body)
+        self.assertIn(wclass.password, mail.outbox[0].body)
+        self.assertIn(wclass.supervisor.password, mail.outbox[0].body)
+    
+    
+    def test_get_or_create_class_create_expiration(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title.txt",
+            'user_id':                            'X',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'X',
+            'lis_person_name_given':              'X',
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
+        }
+        params = utils.parse_parameters(params)
+        
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM", expiration=timedelta(days=400),
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -488,7 +531,7 @@ class GetOrCreateClassTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'X',
@@ -503,7 +546,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM", class_limit=123,
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -522,7 +565,7 @@ class GetOrCreateClassTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'X',
@@ -547,7 +590,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -574,7 +617,7 @@ class GetOrCreateClassTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'X',
@@ -598,9 +641,9 @@ class GetOrCreateClassTestCase(TestCase):
             'custom_supervisor_firstname':        "Custom firstname",
         }
         params = utils.parse_parameters(params)
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
-                                   ident="X", passwd="X", rclass="myclass")
+                                   ident="myself", passwd="toto", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
         api = WimsAPI(WIMS_URL, "myself", "toto")
@@ -611,8 +654,8 @@ class GetOrCreateClassTestCase(TestCase):
             'lti_version':                        'LTI-1p0',
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
-            'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_id':                         '777778',
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'X',
@@ -634,7 +677,6 @@ class GetOrCreateClassTestCase(TestCase):
         self.assertEqual(wclass.email, wclass2.email)
         self.assertEqual(wclass.limit, wclass2.limit)
         self.assertEqual(wclass.level, wclass2.level)
-        self.assertEqual(wclass.expiration, wclass2.expiration)
     
     
     def test_get_or_create_create_class_forbidden(self):
@@ -644,7 +686,7 @@ class GetOrCreateClassTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'X',
@@ -658,7 +700,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -679,7 +721,7 @@ class GetOrCreateClassTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            'X',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'X',
@@ -693,7 +735,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -701,7 +743,7 @@ class GetOrCreateClassTestCase(TestCase):
         wclass_db1 = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
                                               wims_uuid="60001")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
-        wclass1 = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
+        wclass1 = Class(wims.rclass, "A title.txt", "UPEM", "test@email.com", "password",
                         supervisor, lang="fr", qclass=wclass_db1.wims_uuid)
         wclass1.save(WIMS_URL, "myself", "toto")
         api = WimsAPI(WIMS_URL, "myself", "toto")
@@ -733,7 +775,7 @@ class GetOrCreateUserTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -747,7 +789,7 @@ class GetOrCreateUserTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -755,7 +797,7 @@ class GetOrCreateUserTestCase(TestCase):
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
                                              wims_uuid="60002")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
-        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
+        wclass = Class(wims.rclass, "A title.txt", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.wims_uuid)
         wclass.save(WIMS_URL, "myself", "toto")
         
@@ -779,7 +821,7 @@ class GetOrCreateUserTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -793,7 +835,7 @@ class GetOrCreateUserTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -802,7 +844,7 @@ class GetOrCreateUserTestCase(TestCase):
                                              wims_uuid="60003")
         WimsUser.objects.create(lms=lms, lms_uuid='66', wclass=wclass_db, quser="jdoe")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
-        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
+        wclass = Class(wims.rclass, "A title.txt", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.wims_uuid)
         wclass.save(WIMS_URL, "myself", "toto")
         
@@ -832,7 +874,7 @@ class GetOrCreateUserTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -846,7 +888,7 @@ class GetOrCreateUserTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -856,7 +898,7 @@ class GetOrCreateUserTestCase(TestCase):
         WimsUser.objects.create(lms=lms, lms_uuid='66', wclass=wclass_db, quser="jdoe")
         WimsUser.objects.create(lms=lms, lms_uuid='67', wclass=wclass_db, quser="jdoe1")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
-        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
+        wclass = Class(wims.rclass, "A title.txt", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.wims_uuid)
         wclass.save(WIMS_URL, "myself", "toto")
         
@@ -887,7 +929,7 @@ class GetOrCreateUserTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Doe',
@@ -901,7 +943,7 @@ class GetOrCreateUserTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -910,7 +952,7 @@ class GetOrCreateUserTestCase(TestCase):
                                              wims_uuid="60005")
         user_db1 = WimsUser.objects.create(lms=lms, lms_uuid='77', wclass=wclass_db, quser="jdoe")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
-        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
+        wclass = Class(wims.rclass, "A title.txt", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.wims_uuid)
         wclass.save(WIMS_URL, "myself", "toto")
         
@@ -941,7 +983,7 @@ class GetOrCreateUserTestCase(TestCase):
             'launch_presentation_locale':         'fr-BE',
             'resource_link_id':                   'X',
             'context_id':                         '77777',
-            'context_title':                      "A title",
+            'context_title':                      "A title.txt",
             'user_id':                            '77',
             'lis_person_contact_email_primary':   'test@email.com',
             'lis_person_name_family':             'Jean',
@@ -955,7 +997,7 @@ class GetOrCreateUserTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(dns="wims.upem.fr", url=WIMS_URL,
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -964,7 +1006,7 @@ class GetOrCreateUserTestCase(TestCase):
                                              wims_uuid="60006")
         WimsUser.objects.create(lms=lms, lms_uuid=None, wclass=wclass_db, quser="supervisor")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
-        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
+        wclass = Class(wims.rclass, "A title.txt", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.wims_uuid)
         wclass.save(WIMS_URL, "myself", "toto")
         
