@@ -35,9 +35,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-# alias used as sender when sending email
-EMAIL_ALIAS = None
-
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
