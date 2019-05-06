@@ -69,7 +69,7 @@ def redirect_to_wims(request, wims_srv):
         url = response["home_url"] + ("&lang=%s" % wclass.lang)
     
     except AdmRawError as e:  # WIMS server responded with ERROR
-        logger.info(str(e))
+        logger.exception("Exception occured while joining WIMS")
         return HttpResponse(str(e), status=421)
     
     return redirect(url)
