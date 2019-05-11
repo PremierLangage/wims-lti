@@ -20,28 +20,8 @@
     </head>
     <body class="ml-5 mt-3">
         <div>
-            <h2>LMS</h2>
-            You can connect to any of the below WIMS server from the following LMS:
-            {% if LMS %}
-                <table class="table table-bordered table-hover table-sm w-75 mt-3">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Name</th>
-                            <th>URL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for elem in LMS %}
-                            <tr>
-                                <td class="w-25">{{ elem.name }}</td>
-                                <td>{{ elem.url }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <i>No LMS found</i>
-            {% endif %}
+            <h2>Choose your LMS</h2>
+
         </div>
 
         <div class="mt-5">

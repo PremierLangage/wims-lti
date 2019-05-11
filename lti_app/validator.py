@@ -16,7 +16,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from oauthlib.oauth1 import RequestValidator as BaseRequestValidator
 
-from wims.exceptions import BadRequestException
+from lti_app.exceptions import BadRequestException
 
 
 logger = logging.getLogger(__name__)
