@@ -8,18 +8,16 @@
 
 import logging
 
-from django.http import (Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
+from django.http import (HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
                          JsonResponse)
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_GET
-from wimsapi import AdmRawError, Class, WimsAPI
+from wimsapi import AdmRawError, Class
 
-from lti_app.exceptions import BadRequestException
 from api.models import Activity, WIMS, WimsClass
 
 
 logger = logging.getLogger(__name__)
-
 
 
 
@@ -36,8 +34,12 @@ def get_classes(request, wims_pk):
 
 
 @require_GET
-def get_activity(request, wims_pk, wclass_pk, passwd):
+def get_activities(request, wims_pk, wclass_pk):
     srv_class = get_object_or_404(WimsClass, wims=wims_pk, wclass=wclass_pk)
+    
+    passwd = request.GET.get("password", None)
+    if passwd is None:
+        return HttpResponseBadRequest("Missing parameter: 'password'")
     
     try:
         wclass = Class.get(srv_class.wims.url, srv_class.wims.ident, srv_class.wims.passwd,
