@@ -7,25 +7,26 @@
 #
 
 import logging
-import os
 
-from django.conf import settings
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
-from django.shortcuts import redirect, render, reverse
+from django.shortcuts import redirect
 from wimsapi import AdmRawError, WimsAPI
 
 from wims.exceptions import BadRequestException
 from wims.models import LMS, WIMS
-from wims.utils import (get_or_create_class, get_or_create_user, lti_request_is_valid,
-                        parse_parameters)
+from wims.utils import (check_custom_parameters, check_parameters, get_or_create_class,
+                        get_or_create_user, is_valid_request, parse_parameters)
 
 
 logger = logging.getLogger(__name__)
 
 
+def wims_activity(request, wims_pk, activity_pk):
+    pass
 
-def redirect_to_wims(request, wims_srv):
-    """Redirect the client to the WIMS server corresponding to <wims_srv>.
+
+def wims_class(request, wims_pk):
+    """Redirect the client to the WIMS server corresponding to <pk>.
     
     Will retrieve/create the right WIMS' class/user according to informations in request.POST.
     
@@ -39,115 +40,56 @@ def redirect_to_wims(request, wims_srv):
     Returns:
         - HttpResponseRedirect redirecting the user to WIMS, logged in his WIMS' class.
         - HttpResponse(status=421) if an error occured while communicating with the WIMS server."""
+    if request.method == "GET":
+        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
+                                                "trailing '/' ?")
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
     
-    parameters = parse_parameters(request.POST)
+    try:
+        parameters = parse_parameters(request.POST)
+        logger.info("Request received from '%s'" % request.META.get('HTTP_REFERER', "Unknown"))
+        check_parameters(parameters)
+        check_custom_parameters(parameters)
+        is_valid_request(request)
+    except BadRequestException as e:
+        logger.info(str(e))
+        return HttpResponseBadRequest(str(e))
     
+    # Retrieve the WIMS server
+    try:
+        wims_srv = WIMS.objects.get(pk=wims_pk)
+    except WIMS.DoesNotExist:
+        raise Http404("Unknown WIMS server of id '%d'" % wims_pk)
+
     # Retrieve the LMS
     try:
         lms = LMS.objects.get(uuid=parameters["tool_consumer_instance_guid"])
     except LMS.DoesNotExist:
         raise Http404("No LMS found with uuid '%s'" % parameters["tool_consumer_instance_guid"])
-    
+
     wapi = WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
-    
+
     try:
         # Check that the WIMS server is available
         bol, response = wapi.checkident(verbose=True)
         if not bol:
             raise AdmRawError(response['message'])
-        
+    
         # Check whether the class already exists, creating it otherwise, can raise AdmRawError
         wclass_db, wclass = get_or_create_class(lms, wims_srv, wapi, parameters)
-        
+    
         # Check whether the user already exists, creating it otherwise, can raise AdmRawError
         _, user = get_or_create_user(lms, wclass_db, wclass, parameters)
-        
+    
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
         if not bol:  # pragma: no cover
             raise AdmRawError(response['message'])
         url = response["home_url"] + ("&lang=%s" % wclass.lang)
     
-    except AdmRawError as e:  # WIMS server responded with ERROR
+    except AdmRawError as e: # WIMS server responded with ERROR
         logger.info(str(e))
         return HttpResponse(str(e), status=421)
-    
+
     return redirect(url)
-
-
-
-def from_dns(request, dns):
-    """Use <dns> to retrieve the WIMS model from the database.
-    Raises Http404 if the WIMS model corresponding to <dns> could not be found."""
-    if request.method == "GET":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
-                                                "trailing '/' ?")
-    if request.method != "POST":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
-    
-    try:
-        lti_request_is_valid(request)
-    except BadRequestException as e:
-        logger.info(str(e))
-        return HttpResponseBadRequest(str(e))
-    
-    try:
-        wims = WIMS.objects.get(dns=dns)
-    except WIMS.DoesNotExist:
-        raise Http404("Unknown WIMS server '%s'" % dns)
-    
-    return redirect_to_wims(request, wims)
-
-
-
-def from_id(request, pk):
-    """Use the <pk> to retrieve the WIMS model from the database.
-    Raises Http404 if the WIMS model corresponding to <pk> could not be found."""
-    if request.method == "GET":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
-                                                "trailing '/' ?")
-    if request.method != "POST":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
-    
-    try:
-        lti_request_is_valid(request)
-    except BadRequestException as e:
-        logger.info(str(e))
-        return HttpResponseBadRequest(str(e))
-    
-    try:
-        wims = WIMS.objects.get(pk=pk)
-    except WIMS.DoesNotExist:
-        raise Http404("Unknown WIMS server of id '%d'" % pk)
-    
-    return redirect_to_wims(request, wims)
-
-
-
-def ls(request):
-    """List all available LMS and WIMS server and their URL."""
-    wserver = WIMS.objects.all()
-    for w in wserver:
-        w.lti_url = request.build_absolute_uri(reverse("wims:from_dns", args=[w.dns]))
-    
-    return render(request, 'wims/list.html', {
-        "LMS":  LMS.objects.all(),
-        "WIMS": wserver,
-    })
-
-
-
-def about(request, lang="en"):
-    """Display the README of the project in the given language.
-    Raises Http404 if the translation of the README for the given language does not exists."""
-    try:
-        path = os.path.join(settings.BASE_DIR,
-                            "README.md" if lang == "en" else "translation/README_%s.md" % lang)
-        with open(path) as f:
-            content = f.read()
-    except OSError as e:
-        logger.warning("About, lang: %s, %s" % (lang, str(e)))
-        raise Http404("Unknown language : '%s'" % lang)
-    return render(request, 'wims/about.html', {
-        "README": content,
-    })

@@ -8,10 +8,9 @@
 
 from datetime import timedelta
 
-from django.core.validators import RegexValidator, URLValidator
+from django.core.validators import URLValidator
 from django.db import models
 
-from wims.converters import DNSConverter
 from wims.validator import ModelsValidator
 
 
@@ -41,16 +40,12 @@ class WIMS(models.Model):
         * ident - Identifier of the wims server.
         * passwd - Password of the wims server.
         * rclass - Identifier used for each class of this WIMS server."""
-    dns = models.CharField(
-        max_length=253, unique=True, db_index=True, verbose_name="DNS",
-        validators=[RegexValidator("^" + DNSConverter.regex + "$", "Please enter a valid DNS")]
-    )
+    name = models.CharField(max_length=2048)
     url = models.CharField(
         max_length=2048, unique=True, db_index=True, verbose_name="URL",
         validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")],
         help_text="URL must point to the WIMS' server cgi.",
     )
-    name = models.CharField(max_length=2048)
     class_limit = models.PositiveSmallIntegerField(
         verbose_name="Default student limit", help_text=class_limit_help, default=150,
         validators=[ModelsValidator.limit_validator],
@@ -71,7 +66,7 @@ class WIMS(models.Model):
 class LMS(models.Model):
     """Represents a LMS."""
     uuid = models.CharField(
-        max_length=2048, primary_key=True, help_text=lms_uuid_help, verbose_name="UUID"
+        max_length=2048, help_text=lms_uuid_help, verbose_name="UUID"
     )
     name = models.CharField(max_length=2048, null=False)
     url = models.CharField(
@@ -109,3 +104,26 @@ class WimsUser(models.Model):
         verbose_name_plural = "WimsUsers"
         unique_together = (("lms", "lms_uuid"), ("quser", "wclass"),)
         indexes = [models.Index(fields=['lms', 'lms_uuid', 'wclass'])]
+
+
+
+class Activity(models.Model):
+    """Represents an Activity on a WIMS server."""
+    lms = models.ForeignKey(LMS, models.CASCADE)
+    lms_uuid = models.CharField(max_length=256)
+    wims_uuid = models.CharField(max_length=256)
+    wclass = models.ForeignKey(WimsClass, models.CASCADE)
+    
+    class Meta:
+        verbose_name_plural = "Activities"
+        unique_together = (("lms", "lms_uuid"), ("wims_uuid", "wclass"),)
+        indexes = [models.Index(fields=['lms', 'lms_uuid', 'wclass'])]
+    
+
+
+
+class GradeLink(models.Model):
+    """Store link to send grade back to the LMS."""
+    activity = models.ForeignKey(Activity, models.CASCADE)
+    user = models.ForeignKey(WimsUser, models.CASCADE)
+    link = models.URLField(max_length=255)
