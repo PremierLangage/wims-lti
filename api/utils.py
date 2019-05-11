@@ -162,7 +162,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
                 wclass.additem(user)
                 break
             except wimsapi.AdmRawError as e:
-                # Raised if an user with an user with the same quser already exists,
+                # Raised if an user with the same quser already exists,
                 # in this case, keep trying by appending integer to quser (jdoe, jdoe1,
                 # jdoe2, ...), stopping after 100 tries.
                 

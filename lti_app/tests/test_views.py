@@ -96,9 +96,8 @@ class WimsClassTestCase(TestCase):
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
         
-        WIMS.objects.create(url=WIMS_URL,
-                            name="WIMS UPEM",
-                            ident="myself", passwd="toto", rclass="myclass")
+        WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
+                            rclass="myclass")
         LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM")
         r = views.wims_class(request, 1)

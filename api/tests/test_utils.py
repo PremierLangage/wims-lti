@@ -9,8 +9,8 @@ from wimsapi import Class, User, WimsAPI
 
 from api import utils
 from api.models import LMS, WIMS, WimsClass, WimsUser
-
 from lti_app.utils import parse_parameters
+
 
 # URL to the WIMS server used for tests, the server must recogned ident 'myself' and passwd 'toto'
 WIMS_URL = os.getenv("WIMS_URL") or "http://localhost:7777/wims/wims.cgi"
