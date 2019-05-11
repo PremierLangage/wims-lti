@@ -50,11 +50,11 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         # Last 'dns' is the arg use in request factory
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/dns/dns/")
+        uri = oauth_signature.normalize_base_string_uri("https://testserver/wims/1/")
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
-        request = RequestFactory().post(reverse("wims:from_dns", args=["dns"]), secure=True)
+        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
         request.POST = params
         
         utils.is_valid_request(request)
@@ -83,11 +83,11 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         # Last 'dns' is the arg use in request factory
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/dns/dns/")
+        uri = oauth_signature.normalize_base_string_uri("https://testserver/wims/1/")
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
-        request = RequestFactory().post(reverse("wims:from_dns", args=["dns"]), secure=True)
+        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
         request.POST = params
         
         with self.assertRaises(BadRequestException) as r:
@@ -121,11 +121,11 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         # Last 'dns' is the arg use in request factory
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/dns/dns/")
+        uri = oauth_signature.normalize_base_string_uri("https://testserver/wims/1/")
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
-        request = RequestFactory().post(reverse("wims:from_dns", args=["dns"]), secure=True)
+        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
         request.POST = params
         
         with self.assertRaises(BadRequestException) as r:
@@ -156,11 +156,11 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         # Last 'dns' is the arg use in request factory
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/dns/dns/")
+        uri = oauth_signature.normalize_base_string_uri("https://testserver/wims/1/")
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret2", None)
-        request = RequestFactory().post(reverse("wims:from_dns", args=["dns"]), secure=True)
+        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
         request.POST = params
         
         with self.assertRaises(PermissionDenied):
@@ -190,11 +190,11 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         # Last 'dns' is the arg use in request factory
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/dns/dns/")
+        uri = oauth_signature.normalize_base_string_uri("https://testserver/wims/1/")
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret2", None)
-        request = RequestFactory().post(reverse("wims:from_dns", args=["dns"]), secure=True)
+        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
         request.POST = params
         
         with self.assertRaises(BadRequestException) as r:
@@ -225,53 +225,15 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         # Last 'dns' is the arg use in request factory
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/dns/dns/")
+        uri = oauth_signature.normalize_base_string_uri("https://testserver/wims/1/")
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
-        request = RequestFactory().post(reverse("wims:from_dns", args=["dns"]), secure=True)
+        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
         request.POST = params
         
         with self.assertRaises(PermissionDenied):
             utils.is_valid_request(request)
-
-
-
-@override_settings(LTI_OAUTH_CREDENTIALS=FAKE_CREDENTIALS)
-class LTIRequestIValid(TestCase):
-    
-    def test_lti_request_is_valid_ok(self):
-        params = {
-            'lti_message_type':                   'basic-lti-launch-request',
-            'lti_version':                        'LTI-1p0',
-            'launch_presentation_locale':         'fr-FR',
-            'resource_link_id':                   'X',
-            'context_id':                         'X',
-            'context_title':                      "A title",
-            'user_id':                            'X',
-            'lis_person_contact_email_primary':   'X',
-            'lis_person_name_family':             'X',
-            'lis_person_name_given':              'X',
-            'tool_consumer_instance_description': 'X',
-            'tool_consumer_instance_guid':        'elearning.u-pem.fr',
-            'oauth_consumer_key':                 'provider1',
-            'oauth_signature_method':             'HMAC-SHA1',
-            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
-            'oauth_nonce':                        oauth2.generate_nonce(),
-            'roles':                              "Learner"
-        }
-        
-        norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
-        # Last 'dns' is the arg use in request factory
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/dns/dns/")
-        base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
-        
-        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
-        request = RequestFactory().post(reverse("wims:from_dns", args=["dns"]), secure=True)
-        request.POST = params
-        request.META['HTTP_REFERER'] = "testserver"
-        
-        utils.lti_request_is_valid(request)
 
 
 
@@ -427,7 +389,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -468,7 +430,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM", expiration=timedelta(days=400),
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -503,7 +465,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM", class_limit=123,
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -547,7 +509,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -598,8 +560,7 @@ class GetOrCreateClassTestCase(TestCase):
             'custom_supervisor_firstname':        "Custom firstname",
         }
         params = utils.parse_parameters(params)
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
-                                   name="WIMS UPEM",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/", name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM")
@@ -658,7 +619,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -693,7 +654,7 @@ class GetOrCreateClassTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -747,7 +708,7 @@ class GetOrCreateUserTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -793,7 +754,7 @@ class GetOrCreateUserTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -846,7 +807,7 @@ class GetOrCreateUserTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -901,7 +862,7 @@ class GetOrCreateUserTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
@@ -955,7 +916,7 @@ class GetOrCreateUserTestCase(TestCase):
         }
         params = utils.parse_parameters(params)
         
-        wims = WIMS.objects.create(dns="wims.upem.fr", url="https://wims.u-pem.fr/",
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
                                    name="WIMS UPEM",
                                    ident="X", passwd="X", rclass="myclass")
         lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",

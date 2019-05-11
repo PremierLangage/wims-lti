@@ -115,21 +115,6 @@ def check_custom_parameters(params):
     )
 
 
-
-def lti_request_is_valid(request):
-    """Check that the LTI request is valid.
-    Raises :
-        - wims.exceptions.BadRequestException if LTI request is invalid.
-        - PermissioNDenied if signature check failed.
-    """
-    parameters = parse_parameters(request.POST)
-    logger.info("Request received from '%s'" % request.META.get('HTTP_REFERER', "Unknown"))
-    check_parameters(parameters)
-    check_custom_parameters(parameters)
-    is_valid_request(request)
-
-
-
 def parse_parameters(p):
     """Returns the a dictionnary of the LTI request parameters,
     replacing missing parameters with None.
