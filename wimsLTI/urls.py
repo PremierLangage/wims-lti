@@ -12,5 +12,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('wims/', include('wims.urls', namespace='wims'))
+    path('api/', include('api.urls', namespace='api')),
+    path('lti/', include('lti_app.urls', namespace='lti')),
 ]

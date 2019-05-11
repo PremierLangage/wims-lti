@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
-from wims import models
+from api import models
 
 
 
@@ -19,7 +19,7 @@ class WIMSAdmin(admin.ModelAdmin):
 
 @admin.register(models.WimsClass)
 class WIMSClassAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wims', 'lms', 'lms_uuid', 'wims_uuid')
+    list_display = ('id', 'wims', 'lms', 'lms_uuid', 'qclass')
 
 
 

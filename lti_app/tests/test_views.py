@@ -7,8 +7,8 @@ from django.http import Http404
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase, override_settings
 
-from wims import views
-from wims.models import LMS, WIMS
+from api.models import LMS, WIMS
+from lti_app import views
 
 
 # URL to the WIMS server used for tests, the server must recogned ident 'myself' and passwd 'toto'
@@ -46,11 +46,12 @@ class WimsClassTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         # Last 'dns' is the arg use in request factory
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/wims/1/")
+        uri = oauth_signature.normalize_base_string_uri(
+            "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
-        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
+        request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
         
         WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
@@ -62,12 +63,12 @@ class WimsClassTestCase(TestCase):
     
     
     def test_wims_class_invalid_method(self):
-        r = Client().patch(reverse("wims:wims_class", args=[1]))
+        r = Client().patch(reverse("lti:wims_class", args=[1]))
         self.assertContains(r, "405 Method Not Allowed: 'PATCH'", status_code=405)
     
     
     def test_wims_class_invalid_method_get(self):
-        r = Client().get(reverse("wims:wims_class", args=[1]))
+        r = Client().get(reverse("lti:wims_class", args=[1]))
         self.assertContains(r, "405 Method Not Allowed: 'GET'. Did you forget trailing '/' ?",
                             status_code=405)
     
@@ -92,7 +93,7 @@ class WimsClassTestCase(TestCase):
             'oauth_nonce':                        oauth2.generate_nonce(),
             'roles':                              "Learner"
         }
-        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
+        request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
         
         WIMS.objects.create(url=WIMS_URL,
@@ -128,16 +129,17 @@ class WimsClassTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         # Last 'dns' is the arg use in request factory
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/wims/1/")
+        uri = oauth_signature.normalize_base_string_uri(
+            "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
-        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
+        request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
         
         with self.assertRaisesMessage(Http404, "Unknown WIMS server of id '999999'"):
             views.wims_class(request, 999999)
-
+    
     
     def test_wims_class_unknown_lms(self):
         params = {
@@ -163,11 +165,12 @@ class WimsClassTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         # Last 'dns' is the arg use in request factory
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/wims/1/")
+        uri = oauth_signature.normalize_base_string_uri(
+            "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
-        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
+        request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
         
         wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
@@ -202,11 +205,12 @@ class WimsClassTestCase(TestCase):
         }
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
-        uri = oauth_signature.normalize_base_string_uri("https://testserver/wims/1/")
+        uri = oauth_signature.normalize_base_string_uri(
+            "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
         
-        request = RequestFactory().post(reverse("wims:wims_class", args=[1]), secure=True)
+        request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
         
         wims = WIMS.objects.create(url="https://wims.u-pem.fr/", name="WIMS UPEM",
@@ -215,4 +219,4 @@ class WimsClassTestCase(TestCase):
                            name="Moodle UPEM")
         
         r = views.wims_class(request, wims.pk)
-        self.assertContains(r, "Identification Failure : bad login/pwd", status_code=421)
+        self.assertContains(r, "Identification Failure : bad login/pwd", status_code=502)

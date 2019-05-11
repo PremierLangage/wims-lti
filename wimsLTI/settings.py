@@ -21,7 +21,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
-from wims.enums import Role
+from lti_app.enums import Role
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'django.contrib.messages',
-    'wims',
+    'api',
 ]
 
 MIDDLEWARE = [

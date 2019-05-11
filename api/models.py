@@ -10,8 +10,9 @@ from datetime import timedelta
 
 from django.core.validators import URLValidator
 from django.db import models
+from django.urls import reverse
 
-from wims.validator import ModelsValidator
+from lti_app.validator import ModelsValidator
 
 
 wims_help = "See 'https://wimsapi.readthedocs.io/#configuration' for more informations"
@@ -27,6 +28,23 @@ expiration_help = ("This is the classes default duration (format is 'day hours:m
 
 
 
+class LMS(models.Model):
+    """Represents a LMS."""
+    uuid = models.CharField(
+        max_length=2048, help_text=lms_uuid_help, verbose_name="UUID"
+    )
+    name = models.CharField(max_length=2048, null=False)
+    url = models.CharField(
+        max_length=2048, verbose_name="URL",
+        validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")]
+    )
+    
+    
+    class Meta:
+        verbose_name_plural = "LMS"
+
+
+
 class WIMS(models.Model):
     """Represents a WIMS server.
     
@@ -34,11 +52,11 @@ class WIMS(models.Model):
     https://wimsapi.readthedocs.io/en/latest/#configuration
     
     Parameters:
-        * url - URL to the wims server's CGI, including scheme,
+        * url - URL to the api server's CGI, including scheme,
                 e.g.: 'http://wims.unice.fr/~wims/wims.cgi'
-        * dns - DNS of the wims server, e.g.: 'wims.unice.fr'
-        * ident - Identifier of the wims server.
-        * passwd - Password of the wims server.
+        * dns - DNS of the api server, e.g.: 'api.unice.fr'
+        * ident - Identifier of the api server.
+        * passwd - Password of the api server.
         * rclass - Identifier used for each class of this WIMS server."""
     name = models.CharField(max_length=2048)
     url = models.CharField(
@@ -57,25 +75,19 @@ class WIMS(models.Model):
     ident = models.CharField(max_length=2048, help_text=wims_help)
     passwd = models.CharField(max_length=2048, help_text=wims_help)
     rclass = models.CharField(max_length=2048, help_text=wims_help)
+    allowed_lms = models.ManyToManyField(LMS)
+    
     
     class Meta:
         verbose_name_plural = "WIMS"
-
-
-
-class LMS(models.Model):
-    """Represents a LMS."""
-    uuid = models.CharField(
-        max_length=2048, help_text=lms_uuid_help, verbose_name="UUID"
-    )
-    name = models.CharField(max_length=2048, null=False)
-    url = models.CharField(
-        max_length=2048, verbose_name="URL",
-        validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")]
-    )
     
-    class Meta:
-        verbose_name_plural = "LMS"
+    
+    def __str__(self):
+        return "%s (%s)" % (self.name, self.url)
+    
+    
+    def generate_link(self, request):
+        return request.build_absolute_uri(reverse("lti:wims_class", args=self.pk))
 
 
 
@@ -84,11 +96,17 @@ class WimsClass(models.Model):
     lms = models.ForeignKey(LMS, models.CASCADE)
     lms_uuid = models.CharField(max_length=256)
     wims = models.ForeignKey(WIMS, models.CASCADE)
-    wims_uuid = models.CharField(max_length=256)
+    qclass = models.CharField(max_length=256)
+    name = models.CharField(max_length=2048)
+    
+    
+    def __str__(self):
+        return "%s (%s)" % (self.name, self.qclass)
+    
     
     class Meta:
         verbose_name_plural = "WimsClasses"
-        unique_together = (("lms", "lms_uuid"), ("wims", "wims_uuid"),)
+        unique_together = (("lms", "lms_uuid"), ("wims", "qclass"),)
         indexes = [models.Index(fields=['lms', 'lms_uuid', 'wims'])]
 
 
@@ -100,6 +118,7 @@ class WimsUser(models.Model):
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
     quser = models.CharField(max_length=256)
     
+    
     class Meta:
         verbose_name_plural = "WimsUsers"
         unique_together = (("lms", "lms_uuid"), ("quser", "wclass"),)
@@ -109,16 +128,21 @@ class WimsUser(models.Model):
 
 class Activity(models.Model):
     """Represents an Activity on a WIMS server."""
-    lms = models.ForeignKey(LMS, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256)
-    wims_uuid = models.CharField(max_length=256)
+    qclass = models.CharField(max_length=256)
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
+    name = models.CharField(max_length=2048)
+    
     
     class Meta:
         verbose_name_plural = "Activities"
-        unique_together = (("lms", "lms_uuid"), ("wims_uuid", "wclass"),)
-        indexes = [models.Index(fields=['lms', 'lms_uuid', 'wclass'])]
     
+    
+    def __str__(self):
+        return self.name
+    
+    
+    def generate_link(self, request):
+        return request.build_absolute_uri(reverse("lti:wims_class", args=self.pk))
 
 
 
