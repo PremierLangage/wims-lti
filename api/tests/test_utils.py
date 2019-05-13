@@ -334,7 +334,6 @@ class GetOrCreateClassTestCase(TestCase):
         
         wclass_db2, wclass2 = utils.get_or_create_class(lms, wims, api, params)
         
-        self.assertEqual(wclass_db1.lms, wclass_db2.lms)
         self.assertEqual(wclass_db1.lms_uuid, wclass_db2.lms_uuid)
         self.assertEqual(wclass_db1.wims, wclass_db2.wims)
         self.assertEqual(wclass_db1.qclass, wclass_db2.qclass)
@@ -385,9 +384,8 @@ class GetOrCreateUserTestCase(TestCase):
                        supervisor, lang="fr", qclass=wclass_db.qclass)
         wclass.save(WIMS_URL, "myself", "toto")
         
-        user_db, user = utils.get_or_create_user(lms, wclass_db, wclass, params)
+        user_db, user = utils.get_or_create_user(wclass_db, wclass, params)
         
-        self.assertEqual(user_db.lms, lms)
         self.assertEqual(user_db.lms_uuid, params["user_id"])
         self.assertEqual(user_db.wclass, wclass_db)
         self.assertEqual(user_db.quser, "jdoe")
@@ -426,7 +424,7 @@ class GetOrCreateUserTestCase(TestCase):
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
                                              qclass="60003")
-        WimsUser.objects.create(lms=lms, lms_uuid='66', wclass=wclass_db, quser="jdoe")
+        WimsUser.objects.create(lms_uuid='66', wclass=wclass_db, quser="jdoe")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.qclass)
@@ -438,9 +436,8 @@ class GetOrCreateUserTestCase(TestCase):
         quser = (firstname[0] + lastname).lower()
         wclass.additem(User(quser, lastname, firstname, "password", mail))
         
-        user_db, user = utils.get_or_create_user(lms, wclass_db, wclass, params)
+        user_db, user = utils.get_or_create_user(wclass_db, wclass, params)
         
-        self.assertEqual(user_db.lms, lms)
         self.assertEqual(user_db.lms_uuid, params["user_id"])
         self.assertEqual(user_db.wclass, wclass_db)
         self.assertEqual(user_db.quser, "jdoe1")
@@ -479,8 +476,8 @@ class GetOrCreateUserTestCase(TestCase):
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
                                              qclass="60004")
-        WimsUser.objects.create(lms=lms, lms_uuid='66', wclass=wclass_db, quser="jdoe")
-        WimsUser.objects.create(lms=lms, lms_uuid='67', wclass=wclass_db, quser="jdoe1")
+        WimsUser.objects.create(lms_uuid='66', wclass=wclass_db, quser="jdoe")
+        WimsUser.objects.create(lms_uuid='67', wclass=wclass_db, quser="jdoe1")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.qclass)
@@ -493,9 +490,8 @@ class GetOrCreateUserTestCase(TestCase):
         wclass.additem(User(quser, lastname, firstname, "password", mail))
         wclass.additem(User(quser + "1", lastname, firstname, "password", mail))
         
-        user_db, user = utils.get_or_create_user(lms, wclass_db, wclass, params)
+        user_db, user = utils.get_or_create_user(wclass_db, wclass, params)
         
-        self.assertEqual(user_db.lms, lms)
         self.assertEqual(user_db.lms_uuid, params["user_id"])
         self.assertEqual(user_db.wclass, wclass_db)
         self.assertEqual(user_db.quser, "jdoe2")
@@ -534,7 +530,7 @@ class GetOrCreateUserTestCase(TestCase):
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
                                              qclass="60005")
-        user_db1 = WimsUser.objects.create(lms=lms, lms_uuid='77', wclass=wclass_db, quser="jdoe")
+        user_db1 = WimsUser.objects.create(lms_uuid='77', wclass=wclass_db, quser="jdoe")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.qclass)
@@ -547,9 +543,9 @@ class GetOrCreateUserTestCase(TestCase):
         user1 = User(quser, lastname, firstname, "password", mail)
         wclass.additem(user1)
         
-        user_db2, user2 = utils.get_or_create_user(lms, wclass_db, wclass, params)
+        user_db2, user2 = utils.get_or_create_user(wclass_db, wclass, params)
         
-        self.assertEqual(user_db1.lms, user_db2.lms)
+        
         self.assertEqual(user_db1.lms_uuid, user_db2.lms_uuid)
         self.assertEqual(user_db1.wclass, user_db2.wclass)
         self.assertEqual(user_db1.quser, user_db2.quser)
@@ -588,15 +584,14 @@ class GetOrCreateUserTestCase(TestCase):
                                  name="Moodle UPEM")
         wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
                                              qclass="60006")
-        WimsUser.objects.create(lms=lms, lms_uuid=None, wclass=wclass_db, quser="supervisor")
+        WimsUser.objects.create(lms_uuid=None, wclass=wclass_db, quser="supervisor")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.qclass)
         wclass.save(WIMS_URL, "myself", "toto")
         
-        user_db, user = utils.get_or_create_user(lms, wclass_db, wclass, params)
+        user_db, user = utils.get_or_create_user(wclass_db, wclass, params)
         
-        self.assertEqual(user_db.lms, lms)
         self.assertEqual(user_db.lms_uuid, None)
         self.assertEqual(user_db.wclass, wclass_db)
         self.assertEqual(user_db.quser, "supervisor")

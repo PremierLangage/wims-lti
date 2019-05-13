@@ -110,7 +110,6 @@ class WimsClass(models.Model):
     class Meta:
         verbose_name_plural = "WimsClasses"
         unique_together = (("lms", "lms_uuid"), ("wims", "qclass"),)
-        indexes = [models.Index(fields=['lms', 'lms_uuid', 'wims'])]
     
     
     def __str__(self):
@@ -128,16 +127,14 @@ class WimsClass(models.Model):
 
 class WimsUser(models.Model):
     """Represent an user on a WIMS server."""
-    lms = models.ForeignKey(LMS, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256, null=True)
+    lms_uuid = models.CharField(max_length=256, null=True, unique=True)
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
     quser = models.CharField(max_length=256)
     
     
     class Meta:
         verbose_name_plural = "WimsUsers"
-        unique_together = (("lms", "lms_uuid"), ("quser", "wclass"),)
-        indexes = [models.Index(fields=['lms', 'lms_uuid', 'wclass'])]
+        unique_together = (("quser", "wclass"),)
     
     
     def __str__(self):
@@ -148,8 +145,13 @@ class WimsUser(models.Model):
 class Activity(models.Model):
     """Represents a Sheet on the WIMS server."""
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256, null=True)
-    qsheet = models.CharField(max_length=256, null=True)
+    lms_uuid = models.CharField(max_length=256)
+    qsheet = models.CharField(max_length=256)
+    
+    
+    class Meta:
+        verbose_name_plural = "Activities"
+        unique_together = (("qsheet", "wclass"),)
 
 
 
@@ -157,4 +159,8 @@ class GradeLink(models.Model):
     """Store link to send grade back to the LMS."""
     user = models.ForeignKey(WimsUser, models.CASCADE)
     activity = models.ForeignKey(Activity, models.CASCADE)
-    link = models.URLField(max_length=255)
+    sourcedid = models.CharField(max_length=256)
+    url = models.URLField(max_length=1023)
+    
+    class Meta:
+        unique_together = (("user", "activity"),)
