@@ -17,7 +17,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from wimsapi import Sheet
 
-from api.models import Activity, WimsClass, WimsUser
+from api.models import Activity, WimsClass, WimsUser, GradeLink
 from lti_app.enums import Role
 
 
@@ -202,7 +202,7 @@ def get_sheet(wclass_db, wclass, qsheet, parameters):
     try:
         role = Role.parse_role_lti(parameters["roles"])
         if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
-            pass
+            GradeLink.send_back(wclass, qsheet)
         
         activity = Activity.objects.get(wclass=wclass_db, qsheet=qsheet,
                                         lms_uuid=parameters["resource_link_id"])
