@@ -1,5 +1,6 @@
 import logging
 
+import requests
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET
@@ -83,6 +84,10 @@ def wims_class(request, wims_pk):
         logger.info(str(e))
         return HttpResponse(str(e), status=502)
     
+    except requests.RequestException:
+        logger.exception("Could not join the WIMS server '%s'" % wims_srv.url)
+        return HttpResponse("Could not join the WIMS server '%s'" % wims_srv.url, status=504)
+    
     return redirect(url)
 
 
@@ -98,6 +103,6 @@ def wims_activity(request, wims_pk, activity_pk):
 
 @require_GET
 def links(request):
-    return render(request, "wims/links.html", {
+    return render(request, "lti_app/links.html", {
         "LMS": LMS.objects.all(),
     })

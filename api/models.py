@@ -5,7 +5,7 @@
 #  Authors:
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
-
+import logging
 from datetime import timedelta
 
 from django.core.validators import URLValidator
@@ -14,6 +14,8 @@ from django.urls import reverse
 
 from lti_app.validator import ModelsValidator
 
+
+logger = logging.getLogger(__name__)
 
 wims_help = "See 'https://wimsapi.readthedocs.io/#configuration' for more informations"
 lms_uuid_help = ("Must be equal to the parameter 'tool_consumer_instance_guid' sent by the LMS in "
@@ -86,8 +88,13 @@ class WIMS(models.Model):
         return "%s (%s)" % (self.name, self.url)
     
     
-    def generate_link(self, request):
-        return request.build_absolute_uri(reverse("lti:wims_class", args=self.pk))
+    def serialize(self, request):
+        return {
+            "pk":      self.pk,
+            "name":    self.name,
+            "url":     self.url,
+            "lti_url": request.build_absolute_uri(reverse("lti:wims_class", args=[self.pk]))
+        }
 
 
 
@@ -100,14 +107,22 @@ class WimsClass(models.Model):
     name = models.CharField(max_length=2048)
     
     
-    def __str__(self):
-        return "%s (%s)" % (self.name, self.qclass)
-    
-    
     class Meta:
         verbose_name_plural = "WimsClasses"
         unique_together = (("lms", "lms_uuid"), ("wims", "qclass"),)
         indexes = [models.Index(fields=['lms', 'lms_uuid', 'wims'])]
+    
+    
+    def __str__(self):
+        return "%s (%s)" % (self.name, self.qclass)
+    
+    
+    def serialize(self):
+        return {
+            "pk":     self.pk,
+            "name":   self.name,
+            "qclass": self.qclass,
+        }
 
 
 
@@ -123,31 +138,23 @@ class WimsUser(models.Model):
         verbose_name_plural = "WimsUsers"
         unique_together = (("lms", "lms_uuid"), ("quser", "wclass"),)
         indexes = [models.Index(fields=['lms', 'lms_uuid', 'wclass'])]
+    
+    
+    def __str__(self):
+        return "%s" % self.quser
 
 
 
 class Activity(models.Model):
-    """Represents an Activity on a WIMS server."""
-    qclass = models.CharField(max_length=256)
+    """Represents a Sheet on the WIMS server."""
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
-    name = models.CharField(max_length=2048)
-    
-    
-    class Meta:
-        verbose_name_plural = "Activities"
-    
-    
-    def __str__(self):
-        return self.name
-    
-    
-    def generate_link(self, request):
-        return request.build_absolute_uri(reverse("lti:wims_class", args=self.pk))
+    lms_uuid = models.CharField(max_length=256, null=True)
+    qsheet = models.CharField(max_length=256, null=True)
 
 
 
 class GradeLink(models.Model):
     """Store link to send grade back to the LMS."""
-    activity = models.ForeignKey(Activity, models.CASCADE)
     user = models.ForeignKey(WimsUser, models.CASCADE)
+    activity = models.ForeignKey(Activity, models.CASCADE)
     link = models.URLField(max_length=255)

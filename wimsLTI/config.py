@@ -26,5 +26,5 @@ For more informations, see:
 
 
 # THE LINE BELOW MUST BE UNCOMMENTED BEFORE DEPLOYEMENT
-# DEBUG = False
-ALLOWED_HOSTS = ['pl-test3.u-pem.fr']
+DEBUG = True
+ALLOWED_HOSTS = ['pl-test3.u-pem.fr', "127.0.0.1"]
