@@ -17,7 +17,7 @@ python:
 
 
 before_install:
-  - git clone https://github.com/qcoumes/docker-api-minimal.git wims_docker/
+  - git clone https://github.com/qcoumes/docker-api-minimal.git
   - docker build -t api-minimal wims_docker/
   - docker run -itd -p 7777:80 --name api api-minimal
   - docker container start api
