@@ -8,6 +8,7 @@
 import logging
 from datetime import timedelta
 
+import wimsapi
 from django.core.validators import URLValidator
 from django.db import models
 from django.urls import reverse
@@ -162,5 +163,18 @@ class GradeLink(models.Model):
     sourcedid = models.CharField(max_length=256)
     url = models.URLField(max_length=1023)
     
+    
     class Meta:
         unique_together = (("user", "activity"),)
+    
+    
+    @classmethod
+    def send_back(cls, wclass, qsheet):
+        wapi = wimsapi.WimsAPI(wclass.wims.url, wclass.wims.ident, wclass.wims.passwd)
+        bol, response = wapi.getsheetscores(wclass.qclass, wclass.wims.rclass, qsheet)
+        if not bol:
+            raise wimsapi.AdmRawError(response['message'])
+        
+        for infos in response['data_scores']:
+            user = WimsUser.objects.get(quser=infos['id'], wclass=wclass)
+            grade = sum(infos['sheet_got_details']) / len(infos['sheet_got_details'])
