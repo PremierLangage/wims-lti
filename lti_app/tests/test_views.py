@@ -172,9 +172,8 @@ class WimsClassTestCase(TestCase):
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
         
-        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
-                                   name="WIMS UPEM",
-                                   ident="X", passwd="X", rclass="myclass")
+        wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="X", passwd="X",
+                                   rclass="myclass")
         
         with self.assertRaisesMessage(Http404, "No LMS found with uuid '%s'"
                                                % params["tool_consumer_instance_guid"]):
@@ -212,10 +211,50 @@ class WimsClassTestCase(TestCase):
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
         
-        wims = WIMS.objects.create(url="https://wims.u-pem.fr/", name="WIMS UPEM",
+        wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM",
                                    ident="wrong", passwd="wrong", rclass="myclass")
         LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM")
         
         r = views.wims_class(request, wims.pk)
         self.assertContains(r, "Identification Failure : bad login/pwd", status_code=502)
+    
+    
+    def test_wims_class_could_not_join_server(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-FR',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            '77',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'Doe',
+            'lis_person_name_given':              'Jhon',
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[
+                                                      0].value,
+        }
+        
+        norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
+        uri = oauth_signature.normalize_base_string_uri(
+            "https://testserver" + reverse("lti:wims_class", args=[1]))
+        base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
+        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
+        
+        request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
+        request.POST = params
+        
+        wims = WIMS.objects.create(url="https://can.not.join.fr/", name="WIMS UPEM",
+                                   ident="wrong", passwd="wrong", rclass="myclass")
+        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                           name="Moodle UPEM")
+        
+        r = views.wims_class(request, wims.pk)
+        self.assertContains(r, "https://can.not.join.fr/", status_code=504)

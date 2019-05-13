@@ -81,13 +81,12 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
     
     Raises:
         - exceptions.PermissionDenied if the class does not exists and none of the roles in
-        the LTI
-              request's parameters is in ROLES_ALLOWED_CREATE_WIMS_CLASS.
-        - wimsapi.AdmRawError if the WIMS' server denied a request or could not be joined.
+            the LTI request's parameters is in ROLES_ALLOWED_CREATE_WIMS_CLASS.
+        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - requests.RequestException if the WIMS server could not be joined.
     
     Returns a tuple (wclass_db, wclass) where wclas_db is an instance of models.WimsClass and
-    wclass
-    an instance of wimsapi.Class."""
+    wclass an instance of wimsapi.Class."""
     try:
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
                                           lms_uuid=parameters['context_id'])
@@ -141,8 +140,9 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
     ROLES_ALLOWED_CREATE_WIMS_CLASS, the user will be connected as supervisor.
     
     Raises:
-        - wimsapi.AdmRawError if the WIMS' server denied a request or could not be joined.
-
+        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - requests.RequestException if the WIMS server could not be joined.
+    
     Returns a tuple (user_db, user) where user_db is an instance of models.WimsUser and
     user an instance of wimsapi.User."""
     try:
