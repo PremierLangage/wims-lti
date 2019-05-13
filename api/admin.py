@@ -19,13 +19,25 @@ class WIMSAdmin(admin.ModelAdmin):
 
 @admin.register(models.WimsClass)
 class WIMSClassAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wims', 'lms', 'lms_uuid', 'qclass')
+    list_display = ('id', 'wims', 'lms_uuid', 'qclass')
 
 
 
 @admin.register(models.WimsUser)
 class WIMSUserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'lms', 'lms_uuid', 'wclass', 'quser')
+    list_display = ('id', 'lms_uuid', 'wclass', 'quser')
+
+
+
+@admin.register(models.Activity)
+class ActivityAdmin(admin.ModelAdmin):
+    list_display = ('id', 'lms_uuid', 'wclass', 'qsheet')
+
+
+
+@admin.register(models.GradeLink)
+class GradeLinkAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'activity', 'sourcedid', 'url')
 
 
 

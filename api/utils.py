@@ -15,8 +15,9 @@ from string import ascii_letters, digits
 import wimsapi
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from wimsapi import Sheet
 
-from api.models import WimsClass, WimsUser
+from api.models import Activity, WimsClass, WimsUser
 from lti_app.enums import Role
 
 
@@ -111,7 +112,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
         )
         logger.info("New class created (id : %d - wims id : %s - lms id : %s)"
                     % (wclass_db.id, str(wclass.qclass), str(wclass_db.lms_uuid)))
-        WimsUser.objects.create(lms=lms, wclass=wclass_db, quser="supervisor")
+        WimsUser.objects.create(wclass=wclass_db, quser="supervisor")
         logger.info("New user created (wims id : supervisor - lms id : None) in class %d"
                     % wclass_db.id)
     
@@ -132,7 +133,7 @@ def create_user(parameters):
 
 
 
-def get_or_create_user(lms, wclass_db, wclass, parameters):
+def get_or_create_user(wclass_db, wclass, parameters):
     """Get the WIMS' user database and wimsapi.User instances, create them if they does not
     exists.
     
@@ -148,9 +149,9 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
     try:
         role = Role.parse_role_lti(parameters["roles"])
         if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
-            user_db = WimsUser.objects.get(lms=lms, lms_uuid=None, wclass=wclass_db)
+            user_db = WimsUser.objects.get(lms_uuid=None, wclass=wclass_db)
         else:
-            user_db = WimsUser.objects.get(lms=lms, lms_uuid=parameters['user_id'],
+            user_db = WimsUser.objects.get(lms_uuid=parameters['user_id'],
                                            wclass=wclass_db)
         user = wimsapi.User.get(wclass, user_db.quser)
     except WimsUser.DoesNotExist:
@@ -177,10 +178,40 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
                 user.quser += str(i)
         
         user_db = WimsUser.objects.create(
-            lms=lms, lms_uuid=parameters["user_id"],
-            wclass=wclass_db, quser=user.quser
+            lms_uuid=parameters["user_id"], wclass=wclass_db, quser=user.quser
         )
-        logger.info("New user created (api id : %s - lms id : %s) in class %d"
+        logger.info("New user created (wims id: %s - lms id : %s) in class %d"
                     % (user.quser, str(user_db.lms_uuid), wclass_db.id))
     
     return user_db, user
+
+
+
+def get_sheet(wclass_db, wclass, qsheet, parameters):
+    """Get the WIMS' activity database and wimsapi.Sheet instances, create them if they does not
+    exists.
+    
+    Raises:
+        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - requests.RequestException if the WIMS server could not be joined.
+    
+    Returns a tuple (activity_db, sheet) where activity_db is an instance of models.Activity and
+    sheet an instance of wimsapi.Sheet."""
+    
+    sheet = wclass.getitem(qsheet, Sheet)
+    try:
+        role = Role.parse_role_lti(parameters["roles"])
+        if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
+            pass
+        
+        activity = Activity.objects.get(wclass=wclass_db, qsheet=qsheet,
+                                        lms_uuid=parameters["resource_link_id"])
+    except Activity.DoesNotExist:
+        activity = Activity.objects.create(
+            lms_uuid=parameters["resource_link_id"],
+            wclass=wclass_db, quser=qsheet
+        )
+        logger.info("New sheet created (wims id: %s - lms id : %s) in class %d"
+                    % (str(qsheet), str(activity.lms_uuid), wclass_db.id))
+    
+    return activity, sheet
