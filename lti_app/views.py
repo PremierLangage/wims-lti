@@ -2,6 +2,7 @@ import logging
 
 import requests
 import wimsapi
+from django.conf import settings
 from django.http import (Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed,
                          HttpResponseNotFound)
 from django.shortcuts import redirect, render
@@ -9,6 +10,7 @@ from django.views.decorators.http import require_GET
 
 from api.models import GradeLink, LMS, WIMS, WimsClass
 from api.utils import get_or_create_class, get_or_create_user, get_sheet
+from lti_app.enums import Role
 from lti_app.exceptions import BadRequestException
 from lti_app.utils import (check_custom_parameters, check_parameters, is_valid_request,
                            parse_parameters)
@@ -149,6 +151,11 @@ def wims_activity(request, wims_pk, activity_pk):
             GradeLink.objects.create(user=user, activity=activity,
                                      sourcedid=parameters["lis_result_sourcedid"],
                                      url=parameters["lis_outcome_service_url"])
+        
+        # If user is a teacher, send all grade back to the LMS
+        role = Role.parse_role_lti(parameters["roles"])
+        if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
+            GradeLink.send_back_all(wclass_db, activity)
         
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)

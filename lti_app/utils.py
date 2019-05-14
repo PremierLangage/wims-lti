@@ -6,8 +6,10 @@
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
 import logging
+from xml.etree import ElementTree
 
 import oauth2
+import requests
 import wimsapi
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
@@ -185,3 +187,4 @@ def parse_parameters(p):
         'custom_supervisor_lastname':             p.get('custom_supervisor_lastname'),
         'custom_supervisor_firstname':            p.get('custom_supervisor_firstname'),
     }
+
