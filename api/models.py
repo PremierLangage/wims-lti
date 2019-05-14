@@ -6,6 +6,7 @@
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
 
+import os
 import logging
 from datetime import timedelta
 from xml.etree import ElementTree
@@ -176,27 +177,29 @@ class GradeLink(models.Model):
     
     
     def send_back(self, grade):
-        with open("lti_app/ressources/result.xml") as f:
+        path = os.path.dirname(os.path.realpath(__file__))
+        path = os.path.join(path, "ressources/replace.xml")
+        with open(path) as f:
             content = f.read() % (self.sourcedid, str(grade))
         
         response = requests.post(self.url, content)
-        tree = ElementTree.parse(response.text)
-        root = tree.getroot()
+        root = ElementTree.fromstring(response.text)
         if not (200 <= response.status_code < 300 and root[0][0][2][0].text == "succes"):
-            logger.error(("Consumer sent an error response after sending grade for user '%s' and "
-                          "activity '%s' in class '%s'")
-                         % (self.user.quser, self.activity.qsheet, self.activity.wclass.qclass))
+            logger.warning(("Consumer sent an error response after sending grade for user '%s' and "
+                          "activity '%s' in class '%s': %s")
+                         % (self.user.quser, self.activity.qsheet, self.activity.wclass.qclass,
+                            root[0][0][2][2].text))
     
     
     @classmethod
     def send_back_all(cls, wclass, activity):
         wapi = wimsapi.WimsAPI(wclass.wims.url, wclass.wims.ident, wclass.wims.passwd)
-        bol, response = wapi.getsheetscores(wclass.qclass, wclass.wims.rclass, qsheet)
+        bol, response = wapi.getsheetscores(wclass.qclass, wclass.wims.rclass, activity.qsheet)
         if not bol:
             raise wimsapi.AdmRawError(response['message'])
         
         for infos in response['data_scores']:
-            gl = cls.objects.get(quser=infos['id'], activity=activity)
-            raise Exception(infos)
-            grade = (sum(infos['sheet_got_details']) / len(infos['sheet_got_details']))
-            
+            user = WimsUser.objects.get(wclass=wclass, quser=infos['id'])
+            gl = cls.objects.get(user=user, activity=activity)
+            grade = sum(infos['got_detail']) / len(infos['got_detail']) / 10
+            gl.send_back(grade)
