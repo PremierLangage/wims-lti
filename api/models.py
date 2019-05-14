@@ -5,6 +5,7 @@
 #  Authors:
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
+
 import logging
 from datetime import timedelta
 
@@ -45,6 +46,10 @@ class LMS(models.Model):
     
     class Meta:
         verbose_name_plural = "LMS"
+    
+    
+    def __str__(self):
+        return "%s (%s)" % (self.name, self.url)
 
 
 
