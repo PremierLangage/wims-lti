@@ -205,7 +205,7 @@ def get_sheet(wclass_db, wclass, qsheet, parameters):
     except Activity.DoesNotExist:
         activity = Activity.objects.create(
             lms_uuid=parameters["resource_link_id"],
-            wclass=wclass_db, quser=qsheet
+            wclass=wclass_db, qsheet=qsheet
         )
         logger.info("New sheet created (wims id: %s - lms id : %s) in class %d"
                     % (str(qsheet), str(activity.lms_uuid), wclass_db.id))
