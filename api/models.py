@@ -12,6 +12,7 @@ from datetime import timedelta
 from xml.etree import ElementTree
 
 import oauth2
+import oauthlib.oauth1.rfc5849.signature as oauth_signature
 import requests
 import wimsapi
 from django.core.validators import MinLengthValidator, URLValidator
@@ -191,13 +192,24 @@ class GradeLink(models.Model):
             content = f.read() % (self.sourcedid, str(grade))
         
         params = {
-            'oauth_consumer_key':     'provider1',
-            'oauth_signature_method': 'HMAC-SHA1',
-            'oauth_timestamp':        str(oauth2.generate_timestamp()),
-            'oauth_nonce':            oauth2.generate_nonce(),
+            'oauth_consumer_key':                 self.activity.wclass.lms.key,
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
         }
         
-        response = requests.post(self.url, content)
+        norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
+        uri = oauth_signature.normalize_base_string_uri(self.url)
+        base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
+        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(
+            base_string, self.activity.wclass.lms.secret, None
+        )
+        
+        authorization = 'OAuth realm="", oauth_version="1.0"'
+        for k, v in params.items():
+            authorization += ', %s="%s"' % (k, v)
+        
+        response = requests.post(self.url, content, header={"Authorization": authorization})
         root = ElementTree.fromstring(response.text)
         if not (200 <= response.status_code < 300 and root[0][0][2][0].text == "succes"):
             logger.warning(("Consumer sent an error response after sending grade for user '%s' and "

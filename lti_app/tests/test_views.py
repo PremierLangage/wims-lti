@@ -43,7 +43,7 @@ class WimsClassTestCase(TestCase):
         }
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
-        # Last 'dns' is the arg use in request factory
+       
         uri = oauth_signature.normalize_base_string_uri(
             "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
@@ -125,7 +125,7 @@ class WimsClassTestCase(TestCase):
         }
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
-        # Last 'dns' is the arg use in request factory
+       
         uri = oauth_signature.normalize_base_string_uri(
             "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
@@ -162,7 +162,7 @@ class WimsClassTestCase(TestCase):
         }
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
-        # Last 'dns' is the arg use in request factory
+       
         uri = oauth_signature.normalize_base_string_uri(
             "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
