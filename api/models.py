@@ -10,9 +10,10 @@ import logging
 from datetime import timedelta
 from xml.etree import ElementTree
 
+import oauth2
 import requests
 import wimsapi
-from django.core.validators import URLValidator
+from django.core.validators import URLValidator, MinLengthValidator
 from django.db import models
 from django.urls import reverse
 
@@ -37,17 +38,24 @@ expiration_help = ("This is the classes default duration (format is 'day hours:m
 class LMS(models.Model):
     """Represents a LMS."""
     uuid = models.CharField(
-        max_length=2048, help_text=lms_uuid_help, verbose_name="UUID"
+        max_length=2048, help_text=lms_uuid_help, verbose_name="UUID", default=None
     )
-    name = models.CharField(max_length=2048, null=False)
+    name = models.CharField(max_length=2048, default=None)
     url = models.CharField(
-        max_length=2048, verbose_name="URL",
+        max_length=2048, verbose_name="URL", default=None,
         validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")]
     )
+    key = models.CharField(
+        max_length=128, unique=True, validators=[MinLengthValidator(3)], default=None
+    )
+    secret = models.CharField(max_length=128, validators=[MinLengthValidator(3)], default=None)
     
     
     class Meta:
         verbose_name_plural = "LMS"
+        indexes = [
+            models.Index(fields=['key']),
+        ]
     
     
     def __str__(self):
@@ -68,9 +76,9 @@ class WIMS(models.Model):
         * ident - Identifier of the api server.
         * passwd - Password of the api server.
         * rclass - Identifier used for each class of this WIMS server."""
-    name = models.CharField(max_length=2048)
+    name = models.CharField(max_length=2048, default=None)
     url = models.CharField(
-        max_length=2048, unique=True, db_index=True, verbose_name="URL",
+        max_length=2048, unique=True, db_index=True, verbose_name="URL", default=None,
         validators=[URLValidator(['http', 'https'], message="Please enter a valid URL")],
         help_text="URL must point to the WIMS' server cgi.",
     )
@@ -82,10 +90,10 @@ class WIMS(models.Model):
         verbose_name="Default expiration date", help_text=expiration_help,
         default=timedelta(days=365), validators=[ModelsValidator.expiration_validator],
     )
-    ident = models.CharField(max_length=2048, help_text=wims_help)
-    passwd = models.CharField(max_length=2048, help_text=wims_help)
-    rclass = models.CharField(max_length=2048, help_text=wims_help)
-    allowed_lms = models.ManyToManyField(LMS)
+    ident = models.CharField(max_length=2048, help_text=wims_help, default=None)
+    passwd = models.CharField(max_length=2048, help_text=wims_help, default=None)
+    rclass = models.CharField(max_length=2048, help_text=wims_help, default=None)
+    allowed_lms = models.ManyToManyField(LMS, blank=True)
     
     
     class Meta:
@@ -109,10 +117,10 @@ class WIMS(models.Model):
 class WimsClass(models.Model):
     """Represents a class on a WIMS server."""
     lms = models.ForeignKey(LMS, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256)
+    lms_uuid = models.CharField(max_length=256, default=None)
     wims = models.ForeignKey(WIMS, models.CASCADE)
-    qclass = models.CharField(max_length=256)
-    name = models.CharField(max_length=2048)
+    qclass = models.CharField(max_length=256, default=None)
+    name = models.CharField(max_length=2048, default=None)
     
     
     class Meta:
@@ -137,7 +145,7 @@ class WimsUser(models.Model):
     """Represent an user on a WIMS server."""
     lms_uuid = models.CharField(max_length=256, null=True, unique=True)
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
-    quser = models.CharField(max_length=256)
+    quser = models.CharField(max_length=256, default=None)
     
     
     class Meta:
@@ -153,8 +161,8 @@ class WimsUser(models.Model):
 class Activity(models.Model):
     """Represents a Sheet on the WIMS server."""
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256)
-    qsheet = models.CharField(max_length=256)
+    lms_uuid = models.CharField(max_length=256, default=None)
+    qsheet = models.CharField(max_length=256, default=None)
     
     
     class Meta:
@@ -167,8 +175,8 @@ class GradeLink(models.Model):
     """Store link to send grade back to the LMS."""
     user = models.ForeignKey(WimsUser, models.CASCADE)
     activity = models.ForeignKey(Activity, models.CASCADE)
-    sourcedid = models.CharField(max_length=256)
-    url = models.URLField(max_length=1023)
+    sourcedid = models.CharField(max_length=256, default=None)
+    url = models.URLField(max_length=1023, default=None)
     
     
     class Meta:
@@ -178,6 +186,13 @@ class GradeLink(models.Model):
     def send_back(self, grade):
         with open("lti_app/ressources/result.xml") as f:
             content = f.read() % (self.sourcedid, str(grade))
+        
+        params = {
+            'oauth_consumer_key':     'provider1',
+            'oauth_signature_method': 'HMAC-SHA1',
+            'oauth_timestamp':        str(oauth2.generate_timestamp()),
+            'oauth_nonce':            oauth2.generate_nonce(),
+        }
         
         response = requests.post(self.url, content)
         tree = ElementTree.parse(response.text)
@@ -197,6 +212,4 @@ class GradeLink(models.Model):
         
         for infos in response['data_scores']:
             gl = cls.objects.get(quser=infos['id'], activity=activity)
-            raise Exception(infos)
             grade = (sum(infos['sheet_got_details']) / len(infos['sheet_got_details']))
-            

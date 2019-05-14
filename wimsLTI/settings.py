@@ -163,11 +163,6 @@ WIMSLTI_MANDATORY = [
     'roles',
 ]
 
-# LTI Credentials
-LTI_OAUTH_CREDENTIALS = {
-    'wimslti': 'password',
-}
-
 # List of Roles that are allowed to create new classes on the WIMS servers
 # Any user connecting from an LMS with one of these role will also be logged
 # in as the class' supervisor on the WIMS server

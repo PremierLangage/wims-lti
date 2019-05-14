@@ -19,6 +19,7 @@ class ViewTestCase(TestCase):
     def setUpTestData(cls):
         cls.lms1 = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                       name="No WIMS")
+        print(cls.lms1.key)
         cls.lms2 = LMS.objects.create(uuid="elearning.test.fr", url="https://elearning.test.fr/",
                                       name="One WIMS")
         cls.lms3 = LMS.objects.create(uuid="elearning.test.fr", url="https://elearning.test.fr/",
