@@ -6,15 +6,14 @@
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
 import logging
-from xml.etree import ElementTree
 
 import oauth2
-import requests
 import wimsapi
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from lti.contrib.django import DjangoToolProvider
 
+from api.models import LMS
 from lti_app.exceptions import BadRequestException
 from lti_app.validator import CustomParameterValidator, RequestValidator, validate
 
@@ -35,18 +34,6 @@ def is_valid_request(request):
         raise BadRequestException("LTI request is invalid, parameter 'lti_message_type' "
                                   "must be equal to 'basic-lti-launch-request'")
     
-    if not settings.LTI_OAUTH_CREDENTIALS:
-        logger.error("LTI Authentification aborted: "
-                     "Missing LTI_OAUTH_CREDENTIALS in settings")
-        raise BadRequestException("Missing LTI_OAUTH_CREDENTIALS in settings.")
-    
-    request_key = parameters['oauth_consumer_key']
-    secret = settings.LTI_OAUTH_CREDENTIALS.get(request_key)
-    if secret is None:
-        logger.info(
-            "LTI Authentification aborted: Could not get a secret for key '%s'" % request_key)
-        raise BadRequestException("Could not get a secret for key '%s'" % request_key)
-    
     try:
         tool_provider = DjangoToolProvider.from_django_request(request=request)
         request_is_valid = tool_provider.is_valid_request(RequestValidator())
@@ -55,8 +42,8 @@ def is_valid_request(request):
         request_is_valid = False
     
     if not request_is_valid:
-        logger.info("LTI Authentification aborted: signature check failed with parameters : %s",
-                    parameters)
+        logger.debug("LTI Authentification aborted: signature check failed with parameters : %s",
+                     parameters)
         raise PermissionDenied("Invalid request: signature check failed.")
 
 
@@ -187,4 +174,3 @@ def parse_parameters(p):
         'custom_supervisor_lastname':             p.get('custom_supervisor_lastname'),
         'custom_supervisor_firstname':            p.get('custom_supervisor_firstname'),
     }
-

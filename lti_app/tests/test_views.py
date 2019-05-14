@@ -5,7 +5,7 @@ import oauthlib.oauth1.rfc5849.signature as oauth_signature
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import reverse
-from django.test import Client, RequestFactory, TestCase, override_settings
+from django.test import Client, RequestFactory, TestCase
 
 from api.models import LMS, WIMS
 from lti_app import views
@@ -14,13 +14,11 @@ from lti_app import views
 # URL to the WIMS server used for tests, the server must recogned ident 'myself' and passwd 'toto'
 WIMS_URL = os.getenv("WIMS_URL") or "http://localhost:7777/wims/wims.cgi"
 
-FAKE_CREDENTIALS = {
-    'provider1': 'secret1',
-}
+KEY = 'provider1'
+SECRET = 'secret1'
 
 
 
-@override_settings(LTI_OAUTH_CREDENTIALS=FAKE_CREDENTIALS)
 class WimsClassTestCase(TestCase):
     
     def test_wims_class_ok(self):
@@ -37,7 +35,7 @@ class WimsClassTestCase(TestCase):
             'lis_person_name_given':              'Jhon',
             'tool_consumer_instance_description': 'UPEM',
             'tool_consumer_instance_guid':        "elearning.upem.fr",
-            'oauth_consumer_key':                 'provider1',
+            'oauth_consumer_key':                 KEY,
             'oauth_signature_method':             'HMAC-SHA1',
             'oauth_timestamp':                    str(oauth2.generate_timestamp()),
             'oauth_nonce':                        oauth2.generate_nonce(),
@@ -50,14 +48,14 @@ class WimsClassTestCase(TestCase):
             "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
-        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
+        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
         
         WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
                             rclass="myclass")
         LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
-                           name="Moodle UPEM")
+                           name="Moodle UPEM", key=KEY, secret=SECRET)
         r = views.wims_class(request, 1)
         self.assertIn(WIMS_URL, r.url)
     
@@ -87,7 +85,7 @@ class WimsClassTestCase(TestCase):
             'lis_person_name_given':              'X',
             'tool_consumer_instance_description': 'X',
             'tool_consumer_instance_guid':        'elearning.u-pem.fr',
-            'oauth_consumer_key':                 'provider1',
+            'oauth_consumer_key':                 KEY,
             'oauth_signature_method':             'HMAC-SHA1',
             'oauth_timestamp':                    str(oauth2.generate_timestamp()),
             'oauth_nonce':                        oauth2.generate_nonce(),
@@ -99,7 +97,7 @@ class WimsClassTestCase(TestCase):
         WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
                             rclass="myclass")
         LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
-                           name="Moodle UPEM")
+                           name="Moodle UPEM", key=KEY, secret=SECRET)
         r = views.wims_class(request, 1)
         self.assertContains(r, "LTI request is invalid, missing parameter(s): ['oauth_signature']",
                             status_code=400)
@@ -119,7 +117,7 @@ class WimsClassTestCase(TestCase):
             'lis_person_name_given':              'Jhon',
             'tool_consumer_instance_description': 'UPEM',
             'tool_consumer_instance_guid':        "elearning.upem.fr",
-            'oauth_consumer_key':                 'provider1',
+            'oauth_consumer_key':                 KEY,
             'oauth_signature_method':             'HMAC-SHA1',
             'oauth_timestamp':                    str(oauth2.generate_timestamp()),
             'oauth_nonce':                        oauth2.generate_nonce(),
@@ -132,10 +130,11 @@ class WimsClassTestCase(TestCase):
             "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
-        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
+        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
-        
+        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                           name="Moodle UPEM", key=KEY, secret=SECRET)
         with self.assertRaisesMessage(Http404, "Unknown WIMS server of id '999999'"):
             views.wims_class(request, 999999)
     
@@ -154,7 +153,7 @@ class WimsClassTestCase(TestCase):
             'lis_person_name_given':              'Jhon',
             'tool_consumer_instance_description': 'UPEM',
             'tool_consumer_instance_guid':        "unknown.fr",
-            'oauth_consumer_key':                 'provider1',
+            'oauth_consumer_key':                 KEY,
             'oauth_signature_method':             'HMAC-SHA1',
             'oauth_timestamp':                    str(oauth2.generate_timestamp()),
             'oauth_nonce':                        oauth2.generate_nonce(),
@@ -168,12 +167,14 @@ class WimsClassTestCase(TestCase):
             "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
         
-        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
+        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
         
         wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="X", passwd="X",
                                    rclass="myclass")
+        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                           name="Moodle UPEM", key=KEY, secret=SECRET)
         
         with self.assertRaisesMessage(Http404, "No LMS found with uuid '%s'"
                                                % params["tool_consumer_instance_guid"]):
@@ -194,7 +195,7 @@ class WimsClassTestCase(TestCase):
             'lis_person_name_given':              'Jhon',
             'tool_consumer_instance_description': 'UPEM',
             'tool_consumer_instance_guid':        "elearning.upem.fr",
-            'oauth_consumer_key':                 'provider1',
+            'oauth_consumer_key':                 KEY,
             'oauth_signature_method':             'HMAC-SHA1',
             'oauth_timestamp':                    str(oauth2.generate_timestamp()),
             'oauth_nonce':                        oauth2.generate_nonce(),
@@ -206,7 +207,7 @@ class WimsClassTestCase(TestCase):
         uri = oauth_signature.normalize_base_string_uri(
             "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
-        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
+        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
@@ -214,7 +215,7 @@ class WimsClassTestCase(TestCase):
         wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM",
                                    ident="wrong", passwd="wrong", rclass="myclass")
         LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
-                           name="Moodle UPEM")
+                           name="Moodle UPEM", key=KEY, secret=SECRET)
         
         r = views.wims_class(request, wims.pk)
         self.assertContains(r, "Identification Failure : bad login/pwd", status_code=502)
@@ -234,7 +235,7 @@ class WimsClassTestCase(TestCase):
             'lis_person_name_given':              'Jhon',
             'tool_consumer_instance_description': 'UPEM',
             'tool_consumer_instance_guid':        "elearning.upem.fr",
-            'oauth_consumer_key':                 'provider1',
+            'oauth_consumer_key':                 KEY,
             'oauth_signature_method':             'HMAC-SHA1',
             'oauth_timestamp':                    str(oauth2.generate_timestamp()),
             'oauth_nonce':                        oauth2.generate_nonce(),
@@ -246,7 +247,7 @@ class WimsClassTestCase(TestCase):
         uri = oauth_signature.normalize_base_string_uri(
             "https://testserver" + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
-        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret1", None)
+        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
@@ -254,7 +255,7 @@ class WimsClassTestCase(TestCase):
         wims = WIMS.objects.create(url="https://can.not.join.fr/", name="WIMS UPEM",
                                    ident="wrong", passwd="wrong", rclass="myclass")
         LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
-                           name="Moodle UPEM")
+                           name="Moodle UPEM", key=KEY, secret=SECRET)
         
         r = views.wims_class(request, wims.pk)
         self.assertContains(r, "https://can.not.join.fr/", status_code=504)

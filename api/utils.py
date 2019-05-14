@@ -17,7 +17,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from wimsapi import Sheet
 
-from api.models import Activity, WimsClass, WimsUser, GradeLink
+from api.models import Activity, WimsClass, WimsUser
 from lti_app.enums import Role
 
 
@@ -108,7 +108,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
         wclass.save(wims.url, wims.ident, wims.passwd)
         wclass_db = WimsClass.objects.create(
             lms=lms, lms_uuid=parameters["context_id"],
-            wims=wims_srv, qclass=wclass.qclass
+            wims=wims_srv, qclass=wclass.qclass, name="test1"
         )
         logger.info("New class created (id : %d - wims id : %s - lms id : %s)"
                     % (wclass_db.id, str(wclass.qclass), str(wclass_db.lms_uuid)))
