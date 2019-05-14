@@ -200,10 +200,6 @@ def get_sheet(wclass_db, wclass, qsheet, parameters):
     
     sheet = wclass.getitem(qsheet, Sheet)
     try:
-        role = Role.parse_role_lti(parameters["roles"])
-        if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
-            GradeLink.send_back(wclass, qsheet)
-        
         activity = Activity.objects.get(wclass=wclass_db, qsheet=qsheet,
                                         lms_uuid=parameters["resource_link_id"])
     except Activity.DoesNotExist:
