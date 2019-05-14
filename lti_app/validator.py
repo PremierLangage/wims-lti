@@ -12,7 +12,7 @@ import time
 
 import wimsapi
 from django.apps import apps
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from django.core.validators import EmailValidator
 from oauthlib.oauth1 import RequestValidator as BaseRequestValidator
 
@@ -107,7 +107,8 @@ class RequestValidator(BaseRequestValidator):
         try:
             return LMS.objects.get(key=client_key)
         except LMS.DoesNotExist:
-            return False
+            logger.debug("LTI Authentification aborted: Unknown consumer key: '%s'" % client_key)
+            raise PermissionDenied("Unknown consumer key: '%s'" % client_key)
     
     
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce, request,
@@ -117,9 +118,6 @@ class RequestValidator(BaseRequestValidator):
     
     
     def get_client_secret(self, client_key, request):
-        """Retrieve the secret corresponding to the LMS using client_key, 'dummy' if not found."""
+        """Retrieve the secret corresponding to the LMS using client_key."""
         LMS = apps.get_model('api.LMS')
-        try:
-            return LMS.objects.get(key=client_key).secret
-        except LMS.DoesNotExist:
-            return "dummy"
+        return LMS.objects.get(key=client_key).secret

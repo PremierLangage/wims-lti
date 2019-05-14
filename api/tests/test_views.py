@@ -18,12 +18,11 @@ class ViewTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.lms1 = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
-                                      name="No WIMS")
-        print(cls.lms1.key)
+                                      name="No WIMS", key="provider1", secret="secret1")
         cls.lms2 = LMS.objects.create(uuid="elearning.test.fr", url="https://elearning.test.fr/",
-                                      name="One WIMS")
+                                      name="One WIMS", key="provider2", secret="secret1")
         cls.lms3 = LMS.objects.create(uuid="elearning.test.fr", url="https://elearning.test.fr/",
-                                      name="Two WIMS")
+                                      name="Two WIMS", key="provider3", secret="secret1")
         
         cls.wims1 = WIMS.objects.create(url="www.lti_app.com", name="One", ident="myself",
                                         passwd="toto", rclass="myclass")

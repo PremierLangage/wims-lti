@@ -6,15 +6,15 @@
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
 
-import os
 import logging
+import os
 from datetime import timedelta
 from xml.etree import ElementTree
 
 import oauth2
 import requests
 import wimsapi
-from django.core.validators import URLValidator, MinLengthValidator
+from django.core.validators import MinLengthValidator, URLValidator
 from django.db import models
 from django.urls import reverse
 
@@ -201,9 +201,9 @@ class GradeLink(models.Model):
         root = ElementTree.fromstring(response.text)
         if not (200 <= response.status_code < 300 and root[0][0][2][0].text == "succes"):
             logger.warning(("Consumer sent an error response after sending grade for user '%s' and "
-                          "activity '%s' in class '%s': %s")
-                         % (self.user.quser, self.activity.qsheet, self.activity.wclass.qclass,
-                            root[0][0][2][2].text))
+                            "activity '%s' in class '%s': %s")
+                           % (self.user.quser, self.activity.qsheet, self.activity.wclass.qclass,
+                              root[0][0][2][2].text))
     
     
     @classmethod
