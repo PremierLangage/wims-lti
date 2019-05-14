@@ -27,4 +27,9 @@ For more informations, see:
 
 # THE LINE BELOW MUST BE UNCOMMENTED BEFORE DEPLOYEMENT
 DEBUG = True
-ALLOWED_HOSTS = ['pl-test3.u-pem.fr', "127.0.0.1"]
+ALLOWED_HOSTS = ['pl-test3.u-pem.fr']
+
+EMAIL_HOST = 'smtp.u-pem.fr'
+EMAIL_PORT = 25
+SERVER_EMAIL = 'no-reply@u-pem.fr'
+EMAIL_ALIAS = SERVER_EMAIL

@@ -143,7 +143,6 @@ def wims_activity(request, wims_pk, activity_pk):
         
         # Check whether the sheet already exists, creating it otherwise
         activity, sheet = get_sheet(wclass_db, wclass, activity_pk, parameters)
-        raise Exception(str(parameters))
         # Storing the URL and ID to send the grade back to the LMS
         try:
             gl = GradeLink.objects.get(user=user_db, activity=activity)
