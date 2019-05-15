@@ -11,13 +11,12 @@ import os
 from datetime import timedelta
 from xml.etree import ElementTree
 
-import oauth2
-import oauthlib.oauth1.rfc5849.signature as oauth_signature
 import requests
 import wimsapi
 from django.core.validators import MinLengthValidator, URLValidator
 from django.db import models
 from django.urls import reverse
+from oauthlib.oauth1.rfc5849 import Client
 
 from lti_app.validator import ModelsValidator
 
@@ -69,15 +68,7 @@ class WIMS(models.Model):
     """Represents a WIMS server.
     
     For more information about <ident>, <passwd> et <rclass>, see:
-    https://wimsapi.readthedocs.io/en/latest/#configuration
-    
-    Parameters:
-        * url - URL to the api server's CGI, including scheme,
-                e.g.: 'http://wims.unice.fr/~wims/wims.cgi'
-        * dns - DNS of the api server, e.g.: 'api.unice.fr'
-        * ident - Identifier of the api server.
-        * passwd - Password of the api server.
-        * rclass - Identifier used for each class of this WIMS server."""
+    https://wimsapi.readthedocs.io/en/latest/#configuration"""
     name = models.CharField(max_length=2048, default=None)
     url = models.CharField(
         max_length=2048, unique=True, db_index=True, verbose_name="URL", default=None,
@@ -189,27 +180,18 @@ class GradeLink(models.Model):
         path = os.path.dirname(os.path.realpath(__file__))
         path = os.path.join(path, "ressources/replace.xml")
         with open(path) as f:
-            content = f.read() % (self.sourcedid, str(grade))
+            content = (f.read() % (self.sourcedid, str(grade))).encode()
         
-        params = {
-            'oauth_consumer_key':                 self.activity.wclass.lms.key,
-            'oauth_signature_method':             'HMAC-SHA1',
-            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
-            'oauth_nonce':                        oauth2.generate_nonce(),
+        headers = {
+            "Content-Type":   "application/xml",
+            "Content-Length": len(content),
         }
+        c = Client(client_key=self.activity.wclass.lms.key,
+                   client_secret=self.activity.wclass.lms.secret)
+        uri, headers, body = c.sign(self.url, "POST", body=content,
+                                    headers=headers)
+        response = requests.post(uri, data=body, headers=headers)
         
-        norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
-        uri = oauth_signature.normalize_base_string_uri(self.url)
-        base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
-        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(
-            base_string, self.activity.wclass.lms.secret, None
-        )
-        
-        authorization = 'OAuth realm="", oauth_version="1.0"'
-        for k, v in params.items():
-            authorization += ', %s="%s"' % (k, v)
-        
-        response = requests.post(self.url, content, header={"Authorization": authorization})
         root = ElementTree.fromstring(response.text)
         if not (200 <= response.status_code < 300 and root[0][0][2][0].text == "succes"):
             logger.warning(("Consumer sent an error response after sending grade for user '%s' and "
