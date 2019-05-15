@@ -5,7 +5,7 @@ import oauth2
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.test import TestCase
-from wimsapi import Class, User, WimsAPI
+from wimsapi import Class, Sheet, User, WimsAPI
 
 from api import utils
 from api.models import LMS, WIMS, WimsClass, WimsUser
@@ -599,3 +599,50 @@ class GetOrCreateUserTestCase(TestCase):
         self.assertEqual(user.lastname, "Supervisor")
         self.assertEqual(user.firstname, "")
         self.assertEqual(user.email, params["lis_person_contact_email_primary"])
+
+
+
+class GetSheetTestCase(TestCase):
+    
+    def test_get_sheet_ok(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   '789',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            '77',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'Doe',
+            'lis_person_name_given':              'Jhon',
+            'tool_consumer_instance_description': 'UPEM',
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              "None",
+        }
+        params = parse_parameters(params)
+        
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
+                                   name="WIMS UPEM", ident="X", passwd="X", rclass="myclass")
+        supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
+        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
+                       supervisor, lang="fr")
+        wclass.save(WIMS_URL, "myself", "toto")
+        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM", key="provider1", secret="secret1")
+        wclass_db = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
+                                             qclass=wclass.qclass, name="test1")
+        wclass.additem(Sheet("Titre", "Description"))
+        activity, sheet = utils.get_sheet(wclass_db, wclass, 1, params)
+        
+        self.assertEqual(activity.qsheet, "1")
+        self.assertEqual(activity.wclass, wclass_db)
+        self.assertEqual(activity.lms_uuid, params["resource_link_id"])
+        activity2, sheet2 = utils.get_sheet(wclass_db, wclass, 1, params)
+        
+        self.assertEqual(activity2.qsheet, activity.qsheet)
+        self.assertEqual(activity2.wclass, activity.wclass)
+        self.assertEqual(activity2.lms_uuid, activity.lms_uuid)

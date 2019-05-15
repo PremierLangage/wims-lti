@@ -136,7 +136,7 @@ class WimsClass(models.Model):
 
 class WimsUser(models.Model):
     """Represent an user on a WIMS server."""
-    lms_uuid = models.CharField(max_length=256, null=True, unique=True)
+    lms_uuid = models.CharField(max_length=256, null=True)
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
     quser = models.CharField(max_length=256, default=None)
     
@@ -208,6 +208,8 @@ class GradeLink(models.Model):
             raise wimsapi.AdmRawError(response['message'])
         
         for infos in response['data_scores']:
+            if not infos['got_detail']:
+                continue
             user = WimsUser.objects.get(wclass=wclass, quser=infos['id'])
             gl = cls.objects.get(user=user, activity=activity)
             grade = sum(infos['got_detail']) / len(infos['got_detail']) / 10

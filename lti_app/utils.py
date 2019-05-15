@@ -13,7 +13,6 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from lti.contrib.django import DjangoToolProvider
 
-from api.models import LMS
 from lti_app.exceptions import BadRequestException
 from lti_app.validator import CustomParameterValidator, RequestValidator, validate
 

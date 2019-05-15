@@ -151,8 +151,7 @@ def get_or_create_user(wclass_db, wclass, parameters):
         if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
             user_db = WimsUser.objects.get(lms_uuid=None, wclass=wclass_db)
         else:
-            user_db = WimsUser.objects.get(lms_uuid=parameters['user_id'],
-                                           wclass=wclass_db)
+            user_db = WimsUser.objects.get(lms_uuid=parameters['user_id'], wclass=wclass_db)
         user = wimsapi.User.get(wclass, user_db.quser)
     except WimsUser.DoesNotExist:
         user = create_user(parameters)
@@ -200,12 +199,12 @@ def get_sheet(wclass_db, wclass, qsheet, parameters):
     
     sheet = wclass.getitem(qsheet, Sheet)
     try:
-        activity = Activity.objects.get(wclass=wclass_db, qsheet=qsheet,
+        activity = Activity.objects.get(wclass=wclass_db, qsheet=str(qsheet),
                                         lms_uuid=parameters["resource_link_id"])
     except Activity.DoesNotExist:
         activity = Activity.objects.create(
             lms_uuid=parameters["resource_link_id"],
-            wclass=wclass_db, qsheet=qsheet
+            wclass=wclass_db, qsheet=str(qsheet)
         )
         logger.info("New sheet created (wims id: %s - lms id : %s) in class %d"
                     % (str(qsheet), str(activity.lms_uuid), wclass_db.id))
