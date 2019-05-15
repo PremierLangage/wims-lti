@@ -184,7 +184,7 @@ class GradeLink(models.Model):
         
         headers = {
             "Content-Type":   "application/xml",
-            "Content-Length": len(content),
+            "Content-Length": str(len(content)),
         }
         c = Client(client_key=self.activity.wclass.lms.key,
                    client_secret=self.activity.wclass.lms.secret)
@@ -193,7 +193,7 @@ class GradeLink(models.Model):
         response = requests.post(uri, data=body, headers=headers)
         
         root = ElementTree.fromstring(response.text)
-        if not (200 <= response.status_code < 300 and root[0][0][2][0].text == "succes"):
+        if not (200 <= response.status_code < 300 and root[0][0][2][0].text == "success"):
             logger.warning(("Consumer sent an error response after sending grade for user '%s' and "
                             "activity '%s' in class '%s': %s")
                            % (self.user.quser, self.activity.qsheet, self.activity.wclass.qclass,
