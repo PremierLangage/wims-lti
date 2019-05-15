@@ -12,7 +12,7 @@ import time
 
 import wimsapi
 from django.apps import apps
-from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import EmailValidator
 from oauthlib.oauth1 import RequestValidator as BaseRequestValidator
 
