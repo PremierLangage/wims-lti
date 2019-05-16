@@ -1,12 +1,124 @@
 {% load static %}
-
-
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>WIMS - LTI</title>
-    <body class="ml-5 mt-3">
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <base href="/">
+    <title>WIMS - LTI</title>
 
-    </body>
+    <!-- Bootstrap + JQuery https://getbootstrap.com/ -->
+    <link rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+        crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"></script>
+
+    <!-- Font Awesome http://www.fontawesome.com -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css"/>
+    <!-- Material Design Lite https://getmdl.io -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue-light_blue.min.css"/>
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+
+    <link rel="stylesheet" href="{% static 'lti_app/css/lti_app.css' %}"/>
+</head>
+<body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+            <div class="mdl-layout-title">
+                <div>Wims LTI</div>
+            </div>
+            <nav class="mdl-navigation mdl-layout--large-screen-only">
+                <a class="mdl-navigation__link" href="/lti/links"><i class="fas fa-graduation-cap"></i>&nbsp;LMS</a>
+                {% if request.user.profile.is_admin or request.user.is_superuser %}
+                <a class="mdl-navigation__link" href="/admin/"><i class="fas fa-cog"></i>&nbsp;Administration</a>
+                {% endif %}
+            </nav>
+            <div class="mdl-layout-spacer"></div>
+            <nav class="mdl-navigation">
+                <!-- LINKS ANCHORED ON THE RIGHT SIDE -->
+            </nav>
+        </div>
+    </header>
+        <main class="mdl-layout__content">
+            <div class="page-content">
+                <div id="accordion">
+                    {%for item in LMS %}
+                    <div class="card">
+                        <div class="card-header" id="heading{{item.pk}}">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" data-toggle="collapse" data-target="#collapse{{item.pk}}" aria-expanded="true" aria-controls="collapse{{item.pk}}" onclick="expand({{item.pk}})">
+                                {{ item.name }}
+                            </button>
+                        </h5>
+                        </div>
+                        <div id="collapse{{item.pk}}" class="collapse" aria-labelledby="heading{{item.pk}}" data-parent="#accordion">
+                            <div class="card-body">
+                                <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%">
+                                    <thead>
+                                        <tr>
+                                            <th class="mdl-data-table__cell--non-numeric">Classe</th>
+                                            <th class="mdl-data-table__cell--non-numeric">Wims</th>
+                                            <th class="mdl-data-table__cell--non-numeric">Lien</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %} 
+                </div>
+            </div>
+        </main>
+    </div>
+<script>
+const expanded = [];
+async function expand(pk) {
+    if (expanded.indexOf(pk) == -1) {
+        const response = await $.ajax({
+            type: "GET",
+            url: `/api/lti_app/${pk}/`,
+        });
+        const loadClasses = async (item) => {
+            item.classes = (await $.ajax({
+                type: "GET",
+                url: `/api/classes/${item.pk}/`,
+            })).content;
+            return item;
+        }
+
+        const wims = await Promise.all(response.content.map(item => loadClasses(item)));
+        const node = $(`#collapse${pk} tbody`);
+        let html = '';
+        for (const item of wims) {
+            item.classes.forEach(c => {
+                html += `
+                <tr>
+                    <td class="mdl-data-table__cell--non-numeric">${c.name}</td>
+                    <td class="mdl-data-table__cell--non-numeric">${item.name}</td>
+                    <td class="mdl-data-table__cell--non-numeric">${item.lti_url}</td>
+                </tr>
+                `;
+            });
+        }
+        node.html(html);
+        expanded.push(pk);
+    }
+}
+
+</script>
+</body>
 </html>
