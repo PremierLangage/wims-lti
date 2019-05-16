@@ -1,0 +1,12 @@
+site_name: WIMS-LTI Documentation
+site_author: Quentin Coumes
+repo_url: https://github.com/PremierLangage/wims-lti/
+
+nav:
+  - Introduction: index.md
+  - Installation: installation.md
+  - Configuration: configuration.md
+  - License: LICENSE.md
+  - Github: https://github.com/PremierLangage/wims-lti/
+
+theme: readthedocs
