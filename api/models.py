@@ -9,7 +9,7 @@
 import logging
 import os
 from datetime import timedelta
-from xml.etree import ElementTree
+from defusedxml import ElementTree
 
 import requests
 import wimsapi
