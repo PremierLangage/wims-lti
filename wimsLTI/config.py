@@ -23,13 +23,3 @@ For more informations, see:
  - Django's settings | https://docs.djangoproject.com/en/2.1/ref/settings/
  - Deployment checklist | https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 """
-
-
-# THE LINE BELOW MUST BE UNCOMMENTED BEFORE DEPLOYEMENT
-DEBUG = True
-ALLOWED_HOSTS = ['pl-test3.u-pem.fr']
-
-EMAIL_HOST = 'smtp.u-pem.fr'
-EMAIL_PORT = 25
-SERVER_EMAIL = 'no-reply@u-pem.fr'
-EMAIL_ALIAS = SERVER_EMAIL
