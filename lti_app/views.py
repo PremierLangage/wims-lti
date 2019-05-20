@@ -14,7 +14,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import (Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed,
                          HttpResponseNotFound)
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
@@ -223,7 +223,7 @@ def activities(request, lms_pk, wims_pk, wclass_pk):
     try:
         class_srv = WimsClass.objects.get(pk=wclass_pk)
     except WimsClass.DoesNotExist:
-        return HttpResponseNotFound("WimsClass of ID " + str(wclass_pk) + " Was not found on the server.")
+        return HttpResponseNotFound("WimsClass of ID %d Was not found on the server." % wclass_pk)
     
     
     passwd = request.POST.get("password", None)
