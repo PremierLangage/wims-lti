@@ -182,6 +182,10 @@ ROLES_ALLOWED_CREATE_WIMS_CLASS = [
 STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'static'))
 STATIC_URL = '/static/'
 
+# Directory containing mail's title and body
+MAIL_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mail")
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 LANGUAGE_CODE = 'en-us'

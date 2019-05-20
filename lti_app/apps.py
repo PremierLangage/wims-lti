@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-#  apps.py
+#  converters.py
 #
 #  Authors:
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
+
 import warnings
 
 from django.apps import AppConfig

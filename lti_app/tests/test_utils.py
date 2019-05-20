@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta
 import oauth2
 import oauthlib.oauth1.rfc5849.signature as oauth_signature
 from django.conf import settings
+from django.core import mail
 from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -567,7 +568,6 @@ class GetOrCreateClassTestCase(TestCase):
         wclass_db1 = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
                                               qclass="60001", name="test1")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
-        from wimsapi import Class
         
         wclass1 = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                         supervisor, lang="fr", qclass=wclass_db1.qclass)
@@ -588,6 +588,42 @@ class GetOrCreateClassTestCase(TestCase):
         self.assertEqual(wclass1.supervisor.email, wclass2.supervisor.email)
         
         wclass1.delete()
+    
+    
+    def test_get_or_create_class_create_mail(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "Title",
+            'user_id':                            'X',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'X',
+            'lis_person_name_given':              'X',
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[
+                                                      0].value,
+        }
+        params = utils.parse_parameters(params)
+        
+        wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM",
+                                   ident="X", passwd="X", rclass="myclass")
+        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM", key=KEY, secret=SECRET)
+        api = WimsAPI(WIMS_URL, "myself", "toto")
+        wclass_db, wclass = utils.get_or_create_class(lms, wims, api, params)
+        
+        self.assertIn(wclass.name, mail.outbox[0].body)
+        self.assertIn(wclass.qclass, mail.outbox[0].body)
+        self.assertIn(wclass.password, mail.outbox[0].body)
+        self.assertIn(wclass.supervisor.password, mail.outbox[0].body)
 
 
 
