@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+#  admin.py
+#
+#  Authors:
+#       - Coumes Quentin <coumes.quentin@gmail.com>
+#
+
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
