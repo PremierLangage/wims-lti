@@ -117,7 +117,7 @@ LOGGING = {
             'formatter': 'simple'
         },
         'mail_admins': {
-            'level':        'ERROR',
+            'level':        'WARNING',
             'class':        'django.utils.log.AdminEmailHandler',
             'include_html': True,
             'formatter':    'verbose'
@@ -148,7 +148,6 @@ LTI_MANDATORY = [
     'oauth_nonce',
     'oauth_signature',
 ]
-
 WIMSLTI_MANDATORY = [
     'context_id',
     'context_title',
@@ -180,7 +179,7 @@ ROLES_ALLOWED_CREATE_WIMS_CLASS = [
 ]
 
 # Static files
-STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'staticfiles'))
+STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'static'))
 STATIC_URL = '/static/'
 
 # Internationalization
