@@ -19,6 +19,22 @@
     padding: 2rem 8rem;
 }
 
+.lms {
+    background-color: #eeeeee;
+}
+
+.wims {
+    background-color: #dddddd;
+}
+
+.classes {
+    background-color: #eeeeee;
+}
+
+.activities {
+    background-color: #ffffff;
+}
+
 a {
     text-decoration: none;
 }
@@ -29,12 +45,12 @@ a:hover {
 }
 
 .container-messages {
-    z-index: 10; 
-    position: absolute; 
-    top: 16px; 
-    right: 16px; 
-    width: 320px; 
-    height: 400px; 
+    z-index: 10;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 320px;
+    height: 400px;
     overflow: auto;
 }
 
@@ -42,7 +58,7 @@ a:hover {
 body {
     font-size: 100%;
   }
-  
+
 body, h1, h2, h3, h4, h5, h6 {
     font-size-adjust: 0.5;
 }
@@ -53,7 +69,7 @@ h1 {
     line-height: 1.25;
     /* 45px / 36px */
   }
-  
+
   @media (min-width: 43.75em) {
     h1 {
       font-size: 2.5em;
@@ -81,7 +97,7 @@ h3 {
     line-height: 1.13636364;
     /* 25px / 22px */
 }
-  
+
 @media (min-width: 43.75em) {
     h3 {
       font-size: 1.5em;
@@ -89,7 +105,7 @@ h3 {
       line-height: 1.25;
     }
 }
-  
+
 @media (min-width: 56.25em) {
     h3 {
       font-size: 1.75em;
@@ -97,21 +113,21 @@ h3 {
       line-height: 1.25;
     }
 }
-  
+
 
 h4 {
     font-size: 1.125em;
     /* 1.125x body copy size = 18px */
     line-height: 1.11111111;
   }
-  
+
 @media (min-width: 43.75em) {
     h4 {
       line-height: 1.22222222;
       /* (22px / 18px */
     }
 }
-  
+
 h5 { font-size: 0.83em; }
 h6 { font-size: 0.75em; }
 
