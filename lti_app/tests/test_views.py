@@ -755,3 +755,29 @@ class SheetTestCase(BaseLinksViewTestCase):
                             reverse('lti:wims_activity', args=[self.wims2.pk, self.sheet2.qsheet]))
         self.assertTemplateUsed(response, 'lti_app/base.html')
         self.assertTemplateUsed(response, 'lti_app/activities.html')
+    
+    
+    def test_sheets_class_404(self):
+        response = self.client.post(
+            reverse("lti:sheets", args=[self.lms3.pk, self.wims2.pk, 99999]),
+        )
+        self.assertEqual(404, response.status_code)
+    
+    
+    def test_sheets_missing_password(self):
+        response = self.client.post(
+            reverse("lti:sheets", args=[self.lms3.pk, self.wims2.pk, self.class2.pk]),
+        )
+        self.assertEqual(400, response.status_code)
+    
+    
+    def test_sheets_invalid_password(self):
+        response = self.client.post(
+            reverse("lti:sheets", args=[self.lms3.pk, self.wims2.pk, self.class2.pk]),
+            {"password": "wrong"},
+            follow=True
+        )
+        
+        self.assertTemplateUsed(response, 'lti_app/base.html')
+        self.assertTemplateUsed(response, 'lti_app/classes.html')
+        self.assertContains(response, "Invalid password")
