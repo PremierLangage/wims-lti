@@ -1,0 +1,48 @@
+{% extends 'lti_app/base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb p-1">
+            <li class="breadcrumb-item">
+                <a href="{% url 'lti:lms' %}"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'lti:wims' LMS.pk %}">{{ LMS.name }}</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'lti:classes' LMS.pk WIMS.pk %}">{{ WIMS.name }}</a>
+            </li>
+            <li class="breadcrumb-item active">{{ class.name }}</li>
+        </ol>
+    </nav>
+    {% if sheets %}
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">LTI-URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in sheets %}
+                    <tr>
+                        <td>{{ item.qsheet }}</td>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.sheetmode }}</td>
+                        <td>
+                            <code>{{ item.lti_url }}</code>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            No worksheet has been found on this class.
+        </div>
+    {% endif %}
+{% endblock %}

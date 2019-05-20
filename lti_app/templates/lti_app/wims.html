@@ -1,0 +1,42 @@
+{% extends 'lti_app/base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb p-1">
+            <li class="breadcrumb-item"><a href="{% url 'lti:lms' %}">
+                <i class="fas fa-home"></i>
+            </a></li>
+            <li class="breadcrumb-item active">{{ LMS.name }}</li>
+        </ol>
+    </nav>
+    {% if WIMS %}
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">URL</th>
+                    <th scope="col">LTI-URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in WIMS %}
+                    <tr>
+                        <td data-href="{% url 'lti:classes' LMS.pk item.pk %}">{{ item.pk }}</td>
+                        <td data-href="{% url 'lti:classes' LMS.pk item.pk %}">{{ item.name }}</td>
+                        <td><code>{{ item.url }}</code></td>
+                        <td>
+                            <code>{{ request.scheme }}://{{ request.get_host }}{% url 'lti:wims_class' item.pk %}</code>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            No WIMS server has allowed this LMS.
+        </div>
+    {% endif %}
+{% endblock %}

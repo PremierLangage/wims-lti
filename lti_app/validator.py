@@ -103,7 +103,7 @@ class RequestValidator(BaseRequestValidator):
     
     def validate_client_key(self, client_key, request):
         """Check that a LMS with this client_key exists."""
-        LMS = apps.get_model('api.LMS')
+        LMS = apps.get_model('lti_app.LMS')
         try:
             return LMS.objects.get(key=client_key)
         except LMS.DoesNotExist:
@@ -119,5 +119,5 @@ class RequestValidator(BaseRequestValidator):
     
     def get_client_secret(self, client_key, request):
         """Retrieve the secret corresponding to the LMS using client_key."""
-        LMS = apps.get_model('api.LMS')
+        LMS = apps.get_model('lti_app.LMS')
         return LMS.objects.get(key=client_key).secret

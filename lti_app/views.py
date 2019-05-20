@@ -3,17 +3,18 @@ import logging
 import requests
 import wimsapi
 from django.conf import settings
+from django.contrib import messages
 from django.http import (Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed,
                          HttpResponseNotFound)
-from django.shortcuts import redirect, render
-from django.views.decorators.http import require_GET
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.views.decorators.http import require_GET, require_POST
 
-from api.models import GradeLink, LMS, WIMS, WimsClass
-from api.utils import get_or_create_class, get_or_create_user, get_sheet
 from lti_app.enums import Role
 from lti_app.exceptions import BadRequestException
-from lti_app.utils import (check_custom_parameters, check_parameters, is_valid_request,
-                           parse_parameters)
+from lti_app.models import GradeLink, LMS, WIMS, WimsClass
+from lti_app.utils import (check_custom_parameters, check_parameters, get_or_create_class,
+                           get_or_create_user, get_sheet, is_valid_request, parse_parameters)
 
 
 logger = logging.getLogger(__name__)
@@ -183,7 +184,68 @@ def wims_activity(request, wims_pk, activity_pk):
 
 
 @require_GET
-def links(request):
-    return render(request, "lti_app/links.html", {
+def lms(request):
+    return render(request, "lti_app/lms.html", {
         "LMS": LMS.objects.all(),
     })
+
+
+
+@require_GET
+def wims(request, lms_pk):
+    return render(request, "lti_app/wims.html", {
+        "LMS":  LMS.objects.get(pk=lms_pk),
+        "WIMS": WIMS.objects.filter(allowed_lms__pk=lms_pk),
+    })
+
+
+
+@require_GET
+def classes(request, lms_pk, wims_pk):
+    return render(request, "lti_app/classes.html", {
+        "LMS":     LMS.objects.get(pk=lms_pk),
+        "WIMS":    WIMS.objects.get(pk=wims_pk),
+        "classes": WimsClass.objects.filter(wims__pk=wims_pk),
+    })
+
+
+
+@require_POST
+def activities(request, lms_pk, wims_pk, wclass_pk):
+    class_srv = get_object_or_404(WimsClass, pk=wclass_pk)
+    
+    passwd = request.POST.get("password", None)
+    if passwd is None:
+        return HttpResponseBadRequest("Missing parameter: 'password'")
+    
+    try:
+        wclass = wimsapi.Class.get(class_srv.wims.url, class_srv.wims.ident, class_srv.wims.passwd,
+                                   class_srv.qclass, class_srv.wims.rclass)
+        if wclass.password != passwd:
+            messages.error(request, 'Invalid password')
+            return classes(request, lms_pk, wims_pk)
+        
+        sheets = wclass.listitem(wimsapi.Sheet)
+        mode = ["pending", "active", "expired", "hidden"]
+        for s in sheets:
+            s.lti_url = request.build_absolute_uri(
+                reverse("lti:wims_activity", args=[wims_pk, s.qsheet])
+            )
+            s.sheetmode = mode[int(s.sheetmode)]
+        
+        return render(request, "lti_app/activities.html", {
+            "LMS":    LMS.objects.get(pk=lms_pk),
+            "WIMS":   WIMS.objects.get(pk=wims_pk),
+            "class":  WimsClass.objects.get(pk=wclass_pk),
+            "sheets": sheets,
+        })
+    
+    except wimsapi.AdmRawError as e:  # WIMS server responded with ERROR (pragma: no cover)
+        logger.info(str(e))
+        messages.error(request, 'The WIMS server returned an error: ' + str(e))
+        return classes(request, lms_pk, wims_pk)
+    
+    except requests.RequestException:
+        logger.exception("Could not join the WIMS server '%s'" % class_srv.wims.url)
+        messages.error(request, 'Could not join the WIMS server')
+        return classes(request, lms_pk, wims_pk)

@@ -21,6 +21,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
+from django.contrib.messages import constants as messages
+
 from lti_app.enums import Role
 
 
@@ -33,8 +35,6 @@ SECRET_KEY = '-qj!o^8$@!&7))^77^z8(-5rp*5x=7q(736)05x$h(inkfm^1#'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'django.contrib.messages',
-    'api',
     'lti_app',
 ]
 
@@ -162,6 +161,14 @@ WIMSLTI_MANDATORY = [
     'lis_person_name_given',
     'roles',
 ]
+
+MESSAGE_TAGS = {
+    messages.DEBUG:   'alert-info',
+    messages.INFO:    'alert-info',
+    messages.SUCCESS: 'alert-success',
+    messages.WARNING: 'alert-warning',
+    messages.ERROR:   'alert-danger',
+}
 
 # List of Roles that are allowed to create new classes on the WIMS servers
 # Any user connecting from an LMS with one of these role will also be logged
