@@ -22,8 +22,6 @@ echo "pip3: OK !"
 command -v git >/dev/null 2>&1 || { echo >&2 "ERROR: git should be installed"; exit 1; }
 echo "git: OK !"
 
-
-
 # Making sure changes to wimsLTI/config.py are not pushed
 git update-index --no-skip-worktree wimsLTI/config.py
 
@@ -31,7 +29,7 @@ git update-index --no-skip-worktree wimsLTI/config.py
 
 # Checking if inside a python venv
 if [ "$VIRTUAL_ENV" == "" ]; then
-    echo ""
+    echo
     INVENV=1
     echo "WARNING: We recommend you to use a python virtual environment (https://docs.python.org/3/library/venv.html)." | fold -s
     read -p "Do you want to continue outside a virtual environment ? [Y/n] " -n 1 -r
@@ -45,7 +43,7 @@ fi
 
 
 # Getting requirement
-echo ""
+echo
 echo "Installing requirements..."
 pip3 install wheel  || { echo>&2 "ERROR: pip3 install wheel failed" ; exit 1; }
 pip3 install -r requirements.txt || { echo>&2 "ERROR: pip3 install -r requirements.txt failed" ; exit 1; }
@@ -54,12 +52,18 @@ echo "Done !"
 
 
 # Building database
-echo ""
+echo
 echo "Configuring database..."
 python3 manage.py makemigrations || { echo>&2 "ERROR: python3 manage.py makemigrations failed" ; exit 1; }
 python3 manage.py migrate || { echo>&2 "ERROR: python3 manage.py migrate failed" ; exit 1; }
-python3 manage.py collectstatic || { echo>&2 "ERROR: python3 manage.py collectstatic failed" ; exit 1; }
+echo "Done !"
 
+
+# Collecting statics
+echo
+echo "Collecting statics..."
+python3 manage.py collectstatic || { echo>&2 "ERROR: python3 manage.py collectstatic failed" ; exit 1; }
+echo "Done !"
 
 
 # Creating super user
@@ -73,4 +77,4 @@ then
     python3 manage.py createsuperuser || { echo>&2 "ERROR: python3 manage.py createsuperuser failed" ; exit 1; }
 fi
 
-echo "Run 'python3 manage.py createsuperuser' to create super users in the future."
+echo "Run 'python3 manage.py createsuperuser' to create superusers in the future."
