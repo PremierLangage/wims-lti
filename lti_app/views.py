@@ -220,7 +220,11 @@ def classes(request, lms_pk, wims_pk):
 
 @require_POST
 def activities(request, lms_pk, wims_pk, wclass_pk):
-    class_srv = get_object_or_404(WimsClass, pk=wclass_pk)
+    try:
+        class_srv = WimsClass.objects.get(pk=wclass_pk)
+    except WimsClass.DoesNotExist:
+        return HttpResponseNotFound("WimsClass of ID " + str(wclass_pk) + " Was not found on the server.")
+    
     
     passwd = request.POST.get("password", None)
     if passwd is None:
@@ -231,7 +235,7 @@ def activities(request, lms_pk, wims_pk, wclass_pk):
                                    class_srv.qclass, class_srv.wims.rclass)
         if wclass.password != passwd:
             messages.error(request, 'Invalid password')
-            return classes(request, lms_pk, wims_pk)
+            return redirect('lti:classes', lms_pk=lms_pk, wims_pk=wims_pk)
         
         sheets = wclass.listitem(wimsapi.Sheet)
         mode = ["pending", "active", "expired", "hidden"]
@@ -251,9 +255,9 @@ def activities(request, lms_pk, wims_pk, wclass_pk):
     except wimsapi.AdmRawError as e:  # WIMS server responded with ERROR (pragma: no cover)
         logger.info(str(e))
         messages.error(request, 'The WIMS server returned an error: ' + str(e))
-        return classes(request, lms_pk, wims_pk)
+        return redirect('lti:classes', lms_pk=lms_pk, wims_pk=wims_pk)
     
-    except requests.RequestException:
+    except requests.RequestException:  # WIMS server responded with ERROR (pragma: no cover)
         logger.exception("Could not join the WIMS server '%s'" % class_srv.wims.url)
         messages.error(request, 'Could not join the WIMS server')
-        return classes(request, lms_pk, wims_pk)
+        return redirect('lti:classes', lms_pk=lms_pk, wims_pk=wims_pk)
