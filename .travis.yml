@@ -17,12 +17,12 @@ python:
 
 
 before_install:
-  - git clone https://github.com/qcoumes/docker-api-minimal.git
-  - docker build -t api-minimal wims_docker/
-  - docker run -itd -p 7777:80 --name api api-minimal
-  - docker container start api
-  - docker exec -it api ./bin/apache-config
-  - docker exec -it api service apache2 restart
+  - git clone https://github.com/qcoumes/docker-wims-minimal.git
+  - docker build -t wims-minimal wims_docker/
+  - docker run -itd -p 7777:80 --name wims wims-minimal
+  - docker container start wims
+  - docker exec -it wims ./bin/apache-config
+  - docker exec -it wims service apache2 restart
 
 
 install:
