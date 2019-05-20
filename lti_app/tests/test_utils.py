@@ -1,18 +1,19 @@
+import os
 import time
 import traceback
-import os
+from datetime import date, datetime, timedelta
+
 import oauth2
 import oauthlib.oauth1.rfc5849.signature as oauth_signature
-from datetime import date, datetime, timedelta
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
-from wimsapi import WimsAPI, User, Class, Sheet
+from wimsapi import Class, Sheet, User, WimsAPI
 
 from lti_app import utils
 from lti_app.exceptions import BadRequestException
-from lti_app.models import LMS, WimsClass, WIMS, WimsUser
+from lti_app.models import LMS, WIMS, WimsClass, WimsUser
 from lti_app.utils import parse_parameters
 
 
@@ -636,7 +637,7 @@ class GetOrCreateClassTestCase(TestCase):
                                               qclass="60001", name="test1")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         from wimsapi import Class
-
+        
         wclass1 = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                         supervisor, lang="fr", qclass=wclass_db1.qclass)
         wclass1.save(WIMS_URL, "myself", "toto")
