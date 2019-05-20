@@ -5,12 +5,23 @@
 #  Authors:
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
+
 import logging
+import random
+import string
+from datetime import datetime
+from string import ascii_letters, digits
 
 import oauth2
+import wimsapi
+from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from lti.contrib.django import DjangoToolProvider
+from wimsapi import Sheet
 
+from lti_app.enums import Role
 from lti_app.exceptions import BadRequestException
+from lti_app.models import Activity, WimsClass, WimsUser
 from lti_app.validator import CustomParameterValidator, RequestValidator, validate
 
 
@@ -170,33 +181,6 @@ def parse_parameters(p):
         'custom_supervisor_lastname':             p.get('custom_supervisor_lastname'),
         'custom_supervisor_firstname':            p.get('custom_supervisor_firstname'),
     }
-
-
-
-# -*- coding: utf-8 -*-
-#
-#  utils.py
-#
-#  Authors:
-#       - Coumes Quentin <coumes.quentin@gmail.com>
-#
-
-import logging
-import random
-import string
-from datetime import datetime
-from string import ascii_letters, digits
-
-import wimsapi
-from django.conf import settings
-from django.core.exceptions import PermissionDenied
-from wimsapi import Sheet
-
-from lti_app.models import Activity, WimsClass, WimsUser
-from lti_app.enums import Role
-
-
-logger = logging.getLogger(__name__)
 
 
 

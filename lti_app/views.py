@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+#  views.py
+#
+#  Authors:
+#       - Coumes Quentin <coumes.quentin@gmail.com>
+#
+
 import logging
 
 import requests
