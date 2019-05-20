@@ -9,13 +9,12 @@
 import logging
 import os
 from datetime import timedelta
-from defusedxml import ElementTree
 
 import requests
 import wimsapi
+from defusedxml import ElementTree
 from django.core.validators import MinLengthValidator, URLValidator
 from django.db import models
-from django.urls import reverse
 from oauthlib.oauth1.rfc5849 import Client
 
 from lti_app.validator import ModelsValidator
@@ -95,15 +94,6 @@ class WIMS(models.Model):
     
     def __str__(self):
         return "%s (%s)" % (self.name, self.url)
-    
-    
-    def serialize(self, request):
-        return {
-            "pk":      self.pk,
-            "name":    self.name,
-            "url":     self.url,
-            "lti_url": request.build_absolute_uri(reverse("lti:wims_class", args=[self.pk]))
-        }
 
 
 
@@ -123,14 +113,6 @@ class WimsClass(models.Model):
     
     def __str__(self):
         return "%s (%s)" % (self.name, self.qclass)
-    
-    
-    def serialize(self):
-        return {
-            "pk":     self.pk,
-            "name":   self.name,
-            "qclass": self.qclass,
-        }
 
 
 
