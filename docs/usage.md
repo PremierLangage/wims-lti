@@ -17,7 +17,7 @@ you will need these to add the server to **WIMS-LTI**.
 1. Connect to `[WIMS-LTI SERVEUR]/admin/` and enter the administration 
 account login and password that you entered when you installed the server.
 
-2. Click on `LMS` (or go to  `[WIMS-LTI SERVEUR]/admin/api/lms/`)
+2. Click on `LMS` (or go to  `[WIMS-LTI SERVEUR]/admin/lti_app/lms/`)
 
 3. Click `ADD LMS` in the top left and fill the form:
     * `UUID` : UUID of the *LMS* corresponding to the `tool_consumer_instance_guid` parameter
@@ -31,7 +31,7 @@ account login and password that you entered when you installed the server.
 *Repeat ***3.*** for each *LMS* that you want to add.*
 
 
-4. Go back to `[WIMS-LTI SERVEUR]/admin/` and click on `wims` (or go to `[WIMS-LTI SERVEUR]/admin/api/wims/`)
+4. Go back to `[WIMS-LTI SERVEUR]/admin/` and click on `wims` (or go to `[WIMS-LTI SERVEUR]/admin/lti_app/wims/`)
 
 5. Click `ADD WIMS` in the top left, and fill the form:
     * `Name` : Name to identify the *WIMS* server, ex: `WIMS UPEM`.
@@ -56,3 +56,31 @@ If they want to create a link to a worksheet (to send the grade back to the LMS)
 they'll have to select the corresponding class, provide its password (sent
 by email at the class' creation) and copy the URL corresponding to the worksheet
 they want?
+
+
+## Custom LTI Parameters:
+
+When creating a new class, a number of custom LTI parameters can be added to change some
+of the settings of the created class and its supervisor:
+
+* Class
+    * `custom_class_name` - Name of the class (default to the LMS course name)
+    * `custom_class_institution` - Name of the Institution (default to the LMS institution)
+    * `custom_class_email` - Email of the class (default to the creator's email)
+    * `custom_class_lang` - Language of the class (en, fr, es, it, etc - default to the LMS' language).
+    * `custom_class_expiration` - Expiration date (yyyymmdd - default to 11 months).
+    * `custom_class_limit` - Maximum number of participants in the class (from 10 to 300, default to 150).
+    * `custom_class_level` - Level of the class (E1, ..., E6, H1, ..., H6, U1, ..., U5, G, R - default to U1).
+    * `custom_class_css` - CSSfile (must exists on the WIMS server).
+
+* Supervisor:
+    * `custom_supervisor_lastname` - Last name of the supervisor
+    * `custom_supervisor_firstname` - First name of the supervisor
+    * `custom_supervisor_email` - Email adress of the supervisor
+
+I.E.:
+```text
+custom_class_lang=en
+custom_class_name=Best class in the world
+custom_class_email=address@email.com
+```
