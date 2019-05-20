@@ -177,7 +177,6 @@ def parse_parameters(p):
         'custom_class_limit':                     p.get('custom_class_limit'),
         'custom_class_level':                     p.get('custom_class_level'),
         'custom_class_css':                       p.get('custom_class_css'),
-        'custom_clone_class':                     p.get('custom_clone_class'),
         'custom_supervisor_lastname':             p.get('custom_supervisor_lastname'),
         'custom_supervisor_firstname':            p.get('custom_supervisor_firstname'),
     }
@@ -217,19 +216,7 @@ def create_class(wims_srv, params):
         "rclass":      wims_srv.rclass,
     }
     
-    if params["custom_clone_class"] is not None:
-        wapi = wimsapi.WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
-        bol, response = wapi.copyclass(params["custom_clone_class"], wims_srv.rclass)
-        if not bol:
-            raise wimsapi.AdmRawError(response['message'])
-        wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
-                                   response['new_class'], wims_srv.rclass)
-        for k, v in wclass_dic.items():
-            if k == "css":
-                continue
-            setattr(wclass, k, v)
-    else:
-        wclass = wimsapi.Class(**wclass_dic)
+    wclass = wimsapi.Class(**wclass_dic)
     
     return wclass
 

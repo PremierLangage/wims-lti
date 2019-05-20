@@ -23,4 +23,3 @@ For more informations, see:
  - Django's settings | https://docs.djangoproject.com/en/2.1/ref/settings/
  - Deployment checklist | https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 """
-
