@@ -11,12 +11,12 @@ import logging
 import time
 
 import wimsapi
-from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.apps import apps
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import EmailValidator
 from oauthlib.oauth1 import RequestValidator as BaseRequestValidator
 
-from wims.exceptions import BadRequestException
+from lti_app.exceptions import BadRequestException
 
 
 logger = logging.getLogger(__name__)
@@ -102,8 +102,13 @@ class RequestValidator(BaseRequestValidator):
     
     
     def validate_client_key(self, client_key, request):
-        """Check that client_key is declared in LTI_OAUTH_CREDENTIALS."""
-        return client_key in settings.LTI_OAUTH_CREDENTIALS
+        """Check that a LMS with this client_key exists."""
+        LMS = apps.get_model('lti_app.LMS')
+        try:
+            return LMS.objects.get(key=client_key)
+        except LMS.DoesNotExist:
+            logger.debug("LTI Authentification aborted: Unknown consumer key: '%s'" % client_key)
+            raise PermissionDenied("Unknown consumer key: '%s'" % client_key)
     
     
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce, request,
@@ -113,6 +118,6 @@ class RequestValidator(BaseRequestValidator):
     
     
     def get_client_secret(self, client_key, request):
-        """Retrieve the secret from  LTI_OAUTH_CREDENTIALS with the given client_key, 'dummy'
-        if not found."""
-        return settings.LTI_OAUTH_CREDENTIALS.get(client_key, "dummy")
+        """Retrieve the secret corresponding to the LMS using client_key."""
+        LMS = apps.get_model('lti_app.LMS')
+        return LMS.objects.get(key=client_key).secret

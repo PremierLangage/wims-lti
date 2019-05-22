@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 #
-#  converters.py
+#  admin.py
 #
 #  Authors:
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 #
 
-
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
-from wims import models
+from lti_app import models
 
 
 
@@ -22,19 +21,31 @@ class LMSAdmin(admin.ModelAdmin):
 
 @admin.register(models.WIMS)
 class WIMSAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'dns', 'url')
+    list_display = ('id', 'name', 'url')
 
 
 
 @admin.register(models.WimsClass)
 class WIMSClassAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wims', 'lms', 'lms_uuid', 'wims_uuid')
+    list_display = ('id', 'wims', 'lms_uuid', 'qclass')
 
 
 
 @admin.register(models.WimsUser)
 class WIMSUserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'lms', 'lms_uuid', 'wclass', 'quser')
+    list_display = ('id', 'lms_uuid', 'wclass', 'quser')
+
+
+
+@admin.register(models.Activity)
+class ActivityAdmin(admin.ModelAdmin):
+    list_display = ('id', 'lms_uuid', 'wclass', 'qsheet')
+
+
+
+@admin.register(models.GradeLink)
+class GradeLinkAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'activity', 'sourcedid', 'url')
 
 
 

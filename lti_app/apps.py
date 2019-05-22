@@ -13,9 +13,8 @@ from django.conf import settings
 
 
 
-class WimsConfig(AppConfig):
-    name = 'wims'
-    verbose_name = "WIMS"
+class LtiAppConfig(AppConfig):
+    name = 'lti_app'
     
     
     def ready(self):
@@ -25,7 +24,7 @@ class WimsConfig(AppConfig):
                 "see https://docs.djangoproject.com/fr/2.2/ref/settings/#server-email",
                 Warning
             )
-            
+        
         if settings.EMAIL_HOST == "localhost":
             warnings.warn(
                 "Settings 'EMAIL_HOST' has not been redefined in config.py, "

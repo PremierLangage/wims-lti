@@ -1,0 +1,35 @@
+{% extends 'lti_app/base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb p-1">
+            <li class="breadcrumb-item active"><i class="fas fa-home"></i></li>
+        </ol>
+    </nav>
+    {% if LMS %}
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in LMS %}
+                    <tr>
+                        <td data-href="{% url 'lti:wims' item.pk %}">{{ item.pk }}</td>
+                        <td data-href="{% url 'lti:wims' item.pk %}">{{ item.name }}</td>
+                        <td><code>{{ item.url }}</code></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            No LMS has been added to this server.
+        </div>
+    {% endif %}
+{% endblock %}

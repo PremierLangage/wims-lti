@@ -3,8 +3,8 @@ import datetime
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from wims.exceptions import BadRequestException
-from wims.validator import CustomParameterValidator, ModelsValidator, validate
+from lti_app.exceptions import BadRequestException
+from lti_app.validator import CustomParameterValidator, ModelsValidator, validate
 
 
 

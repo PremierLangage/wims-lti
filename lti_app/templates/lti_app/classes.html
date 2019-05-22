@@ -1,0 +1,85 @@
+{% extends 'lti_app/base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb p-1">
+            <li class="breadcrumb-item"><a href="{% url 'lti:lms' %}">
+                <i class="fas fa-home"></i>
+            </a></li>
+            <li class="breadcrumb-item"><a href="{% url 'lti:wims' LMS.pk %}">{{ LMS.name }}</a>
+            </li>
+            <li class="breadcrumb-item active">{{ WIMS.name }}</li>
+        </ol>
+    </nav>
+    {% if classes %}
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">ID LMS</th>
+                    <th scope="col">ID WIMS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in classes %}
+                    <tr data-toggle="modal" data-target="modal{{ item.pk }}"
+                        data-id="{{ item.pk }}">
+                        <td>{{ item.pk }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.lms_uuid }}</td>
+                        <td>{{ item.qclass }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            No class has been created through LTI on this WIMS server.
+        </div>
+    {% endif %}
+
+    {% for item in classes %}
+        <div id="modal{{ item.pk }}" class="modal fade bd-example-modal-md" tabindex="-1"
+             role="dialog" aria-labelledby="modal{{ item.pk }}" aria-hidden="true">
+            <div class="modal-dialog modal-md">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Class' password</h4>
+                    </div>
+                    <div class="modal-body">
+                        Enter the password of the class.
+                        <form class="form-inline"
+                              action="{% url 'lti:sheets' LMS.pk WIMS.pk item.pk %}"
+                              method="POST">
+                            <label class="sr-only" for="formPassword{{ item.pk }}">
+                                <i class="fas fa-key"></i>
+                            </label>
+                            <input type="password" class="form-control mb-2 mr-sm-2" name="password"
+                                   id="formPassword{{ item.pk }}" placeholder="password" autofocus/>
+                            <button type="submit" class="btn btn-primary mb-2">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
+
+{% block end_script %}
+    <script>
+        $('tr[data-toggle]').on("click", function () {
+            $('#' + $(this).data('target') + "").modal('show');
+        });
+
+        {% for item in classes %}
+            $('#modal{{ item.pk }}').on('shown.bs.modal', function () {
+                $('#formPassword{{ item.pk }}').focus();
+            });
+        {% endfor %}
+    </script>
+{% endblock %}

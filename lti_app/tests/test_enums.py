@@ -2,7 +2,7 @@ from unittest import mock
 
 from django.test import TestCase
 
-from wims.enums import Role
+from lti_app.enums import Role
 
 
 
@@ -47,13 +47,13 @@ class RoleTestCase(TestCase):
                                              "Alumni "))
     
     
-    @mock.patch("wims.enums.logger")
+    @mock.patch("lti_app.enums.logger")
     def test_parse_role_unkown_one(self, logger):
         self.assertEqual([], Role.parse_role_lti("Unknown"))
         logger.warning.assert_called_with("Received unknown LTI role: 'Unknown'")
     
     
-    @mock.patch("wims.enums.logger")
+    @mock.patch("lti_app.enums.logger")
     def test_parse_role_unkown_multiple(self, logger):
         self.assertEqual([Role.STUDENT, Role.ALUMNI],
                          Role.parse_role_lti("Student, Unknown1, Unknown2, Alumni"))
