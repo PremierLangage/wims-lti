@@ -21,7 +21,9 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
-from wims.enums import Role
+from django.contrib.messages import constants as messages
+
+from lti_app.enums import Role
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -33,8 +35,6 @@ SECRET_KEY = '-qj!o^8$@!&7))^77^z8(-5rp*5x=7q(736)05x$h(inkfm^1#'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'django.contrib.messages',
-    'wims',
+    'lti_app',
 ]
 
 MIDDLEWARE = [
@@ -117,7 +117,7 @@ LOGGING = {
             'formatter': 'simple'
         },
         'mail_admins': {
-            'level':        'ERROR',
+            'level':        'WARNING',
             'class':        'django.utils.log.AdminEmailHandler',
             'include_html': True,
             'formatter':    'verbose'
@@ -148,7 +148,6 @@ LTI_MANDATORY = [
     'oauth_nonce',
     'oauth_signature',
 ]
-
 WIMSLTI_MANDATORY = [
     'context_id',
     'context_title',
@@ -162,9 +161,12 @@ WIMSLTI_MANDATORY = [
     'roles',
 ]
 
-# LTI Credentials
-LTI_OAUTH_CREDENTIALS = {
-    'wimslti': 'password',
+MESSAGE_TAGS = {
+    messages.DEBUG:   'alert-info',
+    messages.INFO:    'alert-info',
+    messages.SUCCESS: 'alert-success',
+    messages.WARNING: 'alert-warning',
+    messages.ERROR:   'alert-danger',
 }
 
 # List of Roles that are allowed to create new classes on the WIMS servers
@@ -177,7 +179,7 @@ ROLES_ALLOWED_CREATE_WIMS_CLASS = [
 ]
 
 # Static files
-STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'staticfiles'))
+STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'static'))
 STATIC_URL = '/static/'
 
 # Directory containing mail's title and body

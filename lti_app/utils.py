@@ -19,11 +19,12 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from lti.contrib.django import DjangoToolProvider
+from wimsapi import Sheet
 
-from wims.enums import Role
-from wims.exceptions import BadRequestException
-from wims.models import WimsClass, WimsUser
-from wims.validator import CustomParameterValidator, RequestValidator, validate
+from lti_app.enums import Role
+from lti_app.exceptions import BadRequestException
+from lti_app.models import Activity, WimsClass, WimsUser
+from lti_app.validator import CustomParameterValidator, RequestValidator, validate
 
 
 logger = logging.getLogger(__name__)
@@ -32,27 +33,15 @@ logger = logging.getLogger(__name__)
 
 def is_valid_request(request):
     """Check whether the request is valid and is accepted by oauth2.
-    
+
     Raises:
-        - wims.exceptions.BadRequestException if the request is invalid.
+        - api.exceptions.BadRequestException if the request is invalid.
         - django.core.exceptions.PermissionDenied if signature check failed."""
     parameters = parse_parameters(request.POST)
     
     if parameters['lti_message_type'] != 'basic-lti-launch-request':
         raise BadRequestException("LTI request is invalid, parameter 'lti_message_type' "
                                   "must be equal to 'basic-lti-launch-request'")
-    
-    if not settings.LTI_OAUTH_CREDENTIALS:
-        logger.error("LTI Authentification aborted: "
-                     "Missing LTI_OAUTH_CREDENTIALS in settings")
-        raise BadRequestException("Missing LTI_OAUTH_CREDENTIALS in settings.")
-    
-    request_key = parameters['oauth_consumer_key']
-    secret = settings.LTI_OAUTH_CREDENTIALS.get(request_key)
-    if secret is None:
-        logger.info(
-            "LTI Authentification aborted: Could not get a secret for key '%s'" % request_key)
-        raise BadRequestException("Could not get a secret for key '%s'" % request_key)
     
     try:
         tool_provider = DjangoToolProvider.from_django_request(request=request)
@@ -62,8 +51,8 @@ def is_valid_request(request):
         request_is_valid = False
     
     if not request_is_valid:
-        logger.info("LTI Authentification aborted: signature check failed with parameters : %s",
-                    parameters)
+        logger.debug("LTI Authentification aborted: signature check failed with parameters : %s",
+                     parameters)
         raise PermissionDenied("Invalid request: signature check failed.")
 
 
@@ -71,8 +60,8 @@ def is_valid_request(request):
 def check_parameters(param):
     """Check that mandatory parameters are present (either by LTI
     specification or required by this app)
-    
-    Raises wims.exceptions.BadRequestException if this is not the case."""
+
+    Raises api.exceptions.BadRequestException if this is not the case."""
     
     if not all([param[i] is not None for i in settings.LTI_MANDATORY]):
         missing = [i for i in settings.LTI_MANDATORY if param[i] is None]
@@ -88,8 +77,8 @@ def check_parameters(param):
 
 def check_custom_parameters(params):
     """Checks that custom parameters, if given, are properly formatted.
-    
-    Raises wims.exceptions.BadRequestException if this is not the case."""
+
+    Raises api.exceptions.BadRequestException if this is not the case."""
     validate(
         CustomParameterValidator.email_validator, params['custom_class_email'],
         "Invalid parameter 'custom_class_email' (%s): invalid email" % params['custom_class_email']
@@ -118,25 +107,11 @@ def check_custom_parameters(params):
 
 
 
-def lti_request_is_valid(request):
-    """Check that the LTI request is valid.
-    Raises :
-        - wims.exceptions.BadRequestException if LTI request is invalid.
-        - PermissioNDenied if signature check failed.
-    """
-    parameters = parse_parameters(request.POST)
-    logger.info("Request received from '%s'" % request.META.get('HTTP_REFERER', "Unknown"))
-    check_parameters(parameters)
-    check_custom_parameters(parameters)
-    is_valid_request(request)
-
-
-
 def parse_parameters(p):
     """Returns the a dictionnary of the LTI request parameters,
     replacing missing parameters with None.
-    
-    Raises wims.exceptions.BadRequestException if one of the parameters
+
+    Raises api.exceptions.BadRequestException if one of the parameters
     starts with 'custom_custom'."""
     
     custom_custom = [key for key in p if key.startswith("custom_custom")]
@@ -204,7 +179,6 @@ def parse_parameters(p):
         'custom_class_limit':                     p.get('custom_class_limit'),
         'custom_class_level':                     p.get('custom_class_level'),
         'custom_class_css':                       p.get('custom_class_css'),
-        'custom_clone_class':                     p.get('custom_clone_class'),
         'custom_supervisor_lastname':             p.get('custom_supervisor_lastname'),
         'custom_supervisor_firstname':            p.get('custom_supervisor_firstname'),
     }
@@ -226,40 +200,8 @@ def create_supervisor(params):
 
 
 
-def copy_class(wclass_db, params):
-    """Copy a wims' class with the given LTI request's parameters and wclass_db."""
-    wapi = wimsapi.WimsAPI(wclass_db.url, wclass_db.ident, wclass_db.passwd)
-    bol, response = wapi.copyclass(params["custom_clone_class"], wclass_db.rclass)
-    if not bol:  # pragma: no cover
-        raise wimsapi.AdmRawError(response['message'])
-    
-    wclass = wimsapi.Class.get(wclass_db.url, wclass_db.ident, wclass_db.passwd,
-                               response['new_class'], wclass_db.rclass)
-    wclass_dic = {
-        "name":        params["custom_class_name"],
-        "institution": params["custom_class_institution"],
-        "email":       params["custom_class_email"],
-        "lang":        params["custom_class_lang"],
-        "expiration":  params["custom_class_expiration"],
-        "limit":       params["custom_class_limit"],
-        "level":       params["custom_class_level"],
-        "css":         params["custom_class_css"],
-        "password":    ''.join(random.choice(ascii_letters + digits) for _ in range(10)),
-        "supervisor":  create_supervisor(params),
-        "rclass":      wclass_db.rclass,
-    }
-    for k, v in wclass_dic.items():
-        if v is None or k == "css":  # pragma: no cover
-            continue
-        setattr(wclass, k, v)
-    return wclass
-
-
-
 def create_class(wclass_db, params):
     """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
-    if params["custom_clone_class"] is not None:
-        return copy_class(wclass_db, params)
     
     wclass_dic = {
         "name":        params["custom_class_name"] or params["context_title"],
@@ -313,23 +255,22 @@ def generate_mail(wclass):
 
 
 
-def get_or_create_class(lms, wims_srv, api, parameters):
+def get_or_create_class(lms, wims_srv, wims, parameters):
     """Get the WIMS' class database and wimsapi.Class instances, create them if they does not
     exists.
-    
+
     Raises:
         - exceptions.PermissionDenied if the class does not exists and none of the roles in
-        the LTI
-              request's parameters is in ROLES_ALLOWED_CREATE_WIMS_CLASS.
-        - wimsapi.AdmRawError if the WIMS' server denied a request or could not be joined.
-    
+            the LTI request's parameters is in ROLES_ALLOWED_CREATE_WIMS_CLASS.
+        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - requests.RequestException if the WIMS server could not be joined.
+
     Returns a tuple (wclass_db, wclass) where wclas_db is an instance of models.WimsClass and
-    wclass
-    an instance of wimsapi.Class."""
+    wclass an instance of wimsapi.Class."""
     try:
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
                                           lms_uuid=parameters['context_id'])
-        wclass = wimsapi.Class.get(api.url, api.ident, api.passwd, wclass_db.wims_uuid,
+        wclass = wimsapi.Class.get(wims.url, wims.ident, wims.passwd, wclass_db.qclass,
                                    wims_srv.rclass)
     
     except WimsClass.DoesNotExist:
@@ -343,7 +284,7 @@ def get_or_create_class(lms, wims_srv, api, parameters):
             raise PermissionDenied(msg)
         
         wclass = create_class(wims_srv, parameters)
-        wclass.save(api.url, api.ident, api.passwd)
+        wclass.save(wims.url, wims.ident, wims.passwd)
         
         try:
             title, body = generate_mail(wclass)
@@ -356,16 +297,17 @@ def get_or_create_class(lms, wims_srv, api, parameters):
             )
         except Exception:
             import traceback
+            
             traceback.print_exc()
             logger.exception("An exception occurred while sending email:")
         
         wclass_db = WimsClass.objects.create(
             lms=lms, lms_uuid=parameters["context_id"],
-            wims=wims_srv, wims_uuid=wclass.qclass
+            wims=wims_srv, qclass=wclass.qclass, name="test1"
         )
         logger.info("New class created (id : %d - wims id : %s - lms id : %s)"
                     % (wclass_db.id, str(wclass.qclass), str(wclass_db.lms_uuid)))
-        WimsUser.objects.create(lms=lms, wclass=wclass_db, quser="supervisor")
+        WimsUser.objects.create(wclass=wclass_db, quser="supervisor")
         logger.info("New user created (wims id : supervisor - lms id : None) in class %d"
                     % wclass_db.id)
     
@@ -386,25 +328,25 @@ def create_user(parameters):
 
 
 
-def get_or_create_user(lms, wclass_db, wclass, parameters):
+def get_or_create_user(wclass_db, wclass, parameters):
     """Get the WIMS' user database and wimsapi.User instances, create them if they does not
     exists.
-    
+
     If at least one of the roles in the LTI request's parameters is in
     ROLES_ALLOWED_CREATE_WIMS_CLASS, the user will be connected as supervisor.
-    
+
     Raises:
-        - wimsapi.AdmRawError if the WIMS' server denied a request or could not be joined.
+        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - requests.RequestException if the WIMS server could not be joined.
 
     Returns a tuple (user_db, user) where user_db is an instance of models.WimsUser and
     user an instance of wimsapi.User."""
     try:
         role = Role.parse_role_lti(parameters["roles"])
         if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
-            user_db = WimsUser.objects.get(lms=lms, lms_uuid=None, wclass=wclass_db)
+            user_db = WimsUser.objects.get(lms_uuid=None, wclass=wclass_db)
         else:
-            user_db = WimsUser.objects.get(lms=lms, lms_uuid=parameters['user_id'],
-                                           wclass=wclass_db)
+            user_db = WimsUser.objects.get(lms_uuid=parameters['user_id'], wclass=wclass_db)
         user = wimsapi.User.get(wclass, user_db.quser)
     except WimsUser.DoesNotExist:
         user = create_user(parameters)
@@ -415,7 +357,7 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
                 wclass.additem(user)
                 break
             except wimsapi.AdmRawError as e:
-                # Raised if an user with an user with the same quser already exists,
+                # Raised if an user with the same quser already exists,
                 # in this case, keep trying by appending integer to quser (jdoe, jdoe1,
                 # jdoe2, ...), stopping after 100 tries.
                 
@@ -430,10 +372,36 @@ def get_or_create_user(lms, wclass_db, wclass, parameters):
                 user.quser += str(i)
         
         user_db = WimsUser.objects.create(
-            lms=lms, lms_uuid=parameters["user_id"],
-            wclass=wclass_db, quser=user.quser
+            lms_uuid=parameters["user_id"], wclass=wclass_db, quser=user.quser
         )
-        logger.info("New user created (wims id : %s - lms id : %s) in class %d"
+        logger.info("New user created (wims id: %s - lms id : %s) in class %d"
                     % (user.quser, str(user_db.lms_uuid), wclass_db.id))
     
     return user_db, user
+
+
+
+def get_sheet(wclass_db, wclass, qsheet, parameters):
+    """Get the WIMS' activity database and wimsapi.Sheet instances, create them if they does not
+    exists.
+
+    Raises:
+        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - requests.RequestException if the WIMS server could not be joined.
+
+    Returns a tuple (activity_db, sheet) where activity_db is an instance of models.Activity and
+    sheet an instance of wimsapi.Sheet."""
+    
+    sheet = wclass.getitem(qsheet, Sheet)
+    try:
+        activity = Activity.objects.get(wclass=wclass_db, qsheet=str(qsheet),
+                                        lms_uuid=parameters["resource_link_id"])
+    except Activity.DoesNotExist:
+        activity = Activity.objects.create(
+            lms_uuid=parameters["resource_link_id"],
+            wclass=wclass_db, qsheet=str(qsheet)
+        )
+        logger.info("New sheet created (wims id: %s - lms id : %s) in class %d"
+                    % (str(qsheet), str(activity.lms_uuid), wclass_db.id))
+    
+    return activity, sheet
