@@ -55,7 +55,10 @@ the link of the WIMS server they want to create a class on.
 If they want to create a link to a worksheet (to send the grade back to the LMS),
 they'll have to select the corresponding class, provide its password (sent
 by email at the class' creation) and copy the URL corresponding to the worksheet
-they want?
+they want to the corresponding LMS course.
+
+For every student who clicked on the worksheet link, the grade will be sent to the LMS every
+time a teacher click on the link.
 
 
 ## Custom LTI Parameters:
