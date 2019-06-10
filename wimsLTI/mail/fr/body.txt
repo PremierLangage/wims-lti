@@ -1,7 +1,8 @@
 Bonjour,
 
 
-Vous avez créé la classe {name} d'ID {qclass} sur WIMS en utilisant WIMS LTI.
+Vous avez créé la classe {name} d'ID {qclass} sur le serveur WIMS {wims_url}
+depuis le LMS {lms_url}.
 
 Le mot de passe de la classe est : {class_password}
 Le mot de passe du superviseur est : {supervisor_password}
