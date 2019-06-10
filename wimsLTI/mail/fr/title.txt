@@ -1,1 +1,1 @@
-Identifiants de connection WIMS
+Identifiants WIMS pour la classe {name} ({qclass})

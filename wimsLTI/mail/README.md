@@ -32,4 +32,8 @@ putting them between curly bracket : `{field}`. Available fields are :
 * `expiration` - Expiration date of the class in the format `yymmdd`.
 * `limit` - Maximum number of student in the class.
 * `level` - Level of the class (E1, E2, ..., E6, H1, ..., H6, U1, ..., U5, G, R).
-
+* `lms_url` - URL of the LMS the LTI request has been sent from
+* `wims_url` - URL of the WIMS server targeted by the LTI request
+When creating a new class, **WIMS-LTI** will send a mail using the language found
+in the LTI request. If there is no subdirectory for a given language, `en/` will
+be used.
