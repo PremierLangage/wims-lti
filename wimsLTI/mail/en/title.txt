@@ -1,1 +1,1 @@
-WIMS credentials
+WIMS credentials for class {name} ({qclass})

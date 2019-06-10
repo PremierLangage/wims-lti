@@ -1,6 +1,8 @@
 Hello,
 
-You created the class {name} of id {qclass} on WIMS, using WIMS LTI.
+You created the class {name} of id {qclass} on the WIMS server {wims_url},
+from the LMS {lms_url}.
+
 The class' password is : {class_password}
 the supervisor's password is : {supervisor_password}
 
