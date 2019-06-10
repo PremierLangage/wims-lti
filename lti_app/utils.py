@@ -223,7 +223,7 @@ def create_class(wclass_db, params):
 
 
 
-def generate_mail(wclass):
+def generate_mail(wclass_db, wclass):
     """Returns the title and the body of the credentials mail corresponding to
     the language of the class."""
     
@@ -237,6 +237,8 @@ def generate_mail(wclass):
         "expiration":          wclass.lang,
         "limit":               wclass.limit,
         "level":               wclass.level,
+        'lms_url': wclass_db.lms.url,
+        'wims_url': wclass_db.wims.url,
     }
     
     root = os.path.join(settings.MAIL_ROOT, wclass.lang)
@@ -270,8 +272,18 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
     try:
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
                                           lms_uuid=parameters['context_id'])
-        wclass = wimsapi.Class.get(wims.url, wims.ident, wims.passwd, wclass_db.qclass,
-                                   wims_srv.rclass)
+        
+        try:
+            wclass = wimsapi.Class.get(wims.url, wims.ident, wims.passwd, wclass_db.qclass,
+                                       wims_srv.rclass)
+        except wimsapi.AdmRawError as e:
+            if "not existing" in str(e):  # Class was deleted on the WIMS server
+                logger.info(("Deleting class (id : %d - wims id : %s - lms id : %s) as it was"
+                             "deleted from the WIMS server.")
+                            % (wclass_db.id, str(wclass_db.qclass), str(wclass_db.lms_uuid)))
+                wclass_db.delete()
+                raise WimsClass.DoesNotExist
+            raise  # Unknown error (pragma: no cover)
     
     except WimsClass.DoesNotExist:
         role = Role.parse_role_lti(parameters["roles"])
@@ -285,22 +297,6 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
         
         wclass = create_class(wims_srv, parameters)
         wclass.save(wims.url, wims.ident, wims.passwd)
-        
-        try:
-            title, body = generate_mail(wclass)
-            send_mail(
-                title,
-                body,
-                settings.SERVER_EMAIL,
-                [wclass.supervisor.email],
-                fail_silently=False,
-            )
-        except Exception:
-            import traceback
-            
-            traceback.print_exc()
-            logger.exception("An exception occurred while sending email:")
-        
         wclass_db = WimsClass.objects.create(
             lms=lms, lms_uuid=parameters["context_id"],
             wims=wims_srv, qclass=wclass.qclass, name="test1"
@@ -310,6 +306,21 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
         WimsUser.objects.create(wclass=wclass_db, quser="supervisor")
         logger.info("New user created (wims id : supervisor - lms id : None) in class %d"
                     % wclass_db.id)
+
+        try:
+            title, body = generate_mail(wclass_db, wclass)
+            send_mail(
+                title,
+                body,
+                settings.SERVER_EMAIL,
+                [wclass.supervisor.email],
+                fail_silently=False,
+            )
+        except Exception:
+            import traceback
+    
+            traceback.print_exc()
+            logger.exception("An exception occurred while sending email:")
     
     return wclass_db, wclass
 

@@ -5,6 +5,7 @@ src/
 */migrations/*
 !*/migrations/__init__.py
 staticfiles
+static/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

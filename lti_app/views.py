@@ -144,9 +144,26 @@ def wims_activity(request, wims_pk, activity_pk):
         # Get the class
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
                                           lms_uuid=parameters['context_id'])
-        wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd, wclass_db.qclass,
-                                   wims_srv.rclass)
         
+        try:
+            wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
+                                       wclass_db.qclass, wims_srv.rclass)
+        except wimsapi.AdmRawError as e:
+            if "not existing" in str(e):  # Class was deleted on the WIMS server
+                qclass = wclass_db.qclass
+                logger.info(("Deleting class (id : %d - wims id : %s - lms id : %s) as it was"
+                            "deleted from the WIMS server")
+                            % (wclass_db.id, str(wclass_db.qclass), str(wclass_db.lms_uuid)))
+                wclass_db.delete()
+                return HttpResponseNotFound(
+                    ("Class of ID %s could not be found on the WIMS server. Maybe it has been "
+                     "deleted from the WIMS server. Use this LTI link on your LMS to create a new "
+                     "WIMS class: %s")
+                    % (qclass,
+                       request.build_absolute_uri(reverse("lti:wims_class", args=[wims_pk])))
+                )
+            raise   # Unknown error (pragma: no cover)
+    
         # Check whether the user already exists, creating it otherwise
         user_db, user = get_or_create_user(wclass_db, wclass, parameters)
         

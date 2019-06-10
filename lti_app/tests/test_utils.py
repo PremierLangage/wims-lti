@@ -590,6 +590,58 @@ class GetOrCreateClassTestCase(TestCase):
         wclass1.delete()
     
     
+    def test_get_or_create_class_get_deleted_from_wims(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            'X',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'X',
+            'lis_person_name_given':              'X',
+            'tool_consumer_instance_description': 'UPEM',
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              settings.ROLES_ALLOWED_CREATE_WIMS_CLASS[0].value,
+        }
+        params = parse_parameters(params)
+        
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
+                                   name="WIMS UPEM",
+                                   ident="X", passwd="X", rclass="myclass")
+        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM", key="provider1", secret="secret1")
+        wclass_db1 = WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims,
+                                              qclass="60001", name="test1")
+        supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
+        
+        wclass1 = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
+                        supervisor, lang="fr", qclass=wclass_db1.qclass)
+        wclass1.save(WIMS_URL, "myself", "toto")
+        api = WimsAPI(WIMS_URL, "myself", "toto")
+        wclass1.delete()
+        
+        wclass_db2, wclass2 = utils.get_or_create_class(lms, wims, api, params)
+        
+        self.assertEqual(wclass_db1.lms_uuid, wclass_db2.lms_uuid)
+        self.assertEqual(wclass_db1.wims, wclass_db2.wims)
+        self.assertNotEqual(wclass_db1.qclass, wclass_db2.qclass)
+        
+        self.assertEqual(wclass1.email, wclass2.email)
+        self.assertEqual(wclass1.name, wclass2.name)
+        self.assertEqual(wclass1.institution, wclass2.institution)
+        self.assertEqual(wclass1.lang, wclass2.lang)
+        self.assertNotEqual(wclass1.qclass, wclass2.qclass)
+        self.assertEqual(wclass1.supervisor.email, wclass2.supervisor.email)
+        
+        wclass2.delete()
+    
+    
     def test_get_or_create_class_create_mail(self):
         params = {
             'lti_message_type':                   'basic-lti-launch-request',
