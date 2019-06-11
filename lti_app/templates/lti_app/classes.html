@@ -13,11 +13,24 @@
             <li class="breadcrumb-item active">{{ WIMS.name }}</li>
         </ol>
     </nav>
+    
+    <table class="table table-striped">
+        <tbody>
+            <tr>
+                <td data-href="{% url 'lti:classes' LMS.pk WIMS.pk %}">{{ WIMS.name }}</td>
+                <td><code>{{ WIMS.url }}</code></td>
+                <td>
+                    <code>{{ request.scheme }}://{{ request.get_host }}{% url 'lti:wims_class' WIMS.pk %}</code>
+                </td>
+            </tr>        
+        </tbody>
+    </table> 
+                                                  
     {% if classes %}
         <table class="table table-striped">
             <thead class="thead-dark">
                 <tr>
-                    <th scope="col">#</th>
+                    <th scope="col">Activité</th>
                     <th scope="col">Name</th>
                     <th scope="col">ID LMS</th>
                     <th scope="col">ID WIMS</th>
