@@ -299,7 +299,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
         wclass.save(wims.url, wims.ident, wims.passwd)
         wclass_db = WimsClass.objects.create(
             lms=lms, lms_uuid=parameters["context_id"],
-            wims=wims_srv, qclass=wclass.qclass, name="test1"
+            wims=wims_srv, qclass=wclass.qclass, name=wclass.name
         )
         logger.info("New class created (id : %d - wims id : %s - lms id : %s)"
                     % (wclass_db.id, str(wclass.qclass), str(wclass_db.lms_uuid)))

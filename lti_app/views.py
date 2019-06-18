@@ -16,7 +16,7 @@ from django.http import (Http404, HttpResponse, HttpResponseBadRequest, HttpResp
                          HttpResponseNotFound)
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET
 
 from lti_app.enums import Role
 from lti_app.exceptions import BadRequestException
@@ -152,7 +152,7 @@ def wims_activity(request, wims_pk, activity_pk):
             if "not existing" in str(e):  # Class was deleted on the WIMS server
                 qclass = wclass_db.qclass
                 logger.info(("Deleting class (id : %d - wims id : %s - lms id : %s) as it was"
-                            "deleted from the WIMS server")
+                             "deleted from the WIMS server")
                             % (wclass_db.id, str(wclass_db.qclass), str(wclass_db.lms_uuid)))
                 wclass_db.delete()
                 return HttpResponseNotFound(
@@ -162,8 +162,8 @@ def wims_activity(request, wims_pk, activity_pk):
                     % (qclass,
                        request.build_absolute_uri(reverse("lti:wims_class", args=[wims_pk])))
                 )
-            raise   # Unknown error (pragma: no cover)
-    
+            raise  # Unknown error (pragma: no cover)
+        
         # Check whether the user already exists, creating it otherwise
         user_db, user = get_or_create_user(wclass_db, wclass, parameters)
         
@@ -235,25 +235,16 @@ def classes(request, lms_pk, wims_pk):
 
 
 
-@require_POST
+@require_GET
 def activities(request, lms_pk, wims_pk, wclass_pk):
     try:
         class_srv = WimsClass.objects.get(pk=wclass_pk)
     except WimsClass.DoesNotExist:
         return HttpResponseNotFound("WimsClass of ID %d Was not found on the server." % wclass_pk)
     
-    
-    passwd = request.POST.get("password", None)
-    if passwd is None:
-        return HttpResponseBadRequest("Missing parameter: 'password'")
-    
     try:
         wclass = wimsapi.Class.get(class_srv.wims.url, class_srv.wims.ident, class_srv.wims.passwd,
                                    class_srv.qclass, class_srv.wims.rclass)
-        if wclass.password != passwd:
-            messages.error(request, 'Invalid password')
-            return redirect('lti:classes', lms_pk=lms_pk, wims_pk=wims_pk)
-        
         sheets = wclass.listitem(wimsapi.Sheet)
         mode = ["pending", "active", "expired", "hidden"]
         for s in sheets:
