@@ -23,3 +23,10 @@ For more informations, see:
  - Django's settings | https://docs.djangoproject.com/en/2.1/ref/settings/
  - Deployment checklist | https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 """
+
+DEBUG = True
+SECRET_KEY = '123'
+ALLOWED_HOSTS = ["127.0.0.1", "pl-test3.u-pem.fr"]
+EMAIL_HOST = "smtp.u-pem.fr"
+EMAIL_PORT = 25
+SERVER_EMAIL = "no-reply@u-pem.fr"
