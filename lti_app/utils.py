@@ -317,9 +317,6 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
                 fail_silently=False,
             )
         except Exception:
-            import traceback
-    
-            traceback.print_exc()
             logger.exception("An exception occurred while sending email:")
     
     return wclass_db, wclass
@@ -405,8 +402,9 @@ def get_sheet(wclass_db, wclass, qsheet, parameters):
     
     sheet = wclass.getitem(qsheet, Sheet)
     try:
-        activity = Activity.objects.get(wclass=wclass_db, qsheet=str(qsheet),
-                                        lms_uuid=parameters["resource_link_id"])
+        activity = Activity.objects.get(wclass=wclass_db, qsheet=str(qsheet))
+        activity.lms_uuid = parameters["resource_link_id"]
+        activity.save()
     except Activity.DoesNotExist:
         activity = Activity.objects.create(
             lms_uuid=parameters["resource_link_id"],
