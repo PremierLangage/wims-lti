@@ -53,9 +53,9 @@ Teachers can go `[WIMS-LTI SERVEUR]/`, search for their LMS, and copy
 the link of the WIMS server they want to create a class on.
 
 If they want to create a link to a worksheet (to send the grade back to the LMS),
-they'll have to select the corresponding class, provide its password (sent
-by email at the class' creation) and copy the URL corresponding to the worksheet
-they want to the corresponding LMS course.
+they'll have to search for their LMS, search for the WIMS server the class is on,
+search for their class and copy the URL corresponding to the worksheet
+they want to link on the LMS.
 
 For every student who clicked on the worksheet link, the grade will be sent to the LMS every
 time a teacher click on the link.
@@ -86,4 +86,11 @@ I.E.:
 custom_class_lang=en
 custom_class_name=Best class in the world
 custom_class_email=address@email.com
+```
+
+For some LMS (*Moodle* for instance), `custom_` will be added automatically, so only the second part is necessary:
+```text
+class_lang=en
+class_name=Best class in the world
+class_email=address@email.com
 ```
