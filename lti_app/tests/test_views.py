@@ -365,7 +365,6 @@ class WimsActivityTestCase(TestCase):
         
         r = views.wims_activity(request, 1, 1)
         
-        print(r.content)
         self.assertContains(r, "could not be found", status_code=404)
         self.assertContains(r, "https://testserver/lti/1/", status_code=404)
     
@@ -795,9 +794,8 @@ class ClassesTestCase(BaseLinksViewTestCase):
 class SheetTestCase(BaseLinksViewTestCase):
     
     def test_sheets(self):
-        response = self.client.post(
+        response = self.client.get(
             reverse("lti:sheets", args=[self.lms3.pk, self.wims2.pk, self.class2.pk]),
-            {"password": PASSWORD}
         )
         self.assertContains(response, 'Sheet1')
         self.assertContains(response, 'Sheet2')
@@ -810,26 +808,7 @@ class SheetTestCase(BaseLinksViewTestCase):
     
     
     def test_sheets_class_404(self):
-        response = self.client.post(
+        response = self.client.get(
             reverse("lti:sheets", args=[self.lms3.pk, self.wims2.pk, 99999]),
         )
         self.assertEqual(404, response.status_code)
-    
-    
-    def test_sheets_missing_password(self):
-        response = self.client.post(
-            reverse("lti:sheets", args=[self.lms3.pk, self.wims2.pk, self.class2.pk]),
-        )
-        self.assertEqual(400, response.status_code)
-    
-    
-    def test_sheets_invalid_password(self):
-        response = self.client.post(
-            reverse("lti:sheets", args=[self.lms3.pk, self.wims2.pk, self.class2.pk]),
-            {"password": "wrong"},
-            follow=True
-        )
-        
-        self.assertTemplateUsed(response, 'lti_app/base.html')
-        self.assertTemplateUsed(response, 'lti_app/classes.html')
-        self.assertContains(response, "Invalid password")
