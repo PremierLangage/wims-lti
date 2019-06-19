@@ -196,6 +196,6 @@ class GradeLink(models.Model):
             try:
                 gl = cls.objects.get(user=user, activity=activity)
             except cls.DoesNotExist:
-            	continue
+                continue
             grade = sum(infos['got_detail']) / len(infos['got_detail']) / 10
             gl.send_back(grade)
