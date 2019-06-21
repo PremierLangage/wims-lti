@@ -36,14 +36,15 @@ def wims_class(request, wims_pk):
 
     Raises:
         - Http404 if no LMS corresponding to request.POST["tool_consumer_instance_guid"]
-                  has been found in the database.
+            has been found in the database.
         - PermissionDenied if the class corresponding to request.POST['context_id'] does not exists
-                           and roles in request.POST['context_id'] are not one of
-                           settings.ROLES_ALLOWED_CREATE_WIMS_CLASS.
+            and roles in request.POST['context_id'] are not one of
+            settings.ROLES_ALLOWED_CREATE_WIMS_CLASS.
 
     Returns:
         - HttpResponseRedirect redirecting the user to WIMS, logged in his WIMS' class.
-        - HttpResponse(status=502) if an error occured while communicating with the WIMS server."""
+        - HttpResponse(status=502) if an error occured while communicating with the WIMS server.
+        - HttpResponse(status=504) if the WIMS server could not be joined."""
     if request.method == "GET":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
                                                 "trailing '/' ?")
@@ -105,6 +106,21 @@ def wims_class(request, wims_pk):
 
 
 def wims_activity(request, wims_pk, activity_pk):
+    """Redirect the client to the WIMS server corresponding to <pk>.
+
+        Will retrieve/create the right WIMS' class/user according to informations in request.POST.
+
+        Raises:
+            - Http404 if no LMS corresponding to request.POST["tool_consumer_instance_guid"]
+                has been found in the database.
+            - PermissionDenied if the class corresponding to request.POST['context_id'] does not
+                exists and roles in request.POST['context_id'] are not one of
+                settings.ROLES_ALLOWED_CREATE_WIMS_CLASS.
+
+        Returns:
+            - HttpResponseRedirect redirecting the user to WIMS, logged in his WIMS' class.
+            - HttpResponse(status=502) if an error occured while communicating with the WIMS.
+            - HttpResponse(status=504) if the WIMS server could not be joined."""
     if request.method == "GET":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
                                                 "trailing '/' ?")
@@ -210,6 +226,7 @@ def wims_activity(request, wims_pk, activity_pk):
 
 @require_GET
 def lms(request):
+    """Display the list of available LMS."""
     return render(request, "lti_app/lms.html", {
         "LMS": LMS.objects.all(),
     })
@@ -218,6 +235,7 @@ def lms(request):
 
 @require_GET
 def wims(request, lms_pk):
+    """Display the list of available WIMS server that authorized <lms_pk>."""
     return render(request, "lti_app/wims.html", {
         "LMS":  LMS.objects.get(pk=lms_pk),
         "WIMS": WIMS.objects.filter(allowed_lms__pk=lms_pk),
@@ -227,6 +245,7 @@ def wims(request, lms_pk):
 
 @require_GET
 def classes(request, lms_pk, wims_pk):
+    """Display the list the WIMS classes on the <wims_pk> server."""
     return render(request, "lti_app/classes.html", {
         "LMS":     LMS.objects.get(pk=lms_pk),
         "WIMS":    WIMS.objects.get(pk=wims_pk),
@@ -237,6 +256,7 @@ def classes(request, lms_pk, wims_pk):
 
 @require_GET
 def activities(request, lms_pk, wims_pk, wclass_pk):
+    """Display the list of WIMS worksheet and exam in <wclass_pk> WIMS class."""
     try:
         class_srv = WimsClass.objects.get(pk=wclass_pk)
     except WimsClass.DoesNotExist:
