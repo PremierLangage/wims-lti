@@ -20,7 +20,7 @@ from django.views.decorators.http import require_GET
 
 from lti_app.enums import Role
 from lti_app.exceptions import BadRequestException
-from lti_app.models import GradeLink, LMS, WIMS, WimsClass
+from lti_app.models import GradeLink, LMS, WIMS, WimsClass, Activity
 from lti_app.utils import (check_custom_parameters, check_parameters, get_or_create_class,
                            get_or_create_user, get_sheet, is_valid_request, parse_parameters)
 
@@ -85,7 +85,42 @@ def wims_class(request, wims_pk):
         wclass_db, wclass = get_or_create_class(lms, wims_srv, wapi, parameters)
         
         # Check whether the user already exists, creating it otherwise
-        _, user = get_or_create_user(wclass_db, wclass, parameters)
+        user_db, user = get_or_create_user(wclass_db, wclass, parameters)
+        
+        # Creating a Fake activity to comply with GradeLink definition
+        try:
+            activity = Activity.objects.get(wclass=wclass_db, qsheet=None)
+            activity.lms_uuid = parameters["resource_link_id"]
+            activity.save()
+        except Activity.DoesNotExist:
+            activity = Activity.objects.create(
+                lms_uuid=parameters["resource_link_id"],
+                wclass=wclass_db, qsheet=None
+            )
+            logger.info("New fake sheet created (lms id : %s) in class %d"
+                        % (str(activity.lms_uuid), wclass_db.id))
+        
+        # Storing the URL and ID to send the grade back to the LMS
+        try:
+            modified = False
+            gl = GradeLink.objects.get(user=user_db, activity=activity)
+            if gl.sourcedid != parameters["lis_result_sourcedid"]:
+                modified = True
+                gl.sourcedid = parameters["lis_result_sourcedid"]
+            if gl.url != parameters["lis_outcome_service_url"]:
+                modified = True
+                gl.url = parameters["lis_outcome_service_url"]
+            if modified:
+                gl.save()
+        except GradeLink.DoesNotExist:
+            GradeLink.objects.create(user=user_db, activity=activity,
+                                     sourcedid=parameters["lis_result_sourcedid"],
+                                     url=parameters["lis_outcome_service_url"])
+
+        # If user is a teacher, send all grade back to the LMS
+        role = Role.parse_role_lti(parameters["roles"])
+        if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
+            GradeLink.send_back_all_global(wclass_db, activity)
         
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
@@ -185,11 +220,19 @@ def wims_activity(request, wims_pk, activity_pk):
         
         # Check whether the sheet already exists, creating it otherwise
         activity, sheet = get_sheet(wclass_db, wclass, activity_pk, parameters)
+
         # Storing the URL and ID to send the grade back to the LMS
         try:
+            modified = False
             gl = GradeLink.objects.get(user=user_db, activity=activity)
-            gl.sourcedid = parameters["lis_result_sourcedid"]
-            gl.save()
+            if gl.sourcedid != parameters["lis_result_sourcedid"]:
+                modified = True
+                gl.sourcedid = parameters["lis_result_sourcedid"]
+            if gl.url != parameters["lis_outcome_service_url"]:
+                modified = True
+                gl.url = parameters["lis_outcome_service_url"]
+            if modified:
+                gl.save()
         except GradeLink.DoesNotExist:
             GradeLink.objects.create(user=user_db, activity=activity,
                                      sourcedid=parameters["lis_result_sourcedid"],

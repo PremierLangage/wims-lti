@@ -136,8 +136,8 @@ class WimsUser(models.Model):
 class Activity(models.Model):
     """Represents a Sheet on the WIMS server."""
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256, default=None)
-    qsheet = models.CharField(max_length=256, default=None)
+    lms_uuid = models.CharField(max_length=256)
+    qsheet = models.CharField(max_length=256, null=True)
     
     
     class Meta:
@@ -150,8 +150,8 @@ class GradeLink(models.Model):
     """Store link to send grade back to the LMS."""
     user = models.ForeignKey(WimsUser, models.CASCADE)
     activity = models.ForeignKey(Activity, models.CASCADE)
-    sourcedid = models.CharField(max_length=256, default=None)
-    url = models.URLField(max_length=1023, default=None)
+    sourcedid = models.CharField(max_length=256)
+    url = models.URLField(max_length=1023)
     
     
     class Meta:
@@ -201,3 +201,8 @@ class GradeLink(models.Model):
                 continue
             grade = sum(infos['got_detail']) / len(infos['got_detail']) / 10
             gl.send_back(grade)
+
+
+    @classmethod
+    def send_back_all_global(cls, wclass, activity):
+        pass
