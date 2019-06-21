@@ -366,7 +366,7 @@ class WimsActivityTestCase(TestCase):
         r = views.wims_activity(request, 1, 1)
         
         self.assertContains(r, "could not be found", status_code=404)
-        self.assertContains(r, "https://testserver/lti/1/", status_code=404)
+        self.assertContains(r, "https://testserver/lti/C1/", status_code=404)
     
     
     def test_wims_class_invalid_method(self):
