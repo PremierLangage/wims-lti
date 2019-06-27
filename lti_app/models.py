@@ -79,7 +79,7 @@ class WIMS(models.Model):
         validators=[ModelsValidator.limit_validator],
     )
     expiration = models.DurationField(
-        verbose_name="Default expiration date", help_text=expiration_help,
+        verbose_name="Default duration", help_text=expiration_help,
         default=timedelta(days=365), validators=[ModelsValidator.expiration_validator],
     )
     ident = models.CharField(max_length=2048, help_text=wims_help, default=None)
