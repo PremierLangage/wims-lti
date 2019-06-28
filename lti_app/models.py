@@ -187,6 +187,8 @@ class GradeLink(models.Model):
         wapi = wimsapi.WimsAPI(wclass.wims.url, wclass.wims.ident, wclass.wims.passwd)
         bol, response = wapi.getsheetscores(wclass.qclass, wclass.wims.rclass, activity.qsheet)
         if not bol:
+            if "There is no user in this class" in response['message']:
+              return
             raise wimsapi.AdmRawError(response['message'])
         
         for infos in response['data_scores']:
