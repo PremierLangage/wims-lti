@@ -48,8 +48,6 @@ Here an example of such conf:
 ```text
 <VirtualHost *:443>
     ServerName wims-lti.u-pem.fr
-        
-    Use SSL
 
     Alias /static /path/to/wims-lti/static/
     <Directory /path/to/wims-lti/static/>
