@@ -108,7 +108,7 @@ class WimsClass(models.Model):
     
     class Meta:
         verbose_name_plural = "WimsClasses"
-        unique_together = (("lms", "lms_uuid"), ("wims", "qclass"),)
+        unique_together = (("lms", "lms_uuid", "wims"), ("wims", "qclass"),)
     
     
     def __str__(self):
