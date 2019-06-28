@@ -50,12 +50,16 @@ account login and password that you entered when you installed the server.
 ## LTI URL
 
 Teachers can go `[WIMS-LTI SERVEUR]/`, search for their LMS, and copy
-the link of the WIMS server they want to create a class on.
+the link of the WIMS server they want to create a class on :
+
+![wims_lti_url](images/wims_lti_url.gif)
 
 If they want to create a link to a worksheet (to send the grade back to the LMS),
 they'll have to search for their LMS, search for the WIMS server the class is on,
 search for their class and copy the URL corresponding to the worksheet
 they want to link on the LMS.
+
+Only activated worksheet will be displayed on WIMS-LTI.
 
 For every student who clicked on the worksheet link, the grade will be sent to the LMS every
 time a teacher click on the link.
