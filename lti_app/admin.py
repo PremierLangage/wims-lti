@@ -37,15 +37,21 @@ class WIMSUserAdmin(admin.ModelAdmin):
 
 
 
-@admin.register(models.Activity)
+@admin.register(models.WimsSheet)
 class ActivityAdmin(admin.ModelAdmin):
     list_display = ('id', 'lms_guid', 'wclass', 'qsheet')
 
 
 
-@admin.register(models.GradeLink)
-class GradeLinkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'activity', 'sourcedid', 'url')
+@admin.register(models.GradeLinkSheet)
+class GradeLinkSheetAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'sheet', 'sourcedid', 'url')
+
+
+
+@admin.register(models.GradeLinkExam)
+class GradeLinkSheetExam(admin.ModelAdmin):
+    list_display = ('id', 'user', 'exam', 'sourcedid', 'url')
 
 
 

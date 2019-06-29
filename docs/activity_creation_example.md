@@ -1,8 +1,8 @@
-# Example of LTI Activity Creation
+# Example of LTI WimsSheet Creation
 
 ## Moodle
 
-### Create an LTI Activity
+### Create an LTI WimsSheet
 
 The creation LTI activity on Moodle is pretty straightforward :
 
@@ -17,7 +17,7 @@ The creation LTI activity on Moodle is pretty straightforward :
 
 4. Fill the following fields in the form:
     
-    * `Activity name` : The name that will be displayed in your Moodle's course.
+    * `WimsSheet name` : The name that will be displayed in your Moodle's course.
     * `Tool URL` : The **LTI URL** your obtained on *WIMS-LTI*.
     * `Launch container`: *New window* (open in a new tab) or *Existing windown*.
     * `Consumer key`: The **key** defined when adding your LMS to *WIMS-LTI*.
@@ -30,7 +30,7 @@ The creation LTI activity on Moodle is pretty straightforward :
 ### Create a preconfigured tool
 
 A preconfigured tool allow to create an LTI activity faster by having to fill only
-the `Activity name` and `Tool URL` in the activity creation's form.
+the `WimsSheet name` and `Tool URL` in the activity creation's form.
 
 There is two kind of preconfigured tools: **Global tools** and **Course tools**, only
 the administrators of your Moodle can add **Global tools**, so you should

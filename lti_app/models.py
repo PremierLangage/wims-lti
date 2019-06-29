@@ -11,11 +11,11 @@ import os
 from datetime import timedelta
 
 import requests
-import wimsapi
 from defusedxml import ElementTree
 from django.core.validators import MinLengthValidator, URLValidator
 from django.db import models
 from oauthlib.oauth1.rfc5849 import Client
+from wimsapi import AdmRawError, Class, Exam, Sheet
 
 from lti_app.validator import ModelsValidator
 
@@ -125,29 +125,40 @@ class WimsUser(models.Model):
 
 
 
-class Activity(models.Model):
+class WimsSheet(models.Model):
     """Represents a Sheet on the WIMS server."""
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
     lms_guid = models.CharField(max_length=256, default=None)
     qsheet = models.CharField(max_length=256, null=True, default=None)
     
     class Meta:
-        verbose_name_plural = "Activities"
         unique_together = (("qsheet", "wclass"),)
 
 
 
-class GradeLink(models.Model):
-    """Store link to send grade back to the LMS."""
-    user = models.ForeignKey(WimsUser, models.CASCADE)
-    activity = models.ForeignKey(Activity, models.CASCADE)
-    sourcedid = models.CharField(max_length=256)
-    url = models.URLField(max_length=1023)
+class WimsExam(models.Model):
+    """Represents an Exam on the WIMS server."""
+    wclass = models.ForeignKey(WimsClass, models.CASCADE)
+    lms_guid = models.CharField(max_length=256, default=None)
+    qexam = models.CharField(max_length=256, null=True, default=None)
     
     class Meta:
-        unique_together = (("user", "activity"),)
+        unique_together = (("qexam", "wclass"),)
+
+
+
+class GradeLinkBase(models.Model):
+    """Store links to send grade back to the LMS."""
+    user = models.ForeignKey(WimsUser, models.CASCADE)
+    sourcedid = models.CharField(max_length=256)
+    url = models.URLField(max_length=1023)
+    lms = models.ForeignKey(LMS, models.CASCADE)
     
-    def send_back(self, grade):
+    class Meta:
+        abstract = True
+    
+    def send_back(self, grade, activity):
+        """Send the given grade back to the lms."""
         path = os.path.dirname(os.path.realpath(__file__))
         path = os.path.join(path, "../lti_app/ressources/replace.xml")
         with open(path) as f:
@@ -157,41 +168,89 @@ class GradeLink(models.Model):
             "Content-Type":   "application/xml",
             "Content-Length": str(len(content)),
         }
-        c = Client(client_key=self.activity.wclass.lms.key,
-                   client_secret=self.activity.wclass.lms.secret)
-        uri, headers, body = c.sign(self.url, "POST", body=content,
-                                    headers=headers)
+        c = Client(client_key=self.lms.key, client_secret=self.lms.secret)
+        uri, headers, body = c.sign(self.url, "POST", body=content, headers=headers)
         response = requests.post(uri, data=body, headers=headers)
-        
-        root = ElementTree.fromstring(response.text)
-        if not (200 <= response.status_code < 300 and root[0][0][2][0].text == "success"):
-            logger.warning(("Consumer sent an error response after sending grade for user '%s' and "
-                            "activity '%s' in class '%s': %s")
-                           % (self.user.quser, self.activity.qsheet, self.activity.wclass.qclass,
-                              root[0][0][2][2].text))
+
+        ident = activity.qsheet if isinstance(activity, WimsSheet) else activity.qexam
+        try:
+            root = ElementTree.fromstring(response.text)
+            test = 200 <= response.status_code < 300 and root[0][0][2][0].text == "success"
+            if not test:  # pragma: no cover
+                logger.warning(
+                    ("Consumer sent an error response after sending grade for user '%s' and "
+                     "sheet '%s' in class '%s': %s")
+                    % (self.user.quser, ident, activity.wclass.qclass, root[0][0][2][2].text)
+                )
+        except Exception:
+            logger.exception(
+                ("Consumer sent a badly formatted response after sending grade for user '%s' and "
+                 "sheet '%s' in class '%s': ")
+                % (self.user.quser, ident, activity.wclass.qclass)
+            )
+
+
+
+class GradeLinkSheet(GradeLinkBase):
+    """Store link of a Sheet."""
     
+    sheet = models.ForeignKey(WimsSheet, models.CASCADE)
+    
+    class Meta:
+        unique_together = (("user", "sheet"),)
     
     @classmethod
-    def send_back_all(cls, wclass, activity):
-        wapi = wimsapi.WimsAPI(wclass.wims.url, wclass.wims.ident, wclass.wims.passwd)
-        bol, response = wapi.getsheetscores(wclass.qclass, wclass.wims.rclass, activity.qsheet)
-        if not bol:
-            if "There is no user in this class" in response['message']:
+    def send_back_all(cls, wclass, sheet):
+        """Send the score of the sheet of every user back to the LMS. The score used
+        it the the one set by the teacher at the sheet creation for WIMS > 4.18, else
+        the cumul score."""
+        try:
+            wims = wclass.wims
+            grades = Class.get(
+                wims.url, wclass.wims.ident, wims.passwd, wclass.qclass, wims.rclass
+            ).getitem(sheet.qsheet, Sheet).scores()
+        except AdmRawError as e:
+            if "There is no user in this class" in str(e):
                 return
-            raise wimsapi.AdmRawError(response['message'])
+            raise  # pragma: no cover
         
-        for infos in response['data_scores']:
-            if not infos['got_detail']:
-                continue
-            user = WimsUser.objects.get(wclass=wclass, quser=infos['id'])
+        for grade in grades:
+            user = WimsUser.objects.get(wclass=wclass, quser=grade.user.quser)
             try:
-                gl = cls.objects.get(user=user, activity=activity)
-            except cls.DoesNotExist:
+                gl = GradeLinkSheet.objects.get(user=user, sheet=sheet)
+            except GradeLinkSheet.DoesNotExist:
                 continue
-            grade = sum(infos['got_detail']) / len(infos['got_detail']) / 10
-            gl.send_back(grade)
+            score = grade.score if grade.score != -1 else grade.best // 10
+            gl.send_back(score, gl.sheet)
+
+
+
+class GradeLinkExam(GradeLinkBase):
+    """Store link of a Sheet."""
     
+    exam = models.ForeignKey(WimsExam, models.CASCADE)
+    
+    class Meta:
+        unique_together = (("user", "exam"),)
     
     @classmethod
-    def send_back_all_global(cls, wclass, activity):
-        pass
+    def send_back_all(cls, wclass, exam):
+        """Send the score of the exam of every user back to the LMS."""
+        try:
+            wims = wclass.wims
+            grades = Class.get(
+                wims.url, wclass.wims.ident, wims.passwd, wclass.qclass, wims.rclass
+            ).getitem(exam.qexam, Exam).scores()
+        except AdmRawError as e:
+            if "There is no user in this class" in str(e):
+                return
+            raise
+        
+        for grade in grades:
+            user = WimsUser.objects.get(wclass=wclass, quser=grade.user.quser)
+            try:
+                gl = GradeLinkExam.objects.get(user=user, exam=exam)
+            except GradeLinkExam.DoesNotExist:
+                continue
+            score = grade.score
+            gl.send_back(score, gl.exam)
