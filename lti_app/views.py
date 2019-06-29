@@ -69,9 +69,9 @@ def wims_class(request, wims_pk):
     
     # Retrieve the LMS
     try:
-        lms = LMS.objects.get(uuid=parameters["tool_consumer_instance_guid"])
+        lms = LMS.objects.get(guid=parameters["tool_consumer_instance_guid"])
     except LMS.DoesNotExist:
-        raise Http404("No LMS found with uuid '%s'" % parameters["tool_consumer_instance_guid"])
+        raise Http404("No LMS found with guid '%s'" % parameters["tool_consumer_instance_guid"])
     
     wapi = wimsapi.WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
     
@@ -180,9 +180,9 @@ def wims_activity(request, wims_pk, activity_pk):
     
     # Retrieve the LMS
     try:
-        lms = LMS.objects.get(uuid=parameters["tool_consumer_instance_guid"])
+        lms = LMS.objects.get(guid=parameters["tool_consumer_instance_guid"])
     except LMS.DoesNotExist:
-        raise Http404("No LMS found with uuid '%s'" % parameters["tool_consumer_instance_guid"])
+        raise Http404("No LMS found with guid '%s'" % parameters["tool_consumer_instance_guid"])
     
     wapi = wimsapi.WimsAPI(wims_srv.url, wims_srv.ident, wims_srv.passwd)
     
@@ -194,7 +194,7 @@ def wims_activity(request, wims_pk, activity_pk):
         
         # Get the class
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
-                                          lms_uuid=parameters['context_id'])
+                                          lms_guid=parameters['context_id'])
         
         try:
             wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
@@ -204,7 +204,7 @@ def wims_activity(request, wims_pk, activity_pk):
                 qclass = wclass_db.qclass
                 logger.info(("Deleting class (id : %d - wims id : %s - lms id : %s) as it was"
                              "deleted from the WIMS server")
-                            % (wclass_db.id, str(wclass_db.qclass), str(wclass_db.lms_uuid)))
+                            % (wclass_db.id, str(wclass_db.qclass), str(wclass_db.lms_guid)))
                 wclass_db.delete()
                 return HttpResponseNotFound(
                     ("Class of ID %s could not be found on the WIMS server. Maybe it has been "

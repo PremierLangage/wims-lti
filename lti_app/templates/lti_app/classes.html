@@ -41,7 +41,7 @@
                     <tr data-href="{% url 'lti:sheets' LMS.pk WIMS.pk item.pk %}">
                         <td>{{ item.pk }}</td>
                         <td>{{ item.name }}</td>
-                        <td>{{ item.lms_uuid }}</td>
+                        <td>{{ item.lms_guid }}</td>
                         <td>{{ item.qclass }}</td>
                     </tr>
                 {% endfor %}

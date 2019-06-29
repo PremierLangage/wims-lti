@@ -23,7 +23,7 @@ from lti_app.validator import ModelsValidator
 logger = logging.getLogger(__name__)
 
 wims_help = "See 'https://wimsapi.readthedocs.io/#configuration' for more informations"
-lms_uuid_help = ("Must be equal to the parameter 'tool_consumer_instance_guid' sent by the LMS in "
+lms_guid_help = ("Must be equal to the parameter 'tool_consumer_instance_guid' sent by the LMS in "
                  "the LTI request. It is commonly the DNS of the LMS.")
 class_limit_help = ("This is the classes default maximum student (between [5, 500]. This parameter "
                     "is used at class creation and can be later changed individually for each class"
@@ -37,8 +37,8 @@ expiration_help = ("This is the classes default duration (format is 'day hours:m
 
 class LMS(models.Model):
     """Represents a LMS."""
-    uuid = models.CharField(
-        max_length=2048, help_text=lms_uuid_help, verbose_name="UUID", default=None
+    guid = models.CharField(
+        max_length=2048, help_text=lms_guid_help, verbose_name="GUID", default=None
     )
     name = models.CharField(max_length=2048, default=None)
     url = models.CharField(
@@ -50,13 +50,11 @@ class LMS(models.Model):
     )
     secret = models.CharField(max_length=128, validators=[MinLengthValidator(3)], default=None)
     
-    
     class Meta:
         verbose_name_plural = "LMS"
         indexes = [
             models.Index(fields=['key']),
         ]
-    
     
     def __str__(self):
         return "%s (%s)" % (self.name, self.url)
@@ -87,10 +85,8 @@ class WIMS(models.Model):
     rclass = models.CharField(max_length=2048, help_text=wims_help, default=None)
     allowed_lms = models.ManyToManyField(LMS, blank=True)
     
-    
     class Meta:
         verbose_name_plural = "WIMS"
-    
     
     def __str__(self):
         return "%s (%s)" % (self.name, self.url)
@@ -100,16 +96,14 @@ class WIMS(models.Model):
 class WimsClass(models.Model):
     """Represents a class on a WIMS server."""
     lms = models.ForeignKey(LMS, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256, default=None)
+    lms_guid = models.CharField(max_length=256, default=None)
     wims = models.ForeignKey(WIMS, models.CASCADE)
     qclass = models.CharField(max_length=256, default=None)
     name = models.CharField(max_length=2048, default=None)
     
-    
     class Meta:
         verbose_name_plural = "WimsClasses"
-        unique_together = (("lms", "lms_uuid", "wims"), ("wims", "qclass"),)
-    
+        unique_together = (("lms", "lms_guid", "wims"), ("wims", "qclass"),)
     
     def __str__(self):
         return "%s (%s)" % (self.name, self.qclass)
@@ -118,15 +112,13 @@ class WimsClass(models.Model):
 
 class WimsUser(models.Model):
     """Represent an user on a WIMS server."""
-    lms_uuid = models.CharField(max_length=256, null=True)
+    lms_guid = models.CharField(max_length=256, null=True)
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
     quser = models.CharField(max_length=256, default=None)
-    
     
     class Meta:
         verbose_name_plural = "WimsUsers"
         unique_together = (("quser", "wclass"),)
-    
     
     def __str__(self):
         return "%s" % self.quser
@@ -136,9 +128,8 @@ class WimsUser(models.Model):
 class Activity(models.Model):
     """Represents a Sheet on the WIMS server."""
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256)
-    qsheet = models.CharField(max_length=256, null=True)
-    
+    lms_guid = models.CharField(max_length=256, default=None)
+    qsheet = models.CharField(max_length=256, null=True, default=None)
     
     class Meta:
         verbose_name_plural = "Activities"
@@ -153,10 +144,8 @@ class GradeLink(models.Model):
     sourcedid = models.CharField(max_length=256)
     url = models.URLField(max_length=1023)
     
-    
     class Meta:
         unique_together = (("user", "activity"),)
-    
     
     def send_back(self, grade):
         path = os.path.dirname(os.path.realpath(__file__))
@@ -201,8 +190,8 @@ class GradeLink(models.Model):
                 continue
             grade = sum(infos['got_detail']) / len(infos['got_detail']) / 10
             gl.send_back(grade)
-
-
+    
+    
     @classmethod
     def send_back_all_global(cls, wclass, activity):
         pass

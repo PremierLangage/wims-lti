@@ -271,7 +271,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
     wclass an instance of wimsapi.Class."""
     try:
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
-                                          lms_uuid=parameters['context_id'])
+                                          lms_guid=parameters['context_id'])
         
         try:
             wclass = wimsapi.Class.get(wims.url, wims.ident, wims.passwd, wclass_db.qclass,
@@ -280,7 +280,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
             if "not existing" in str(e):  # Class was deleted on the WIMS server
                 logger.info(("Deleting class (id : %d - wims id : %s - lms id : %s) as it was"
                              "deleted from the WIMS server.")
-                            % (wclass_db.id, str(wclass_db.qclass), str(wclass_db.lms_uuid)))
+                            % (wclass_db.id, str(wclass_db.qclass), str(wclass_db.lms_guid)))
                 wclass_db.delete()
                 raise WimsClass.DoesNotExist
             raise  # Unknown error (pragma: no cover)
@@ -298,11 +298,11 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
         wclass = create_class(wims_srv, parameters)
         wclass.save(wims.url, wims.ident, wims.passwd)
         wclass_db = WimsClass.objects.create(
-            lms=lms, lms_uuid=parameters["context_id"],
+            lms=lms, lms_guid=parameters["context_id"],
             wims=wims_srv, qclass=wclass.qclass, name=wclass.name
         )
         logger.info("New class created (id : %d - wims id : %s - lms id : %s)"
-                    % (wclass_db.id, str(wclass.qclass), str(wclass_db.lms_uuid)))
+                    % (wclass_db.id, str(wclass.qclass), str(wclass_db.lms_guid)))
         WimsUser.objects.create(wclass=wclass_db, quser="supervisor")
         logger.info("New user created (wims id : supervisor - lms id : None) in class %d"
                     % wclass_db.id)
@@ -352,9 +352,9 @@ def get_or_create_user(wclass_db, wclass, parameters):
     try:
         role = Role.parse_role_lti(parameters["roles"])
         if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
-            user_db = WimsUser.objects.get(lms_uuid=None, wclass=wclass_db)
+            user_db = WimsUser.objects.get(lms_guid=None, wclass=wclass_db)
         else:
-            user_db = WimsUser.objects.get(lms_uuid=parameters['user_id'], wclass=wclass_db)
+            user_db = WimsUser.objects.get(lms_guid=parameters['user_id'], wclass=wclass_db)
         user = wimsapi.User.get(wclass, user_db.quser)
     except WimsUser.DoesNotExist:
         user = create_user(parameters)
@@ -380,10 +380,10 @@ def get_or_create_user(wclass_db, wclass, parameters):
                 user.quser += str(i)
         
         user_db = WimsUser.objects.create(
-            lms_uuid=parameters["user_id"], wclass=wclass_db, quser=user.quser
+            lms_guid=parameters["user_id"], wclass=wclass_db, quser=user.quser
         )
         logger.info("New user created (wims id: %s - lms id : %s) in class %d"
-                    % (user.quser, str(user_db.lms_uuid), wclass_db.id))
+                    % (user.quser, str(user_db.lms_guid), wclass_db.id))
     
     return user_db, user
 
@@ -403,14 +403,14 @@ def get_sheet(wclass_db, wclass, qsheet, parameters):
     sheet = wclass.getitem(qsheet, Sheet)
     try:
         activity = Activity.objects.get(wclass=wclass_db, qsheet=str(qsheet))
-        activity.lms_uuid = parameters["resource_link_id"]
+        activity.lms_guid = parameters["resource_link_id"]
         activity.save()
     except Activity.DoesNotExist:
         activity = Activity.objects.create(
-            lms_uuid=parameters["resource_link_id"],
+            lms_guid=parameters["resource_link_id"],
             wclass=wclass_db, qsheet=str(qsheet)
         )
         logger.info("New sheet created (wims id: %s - lms id : %s) in class %d"
-                    % (str(qsheet), str(activity.lms_uuid), wclass_db.id))
+                    % (str(qsheet), str(activity.lms_guid), wclass_db.id))
     
     return activity, sheet
