@@ -15,7 +15,7 @@ from lti_app import models
 
 @admin.register(models.LMS)
 class LMSAdmin(admin.ModelAdmin):
-    list_display = ('name', 'uuid')
+    list_display = ('name', 'guid')
 
 
 
@@ -27,19 +27,19 @@ class WIMSAdmin(admin.ModelAdmin):
 
 @admin.register(models.WimsClass)
 class WIMSClassAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wims', 'lms_uuid', 'qclass')
+    list_display = ('id', 'wims', 'lms_guid', 'qclass')
 
 
 
 @admin.register(models.WimsUser)
 class WIMSUserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'lms_uuid', 'wclass', 'quser')
+    list_display = ('id', 'lms_guid', 'wclass', 'quser')
 
 
 
 @admin.register(models.Activity)
 class ActivityAdmin(admin.ModelAdmin):
-    list_display = ('id', 'lms_uuid', 'wclass', 'qsheet')
+    list_display = ('id', 'lms_guid', 'wclass', 'qsheet')
 
 
 

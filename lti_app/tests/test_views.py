@@ -59,7 +59,7 @@ class WimsClassTestCase(TestCase):
         
         WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
                             rclass="myclass")
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         r = views.wims_class(request, 1)
         self.assertIn(WIMS_URL, r.url)
@@ -103,7 +103,7 @@ class WimsClassTestCase(TestCase):
         
         WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
                             rclass="myclass")
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         r = views.wims_class(request, 1)
         self.assertContains(r, "LTI request is invalid, missing parameter(s): ['oauth_signature']",
@@ -142,7 +142,7 @@ class WimsClassTestCase(TestCase):
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
         request.POST = params
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         with self.assertRaisesMessage(Http404, "Unknown WIMS server of id '999999'"):
             views.wims_class(request, 999999)
@@ -184,10 +184,10 @@ class WimsClassTestCase(TestCase):
         
         wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="X", passwd="X",
                                    rclass="myclass")
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         
-        with self.assertRaisesMessage(Http404, "No LMS found with uuid '%s'"
+        with self.assertRaisesMessage(Http404, "No LMS found with guid '%s'"
                                                % params["tool_consumer_instance_guid"]):
             views.wims_class(request, wims.pk)
     
@@ -227,7 +227,7 @@ class WimsClassTestCase(TestCase):
         
         wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM",
                                    ident="wrong", passwd="wrong", rclass="myclass")
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         
         r = views.wims_class(request, wims.pk)
@@ -269,7 +269,7 @@ class WimsClassTestCase(TestCase):
         
         wims = WIMS.objects.create(url="https://can.not.join.fr/", name="WIMS UPEM",
                                    ident="wrong", passwd="wrong", rclass="myclass")
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         
         r = views.wims_class(request, wims.pk)
@@ -314,13 +314,13 @@ class WimsActivityTestCase(TestCase):
         
         wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
                                    rclass="myclass")
-        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM", key="provider1", secret="secret1")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password", supervisor,
                        lang="fr")
         wclass.save(WIMS_URL, "myself", "toto")
-        WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims, qclass=wclass.qclass,
+        WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
                                  name="test1")
         wclass.additem(Sheet("Titre", "Description", sheetmode=1))
         
@@ -365,13 +365,13 @@ class WimsActivityTestCase(TestCase):
         
         wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
                                    rclass="myclass")
-        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM", key="provider1", secret="secret1")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password", supervisor,
                        lang="fr")
         wclass.save(WIMS_URL, "myself", "toto")
-        WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims, qclass=wclass.qclass,
+        WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
                                  name="test1")
         wclass.delete()
         
@@ -417,7 +417,7 @@ class WimsActivityTestCase(TestCase):
         
         WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
                             rclass="myclass")
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         r = views.wims_activity(request, 1, 1)
         self.assertContains(r, "LTI request is invalid, missing parameter(s): ['oauth_signature']",
@@ -454,7 +454,7 @@ class WimsActivityTestCase(TestCase):
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         request = RequestFactory().post(reverse("lti:wims_activity", args=[1, 1]), secure=True)
         request.POST = params
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         with self.assertRaisesMessage(Http404, "Unknown WIMS server of id '999999'"):
             views.wims_activity(request, 999999, 1)
@@ -494,10 +494,10 @@ class WimsActivityTestCase(TestCase):
         
         wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="X", passwd="X",
                                    rclass="myclass")
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         
-        with self.assertRaisesMessage(Http404, "No LMS found with uuid '%s'"
+        with self.assertRaisesMessage(Http404, "No LMS found with guid '%s'"
                                                % params["tool_consumer_instance_guid"]):
             views.wims_activity(request, wims.pk, 1)
     
@@ -535,7 +535,7 @@ class WimsActivityTestCase(TestCase):
         
         wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM",
                                    ident="wrong", passwd="wrong", rclass="myclass")
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         
         r = views.wims_activity(request, wims.pk, 1)
@@ -575,7 +575,7 @@ class WimsActivityTestCase(TestCase):
         
         wims = WIMS.objects.create(url="https://can.not.join.fr/", name="WIMS UPEM",
                                    ident="wrong", passwd="wrong", rclass="myclass")
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key=KEY, secret=SECRET)
         
         r = views.wims_activity(request, wims.pk, 1)
@@ -617,7 +617,7 @@ class WimsActivityTestCase(TestCase):
         
         WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
                             rclass="myclass")
-        LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                            name="Moodle UPEM", key="provider1", secret="secret1")
         
         r = views.wims_activity(request, 1, 1)
@@ -659,13 +659,13 @@ class WimsActivityTestCase(TestCase):
         
         wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
                                    rclass="myclass")
-        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM", key="provider1", secret="secret1")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password", supervisor,
                        lang="fr")
         wclass.save(WIMS_URL, "myself", "toto")
-        WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims, qclass=wclass.qclass,
+        WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
                                  name="test1")
         wclass.additem(Sheet("Titre", "Description", sheetmode=1))
         
@@ -711,13 +711,13 @@ class WimsActivityTestCase(TestCase):
         wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself",
                                    passwd="toto",
                                    rclass="myclass")
-        lms = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM", key="provider1", secret="secret1")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password", supervisor,
                        lang="fr")
         wclass.save(WIMS_URL, "myself", "toto")
-        WimsClass.objects.create(lms=lms, lms_uuid="77777", wims=wims, qclass=wclass.qclass,
+        WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
                                  name="test1")
         wclass.additem(Sheet("Titre", "Description", sheetmode=1))
         
@@ -734,11 +734,11 @@ class BaseLinksViewTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.client = Client()
-        cls.lms1 = LMS.objects.create(uuid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+        cls.lms1 = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                       name="No WIMS", key="provider1", secret="secret1")
-        cls.lms2 = LMS.objects.create(uuid="elearning.test.fr", url="https://elearning.test.fr/",
+        cls.lms2 = LMS.objects.create(guid="elearning.test.fr", url="https://elearning.test.fr/",
                                       name="One WIMS", key="provider2", secret="secret1")
-        cls.lms3 = LMS.objects.create(uuid="elearning.test.fr", url="https://elearning.test.fr/",
+        cls.lms3 = LMS.objects.create(guid="elearning.test.fr", url="https://elearning.test.fr/",
                                       name="Two WIMS", key="provider3", secret="secret1")
         
         cls.wims1 = WIMS.objects.create(url="www.lti_app.com", name="One", ident="myself",
@@ -756,9 +756,9 @@ class BaseLinksViewTestCase(TestCase):
                    User("supervisor", "First", "Last", PASSWORD))
         c1.save(cls.wims2.url, cls.wims2.ident, cls.wims2.passwd)
         c2.save(cls.wims2.url, cls.wims2.ident, cls.wims2.passwd)
-        cls.class1 = WimsClass.objects.create(lms=cls.lms3, wims=cls.wims2, lms_uuid=1,
+        cls.class1 = WimsClass.objects.create(lms=cls.lms3, wims=cls.wims2, lms_guid=1,
                                               qclass=c1.qclass, name=c1.name)
-        cls.class2 = WimsClass.objects.create(lms=cls.lms3, wims=cls.wims2, lms_uuid=2,
+        cls.class2 = WimsClass.objects.create(lms=cls.lms3, wims=cls.wims2, lms_guid=2,
                                               qclass=c2.qclass, name=c2.name)
         
         cls.sheet1 = Sheet("Sheet1", "Desc1")
