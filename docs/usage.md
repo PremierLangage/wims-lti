@@ -1,71 +1,52 @@
-# Usage
+## Creating classes
 
-## WIMS
+#### New Class
 
-In order to have the *WIMS* server to accept **WIMS-LTI** requests, you have to create
-a connection file. The creation of this file is explained 
-[here](https://wimsapi.readthedocs.io/#configuration).
+To create a new class through LTI, teacher only need to create an **LTI activity** on their LMS' course.
+The WIMS' class will be automatically created as soon as a **teacher** of the LMS' course click
+on the LTI activity.  
+In similar manner, Users will be created every time a new user click on the activity.
 
-It is important to add the IP address of the **WIMS-LTI server** to the 
-`ident_site` key and not the IP of the *LMS*.
-Remember the value of the `ident_password` and the name of the created file,
-you will need these to add the server to **WIMS-LTI**.
+To create a LTI activity, teacher will need :
 
+* a **LTI URL**.
+* their **LMS' key**.
+* their **LMS secret**.
 
-## WIMS-LTI
+The LMS' **key** and **secret** has been defined when adding the LMS to WIMS-LTI, so you should ask
+the person in charge of your WIMS-LTI server to have them.
 
-1. Connect to `[WIMS-LTI SERVEUR]/admin/` and enter the administration 
-account login and password that you entered when you installed the server.
+Most of the LMS allow the creation **preconfigured tools**, this allow the **key** and **secret**
+to be automatically set according to a base URL.
 
-2. Click on `LMS` (or go to  `[WIMS-LTI SERVEUR]/admin/lti_app/lms/`)
+You can see example of LTI activity and preconfigured tool creation for different LMS [here](/activity_creation_example).
 
-3. Click `ADD LMS` in the top left and fill the form:
-    * `UUID` : UUID of the *LMS* corresponding to the `tool_consumer_instance_guid` parameter
-               of the LTI request. Most of the time, it is the DNS of the *LMS*.
-               For example: `elearning.u-pem.fr`
-    * `Name` : Name that identifies the *LMS*, for example: `Moodle UPEM`.
-    * `URL` : URL of the *LMS*, for example: `https://elearning.u-pem.fr/`
-    * `key`: Key that you'll need to enter on the LMS when creating an LTI activity.
-    * `secret`: Secret that you'll need to enter on the LMS when creating an LTI activity.
-    
-*Repeat ***3.*** for each *LMS* that you want to add.*
-
-
-4. Go back to `[WIMS-LTI SERVEUR]/admin/` and click on `wims` (or go to `[WIMS-LTI SERVEUR]/admin/lti_app/wims/`)
-
-5. Click `ADD WIMS` in the top left, and fill the form:
-    * `Name` : Name to identify the *WIMS* server, ex: `WIMS UPEM`.
-    * `URL` : URL of the *WIMS* server CGI, ex: `https://wims.u-pem.fr/wims/wims.cgi`.
-    * `Ident` : Name of the connection file created on the *WIMS* server. 
-                For example, if the file created was `[WIMS_HOME]/log/classes/.connections/myself`,
-                enter `myself`.
-    * `Passwd` : Value of the key `ident_password` of the configuration file *Ident*.
-    * `Rclass` : Identifiers used by *WIMS-LTI* to create classes on the *WIMS* server,
-                 for example: `myclass`.
-    * `Allowed LMS` : Select the LMS allowed to connect to this WIMS server.
-    
-*Repeat ***5.*** for each *WIMS* server that you want to add.*
-
-
-## LTI URL
-
-Teachers can go `[WIMS-LTI SERVEUR]/`, search for their LMS, and copy
-the link of the WIMS server they want to create a class on :
+To obtain a **LTI URL**, teachers can go to the home page of their WIMS-LTI server, search for
+their LMS, and copy the link of the WIMS server they want to create a class on :
 
 ![wims_lti_url](images/wims_lti_url.gif)
 
-If they want to create a link to a worksheet (to send the grade back to the LMS),
-they'll have to search for their LMS, search for the WIMS server the class is on,
-search for their class and copy the URL corresponding to the worksheet
-they want to link on the LMS.
-
-Only activated worksheet will be displayed on WIMS-LTI.
-
-For every student who clicked on the worksheet link, the grade will be sent to the LMS every
-time a teacher click on the link.
+If the WIMS server they want does not appear after clicking on their LMS, its either because the
+WIMS server has not been added to WIMS-LTI or it does not have authorized your LMS. You should
+contact your WIMS-LTI administrator to solve this problem.
 
 
-## Custom LTI Parameters:
+#### Copying an Existing Class
+
+It is (for now) not possible to duplicate an existing class when creating a new class through LTI.
+A workaround is to create a backup if your existing class through
+`configuration` -> `Config/Maintenance` -> `Backup and restoration` -> `Backup of the class`.
+
+Choose the format you want and what you want to copy. It is recommended to not copy participants
+accounts (and related contents) as their is no way to link WIMS' existing user to your LMS' user
+through LTI.
+
+Once your backup is created, create a new class through LTI as above, go back to 
+`configuration` -> `Config/Maintenance` -> `Backup and restoration` -> `Restoration from a backup`
+and choose your backup archive.
+
+
+#### Custom LTI Parameters:
 
 When creating a new class, a number of custom LTI parameters can be added to change some
 of the settings of the created class and its supervisor:
@@ -98,3 +79,8 @@ class_lang=en
 class_name=Best class in the world
 class_email=address@email.com
 ```
+
+
+## Send the grade back to the LMS
+
+Once a worksheet has been

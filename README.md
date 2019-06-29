@@ -5,27 +5,27 @@
 
 # WIMS-LTI
 
-**WIMS-LTI** is a proxy server between a *LMS* and a *WIMS* using the LTI standard.  
+**WIMS-LTI** is a proxy server between a LMS and a WIMS using the LTI standard.  
 The complete documention is available here : https://wims-lti.readthedocs.io/
 
 
 
 # Introduction
 
-**WIMS-LTI** is a gateway server that links a *LMS* to a *WIMS* server, using *LTI*.
+**WIMS-LTI** is a gateway server that links a LMS to a WIMS server, using LTI.
 
 **WIMS-LTI** allows :
 
-* To create a *WIMS* class associated to a *LMS*' course.
-* To create students corresponding to that course in the *WIMS* class.
-* The students to connect to the *WIMS* server from the *LMS*.
-* The teachers to connect to the *WIMS* class as supervisor or as students.
+* To create a WIMS class associated to a LMS' course.
+* To create students corresponding to that course in the WIMS class.
+* The students to connect to the WIMS server from the LMS.
+* The teachers to connect to the WIMS class as supervisor or as students.
 * To send the grades of students back to the LMS.
 
 
 ## How does it work ?
 
-Once **WIMS-LTI** is installed and running, it is possible to add *LMS* and *WIMS* server
+Once **WIMS-LTI** is installed and running, it is possible to add LMS and WIMS server
 from the administration panel, each WIMS server having a list of authorized LMS.
 
 Teacher will then be able to go on `[server]/lti/links/` to get the URL that should be
