@@ -29,6 +29,6 @@ There is two kinds of URL:
 * Class URL : Create a new class and redirect to the class' home on WIMS the first time it is
     clicked on from a LMS, only redirect to the class' home on subsequent click. It will also create
     a corresponding user on the WIMS user if needed.
-* Activity URL : Will redirect an user to the corresponding worksheet, creating the user if needed.
+* WimsSheet URL : Will redirect an user to the corresponding worksheet, creating the user if needed.
     If someone with a role of Teacher click on this link, it will also send every grade of the
     corresponding sheet to the LMS.

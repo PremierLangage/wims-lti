@@ -16,7 +16,8 @@ app_name = "lti"
 
 urlpatterns = [
     path('lti/C<int:wims_pk>/', views.wims_class, name="wims_class"),
-    path('lti/C<int:wims_pk>/A<int:activity_pk>/', views.wims_activity, name="wims_activity"),
+    path('lti/C<int:wims_pk>/S<int:sheet_pk>/', views.wims_sheet, name="wims_sheet"),
+    path('lti/C<int:wims_pk>/E<int:exam_pk>/', views.wims_exam, name="wims_exam"),
     path('', views.lms, name="lms"),
     path('<int:lms_pk>/', views.wims, name="wims"),
     path('<int:lms_pk>/<int:wims_pk>/', views.classes, name="classes"),
