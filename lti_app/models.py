@@ -220,7 +220,7 @@ class GradeLinkSheet(GradeLinkBase):
                 gl = GradeLinkSheet.objects.get(user=user, sheet=sheet)
             except GradeLinkSheet.DoesNotExist:
                 continue
-            score = grade.score if grade.score != -1 else grade.best // 10
+            score = grade.score / 10 if grade.score != -1 else grade.best / 100
             gl.send_back(score, gl.sheet)
 
 
@@ -242,7 +242,7 @@ class GradeLinkExam(GradeLinkBase):
                 wims.url, wclass.wims.ident, wims.passwd, wclass.qclass, wims.rclass
             ).getitem(exam.qexam, Exam).scores()
         except AdmRawError as e:
-            if "There is no user in this class" in str(e):
+            if "There's no user in this class" in str(e):
                 return
             raise
         
@@ -252,5 +252,5 @@ class GradeLinkExam(GradeLinkBase):
                 gl = GradeLinkExam.objects.get(user=user, exam=exam)
             except GradeLinkExam.DoesNotExist:
                 continue
-            score = grade.score
+            score = grade.score / 10
             gl.send_back(score, gl.exam)
