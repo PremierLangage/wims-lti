@@ -13,5 +13,5 @@
 * The teachers to connect to the *WIMS* class as supervisor or as students.
 * To send the grades of students back to the LMS.
 
-The documentation is availaible on readsthedoc :
+The documentation is available on readsthedoc :
 [https://wims-lti.readthedocs.io/](https://wims-lti.readthedocs.io/).
