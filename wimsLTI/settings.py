@@ -105,7 +105,8 @@ LOGGING = {
             'datefmt': '%Y/%m/%d %H:%M:%S'
         },
         'simple':  {
-            'format':  '[%(asctime)-15s] %(levelname)s -- %(message)s',
+            'format':  ("[%(asctime)-15s] [%(filename)s:%(funcName)s:%(lineno)d]"
+                        " %(levelname)s -- %(message)s"),
             'datefmt': '%Y/%m/%d %H:%M:%S'
         },
     },
