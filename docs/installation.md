@@ -19,7 +19,7 @@ cd wims-lti
 
 ## Configuration of WIMS-LTI
 
-You must edit `wimsLTI/config.py` to change some default parameters, 
+You must edit `wims-lti/wimsLTI/config.py` to change some default parameters, 
 see [Parameters reference](https://docs.djangoproject.com/en/2.2/ref/settings/).  
 You should especially look at:
 
@@ -33,8 +33,8 @@ and [*SERVER_EMAIL*](https://docs.djangoproject.com/en/2.2/ref/settings/#server-
 you want to use something else than sqlite (see `wimsLTI/settings.py` for the default value).
 
 
-Once the parameters are correctly defined, launch the installation script (`install.sh`).
-It will ask for a user name, an email address, and a password to create
+Once the parameters are correctly defined, launch the installation script `install.sh`
+from `wims-lti/`. It will ask for a user name, an email address, and a password to create
 an administration account.
 
 
@@ -48,8 +48,6 @@ Here an example of such conf:
 ```text
 <VirtualHost *:443>
     ServerName wims-lti.u-pem.fr
-        
-    Use SSL
 
     Alias /static /path/to/wims-lti/static/
     <Directory /path/to/wims-lti/static/>

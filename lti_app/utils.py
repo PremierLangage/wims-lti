@@ -19,11 +19,11 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from lti.contrib.django import DjangoToolProvider
-from wimsapi import Sheet
+from wimsapi import Exam, Sheet
 
 from lti_app.enums import Role
 from lti_app.exceptions import BadRequestException
-from lti_app.models import Activity, WimsClass, WimsUser
+from lti_app.models import WimsClass, WimsExam, WimsSheet, WimsUser
 from lti_app.validator import CustomParameterValidator, RequestValidator, validate
 
 
@@ -237,8 +237,8 @@ def generate_mail(wclass_db, wclass):
         "expiration":          wclass.lang,
         "limit":               wclass.limit,
         "level":               wclass.level,
-        'lms_url': wclass_db.lms.url,
-        'wims_url': wclass_db.wims.url,
+        'lms_url':             wclass_db.lms.url,
+        'wims_url':            wclass_db.wims.url,
     }
     
     root = os.path.join(settings.MAIL_ROOT, wclass.lang)
@@ -271,7 +271,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
     wclass an instance of wimsapi.Class."""
     try:
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
-                                          lms_uuid=parameters['context_id'])
+                                          lms_guid=parameters['context_id'])
         
         try:
             wclass = wimsapi.Class.get(wims.url, wims.ident, wims.passwd, wclass_db.qclass,
@@ -280,7 +280,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
             if "not existing" in str(e):  # Class was deleted on the WIMS server
                 logger.info(("Deleting class (id : %d - wims id : %s - lms id : %s) as it was"
                              "deleted from the WIMS server.")
-                            % (wclass_db.id, str(wclass_db.qclass), str(wclass_db.lms_uuid)))
+                            % (wclass_db.id, str(wclass_db.qclass), str(wclass_db.lms_guid)))
                 wclass_db.delete()
                 raise WimsClass.DoesNotExist
             raise  # Unknown error (pragma: no cover)
@@ -298,15 +298,15 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
         wclass = create_class(wims_srv, parameters)
         wclass.save(wims.url, wims.ident, wims.passwd)
         wclass_db = WimsClass.objects.create(
-            lms=lms, lms_uuid=parameters["context_id"],
+            lms=lms, lms_guid=parameters["context_id"],
             wims=wims_srv, qclass=wclass.qclass, name=wclass.name
         )
         logger.info("New class created (id : %d - wims id : %s - lms id : %s)"
-                    % (wclass_db.id, str(wclass.qclass), str(wclass_db.lms_uuid)))
+                    % (wclass_db.id, str(wclass.qclass), str(wclass_db.lms_guid)))
         WimsUser.objects.create(wclass=wclass_db, quser="supervisor")
         logger.info("New user created (wims id : supervisor - lms id : None) in class %d"
                     % wclass_db.id)
-
+        
         try:
             title, body = generate_mail(wclass_db, wclass)
             send_mail(
@@ -314,7 +314,6 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
                 body,
                 settings.SERVER_EMAIL,
                 [wclass.supervisor.email],
-                fail_silently=False,
             )
         except Exception:
             logger.exception("An exception occurred while sending email:")
@@ -352,9 +351,9 @@ def get_or_create_user(wclass_db, wclass, parameters):
     try:
         role = Role.parse_role_lti(parameters["roles"])
         if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
-            user_db = WimsUser.objects.get(lms_uuid=None, wclass=wclass_db)
+            user_db = WimsUser.objects.get(lms_guid=None, wclass=wclass_db)
         else:
-            user_db = WimsUser.objects.get(lms_uuid=parameters['user_id'], wclass=wclass_db)
+            user_db = WimsUser.objects.get(lms_guid=parameters['user_id'], wclass=wclass_db)
         user = wimsapi.User.get(wclass, user_db.quser)
     except WimsUser.DoesNotExist:
         user = create_user(parameters)
@@ -380,37 +379,65 @@ def get_or_create_user(wclass_db, wclass, parameters):
                 user.quser += str(i)
         
         user_db = WimsUser.objects.create(
-            lms_uuid=parameters["user_id"], wclass=wclass_db, quser=user.quser
+            lms_guid=parameters["user_id"], wclass=wclass_db, quser=user.quser
         )
         logger.info("New user created (wims id: %s - lms id : %s) in class %d"
-                    % (user.quser, str(user_db.lms_uuid), wclass_db.id))
+                    % (user.quser, str(user_db.lms_guid), wclass_db.id))
     
     return user_db, user
 
 
 
 def get_sheet(wclass_db, wclass, qsheet, parameters):
-    """Get the WIMS' activity database and wimsapi.Sheet instances, create them if they does not
+    """Get the WIMS' sheet database and wimsapi.Sheet instances, create them if they does not
     exists.
 
     Raises:
         - wimsapi.AdmRawError if the WIMS' server denied a request.
         - requests.RequestException if the WIMS server could not be joined.
 
-    Returns a tuple (activity_db, sheet) where activity_db is an instance of models.Activity and
+    Returns a tuple (sheet_db, sheet) where sheet_db is an instance of models.WimsSheet and
     sheet an instance of wimsapi.Sheet."""
     
     sheet = wclass.getitem(qsheet, Sheet)
     try:
-        activity = Activity.objects.get(wclass=wclass_db, qsheet=str(qsheet))
-        activity.lms_uuid = parameters["resource_link_id"]
-        activity.save()
-    except Activity.DoesNotExist:
-        activity = Activity.objects.create(
-            lms_uuid=parameters["resource_link_id"],
+        sheet_db = WimsSheet.objects.get(wclass=wclass_db, qsheet=str(qsheet))
+        sheet_db.lms_guid = parameters["resource_link_id"]
+        sheet_db.save()
+    except WimsSheet.DoesNotExist:
+        sheet_db = WimsSheet.objects.create(
+            lms_guid=parameters["resource_link_id"],
             wclass=wclass_db, qsheet=str(qsheet)
         )
         logger.info("New sheet created (wims id: %s - lms id : %s) in class %d"
-                    % (str(qsheet), str(activity.lms_uuid), wclass_db.id))
+                    % (str(qsheet), str(sheet_db.lms_guid), wclass_db.id))
     
-    return activity, sheet
+    return sheet_db, sheet
+
+
+
+def get_exam(wclass_db, wclass, qexam, parameters):
+    """Get the WIMS' exam database and wimsapi.Exam instances, create them if they does not
+    exists.
+
+    Raises:
+        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - requests.RequestException if the WIMS server could not be joined.
+
+    Returns a tuple (exam_db, exam) where exam_db is an instance of models.WimsExam and
+    exam an instance of wimsapi.Exam."""
+    
+    exam = wclass.getitem(qexam, Exam)
+    try:
+        exam_db = WimsExam.objects.get(wclass=wclass_db, qexam=str(qexam))
+        exam_db.lms_guid = parameters["resource_link_id"]
+        exam_db.save()
+    except WimsExam.DoesNotExist:
+        exam_db = WimsExam.objects.create(
+            lms_guid=parameters["resource_link_id"],
+            wclass=wclass_db, qexam=str(qexam)
+        )
+        logger.info("New exam created (wims id: %s - lms id : %s) in class %d"
+                    % (str(qexam), str(exam_db.lms_guid), wclass_db.id))
+    
+    return exam_db, exam

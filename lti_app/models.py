@@ -11,11 +11,11 @@ import os
 from datetime import timedelta
 
 import requests
-import wimsapi
 from defusedxml import ElementTree
 from django.core.validators import MinLengthValidator, URLValidator
 from django.db import models
 from oauthlib.oauth1.rfc5849 import Client
+from wimsapi import AdmRawError, Class, Exam, Sheet
 
 from lti_app.validator import ModelsValidator
 
@@ -23,7 +23,7 @@ from lti_app.validator import ModelsValidator
 logger = logging.getLogger(__name__)
 
 wims_help = "See 'https://wimsapi.readthedocs.io/#configuration' for more informations"
-lms_uuid_help = ("Must be equal to the parameter 'tool_consumer_instance_guid' sent by the LMS in "
+lms_guid_help = ("Must be equal to the parameter 'tool_consumer_instance_guid' sent by the LMS in "
                  "the LTI request. It is commonly the DNS of the LMS.")
 class_limit_help = ("This is the classes default maximum student (between [5, 500]. This parameter "
                     "is used at class creation and can be later changed individually for each class"
@@ -37,8 +37,8 @@ expiration_help = ("This is the classes default duration (format is 'day hours:m
 
 class LMS(models.Model):
     """Represents a LMS."""
-    uuid = models.CharField(
-        max_length=2048, help_text=lms_uuid_help, verbose_name="UUID", default=None
+    guid = models.CharField(
+        max_length=2048, help_text=lms_guid_help, verbose_name="GUID", default=None
     )
     name = models.CharField(max_length=2048, default=None)
     url = models.CharField(
@@ -50,13 +50,11 @@ class LMS(models.Model):
     )
     secret = models.CharField(max_length=128, validators=[MinLengthValidator(3)], default=None)
     
-    
     class Meta:
         verbose_name_plural = "LMS"
         indexes = [
             models.Index(fields=['key']),
         ]
-    
     
     def __str__(self):
         return "%s (%s)" % (self.name, self.url)
@@ -79,7 +77,7 @@ class WIMS(models.Model):
         validators=[ModelsValidator.limit_validator],
     )
     expiration = models.DurationField(
-        verbose_name="Default expiration date", help_text=expiration_help,
+        verbose_name="Default duration", help_text=expiration_help,
         default=timedelta(days=365), validators=[ModelsValidator.expiration_validator],
     )
     ident = models.CharField(max_length=2048, help_text=wims_help, default=None)
@@ -87,10 +85,8 @@ class WIMS(models.Model):
     rclass = models.CharField(max_length=2048, help_text=wims_help, default=None)
     allowed_lms = models.ManyToManyField(LMS, blank=True)
     
-    
     class Meta:
         verbose_name_plural = "WIMS"
-    
     
     def __str__(self):
         return "%s (%s)" % (self.name, self.url)
@@ -100,16 +96,14 @@ class WIMS(models.Model):
 class WimsClass(models.Model):
     """Represents a class on a WIMS server."""
     lms = models.ForeignKey(LMS, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256, default=None)
+    lms_guid = models.CharField(max_length=256, default=None)
     wims = models.ForeignKey(WIMS, models.CASCADE)
     qclass = models.CharField(max_length=256, default=None)
     name = models.CharField(max_length=2048, default=None)
     
-    
     class Meta:
         verbose_name_plural = "WimsClasses"
-        unique_together = (("lms", "lms_uuid"), ("wims", "qclass"),)
-    
+        unique_together = (("lms", "lms_guid", "wims"), ("wims", "qclass"),)
     
     def __str__(self):
         return "%s (%s)" % (self.name, self.qclass)
@@ -118,47 +112,53 @@ class WimsClass(models.Model):
 
 class WimsUser(models.Model):
     """Represent an user on a WIMS server."""
-    lms_uuid = models.CharField(max_length=256, null=True)
+    lms_guid = models.CharField(max_length=256, null=True)
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
     quser = models.CharField(max_length=256, default=None)
-    
     
     class Meta:
         verbose_name_plural = "WimsUsers"
         unique_together = (("quser", "wclass"),)
-    
     
     def __str__(self):
         return "%s" % self.quser
 
 
 
-class Activity(models.Model):
+class WimsSheet(models.Model):
     """Represents a Sheet on the WIMS server."""
     wclass = models.ForeignKey(WimsClass, models.CASCADE)
-    lms_uuid = models.CharField(max_length=256, default=None)
-    qsheet = models.CharField(max_length=256, default=None)
-    
+    lms_guid = models.CharField(max_length=256, default=None)
+    qsheet = models.CharField(max_length=256, null=True, default=None)
     
     class Meta:
-        verbose_name_plural = "Activities"
         unique_together = (("qsheet", "wclass"),)
 
 
 
-class GradeLink(models.Model):
-    """Store link to send grade back to the LMS."""
-    user = models.ForeignKey(WimsUser, models.CASCADE)
-    activity = models.ForeignKey(Activity, models.CASCADE)
-    sourcedid = models.CharField(max_length=256, default=None)
-    url = models.URLField(max_length=1023, default=None)
-    
+class WimsExam(models.Model):
+    """Represents an Exam on the WIMS server."""
+    wclass = models.ForeignKey(WimsClass, models.CASCADE)
+    lms_guid = models.CharField(max_length=256, default=None)
+    qexam = models.CharField(max_length=256, null=True, default=None)
     
     class Meta:
-        unique_together = (("user", "activity"),)
+        unique_together = (("qexam", "wclass"),)
+
+
+
+class GradeLinkBase(models.Model):
+    """Store links to send grade back to the LMS."""
+    user = models.ForeignKey(WimsUser, models.CASCADE)
+    sourcedid = models.CharField(max_length=256)
+    url = models.URLField(max_length=1023)
+    lms = models.ForeignKey(LMS, models.CASCADE)
     
+    class Meta:
+        abstract = True
     
-    def send_back(self, grade):
+    def send_back(self, grade, activity):
+        """Send the given grade back to the lms."""
         path = os.path.dirname(os.path.realpath(__file__))
         path = os.path.join(path, "../lti_app/ressources/replace.xml")
         with open(path) as f:
@@ -168,34 +168,89 @@ class GradeLink(models.Model):
             "Content-Type":   "application/xml",
             "Content-Length": str(len(content)),
         }
-        c = Client(client_key=self.activity.wclass.lms.key,
-                   client_secret=self.activity.wclass.lms.secret)
-        uri, headers, body = c.sign(self.url, "POST", body=content,
-                                    headers=headers)
+        c = Client(client_key=self.lms.key, client_secret=self.lms.secret)
+        uri, headers, body = c.sign(self.url, "POST", body=content, headers=headers)
         response = requests.post(uri, data=body, headers=headers)
-        
-        root = ElementTree.fromstring(response.text)
-        if not (200 <= response.status_code < 300 and root[0][0][2][0].text == "success"):
-            logger.warning(("Consumer sent an error response after sending grade for user '%s' and "
-                            "activity '%s' in class '%s': %s")
-                           % (self.user.quser, self.activity.qsheet, self.activity.wclass.qclass,
-                              root[0][0][2][2].text))
+
+        ident = activity.qsheet if isinstance(activity, WimsSheet) else activity.qexam
+        try:
+            root = ElementTree.fromstring(response.text)
+            test = 200 <= response.status_code < 300 and root[0][0][2][0].text == "success"
+            if not test:  # pragma: no cover
+                logger.warning(
+                    ("Consumer sent an error response after sending grade for user '%s' and "
+                     "sheet '%s' in class '%s': %s")
+                    % (self.user.quser, ident, activity.wclass.qclass, root[0][0][2][2].text)
+                )
+        except Exception:
+            logger.exception(
+                ("Consumer sent a badly formatted response after sending grade for user '%s' and "
+                 "sheet '%s' in class '%s': ")
+                % (self.user.quser, ident, activity.wclass.qclass)
+            )
+
+
+
+class GradeLinkSheet(GradeLinkBase):
+    """Store link of a Sheet."""
     
+    sheet = models.ForeignKey(WimsSheet, models.CASCADE)
+    
+    class Meta:
+        unique_together = (("user", "sheet"),)
     
     @classmethod
-    def send_back_all(cls, wclass, activity):
-        wapi = wimsapi.WimsAPI(wclass.wims.url, wclass.wims.ident, wclass.wims.passwd)
-        bol, response = wapi.getsheetscores(wclass.qclass, wclass.wims.rclass, activity.qsheet)
-        if not bol:
-            raise wimsapi.AdmRawError(response['message'])
+    def send_back_all(cls, wclass, sheet):
+        """Send the score of the sheet of every user back to the LMS. The score used
+        it the the one set by the teacher at the sheet creation for WIMS > 4.18, else
+        the cumul score."""
+        try:
+            wims = wclass.wims
+            grades = Class.get(
+                wims.url, wclass.wims.ident, wims.passwd, wclass.qclass, wims.rclass
+            ).getitem(sheet.qsheet, Sheet).scores()
+        except AdmRawError as e:
+            if "There is no user in this class" in str(e):
+                return
+            raise  # pragma: no cover
         
-        for infos in response['data_scores']:
-            if not infos['got_detail']:
-                continue
-            user = WimsUser.objects.get(wclass=wclass, quser=infos['id'])
+        for grade in grades:
+            user = WimsUser.objects.get(wclass=wclass, quser=grade.user.quser)
             try:
-                gl = cls.objects.get(user=user, activity=activity)
-            except cls.DoesNotExist:
+                gl = GradeLinkSheet.objects.get(user=user, sheet=sheet)
+            except GradeLinkSheet.DoesNotExist:
                 continue
-            grade = sum(infos['got_detail']) / len(infos['got_detail']) / 10
-            gl.send_back(grade)
+            score = grade.score / 10 if grade.score != -1 else grade.best / 100
+            gl.send_back(score, gl.sheet)
+
+
+
+class GradeLinkExam(GradeLinkBase):
+    """Store link of a Sheet."""
+    
+    exam = models.ForeignKey(WimsExam, models.CASCADE)
+    
+    class Meta:
+        unique_together = (("user", "exam"),)
+    
+    @classmethod
+    def send_back_all(cls, wclass, exam):
+        """Send the score of the exam of every user back to the LMS."""
+        try:
+            wims = wclass.wims
+            grades = Class.get(
+                wims.url, wclass.wims.ident, wims.passwd, wclass.qclass, wims.rclass
+            ).getitem(exam.qexam, Exam).scores()
+        except AdmRawError as e:
+            if "There's no user in this class" in str(e):
+                return
+            raise
+        
+        for grade in grades:
+            user = WimsUser.objects.get(wclass=wclass, quser=grade.user.quser)
+            try:
+                gl = GradeLinkExam.objects.get(user=user, exam=exam)
+            except GradeLinkExam.DoesNotExist:
+                continue
+            score = grade.score / 10
+            gl.send_back(score, gl.exam)

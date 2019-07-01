@@ -15,7 +15,7 @@ from lti_app import models
 
 @admin.register(models.LMS)
 class LMSAdmin(admin.ModelAdmin):
-    list_display = ('name', 'uuid')
+    list_display = ('name', 'guid')
 
 
 
@@ -27,25 +27,31 @@ class WIMSAdmin(admin.ModelAdmin):
 
 @admin.register(models.WimsClass)
 class WIMSClassAdmin(admin.ModelAdmin):
-    list_display = ('id', 'wims', 'lms_uuid', 'qclass')
+    list_display = ('id', 'wims', 'lms_guid', 'qclass')
 
 
 
 @admin.register(models.WimsUser)
 class WIMSUserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'lms_uuid', 'wclass', 'quser')
+    list_display = ('id', 'lms_guid', 'wclass', 'quser')
 
 
 
-@admin.register(models.Activity)
+@admin.register(models.WimsSheet)
 class ActivityAdmin(admin.ModelAdmin):
-    list_display = ('id', 'lms_uuid', 'wclass', 'qsheet')
+    list_display = ('id', 'lms_guid', 'wclass', 'qsheet')
 
 
 
-@admin.register(models.GradeLink)
-class GradeLinkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'activity', 'sourcedid', 'url')
+@admin.register(models.GradeLinkSheet)
+class GradeLinkSheetAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'sheet', 'sourcedid', 'url')
+
+
+
+@admin.register(models.GradeLinkExam)
+class GradeLinkSheetExam(admin.ModelAdmin):
+    list_display = ('id', 'user', 'exam', 'sourcedid', 'url')
 
 
 
