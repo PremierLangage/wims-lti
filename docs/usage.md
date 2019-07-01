@@ -83,4 +83,36 @@ class_email=address@email.com
 
 ## Send the grade back to the LMS
 
-Once a worksheet has been
+Once your class has been created through LTI, it will appear on WIMS-LTI :
+
+![class_created](images/class_created.png)
+
+Click on it to see the list of worksheets and exams created in
+this class, and their respective LTI URL :
+
+![activities](images/activities_url.png)
+
+With these LTI URLs, you can now create LTI activities on your LMS.
+
+To send the grade of the worksheet / exam from WIMS to the LMS, you only
+need to click on the corresponding LTI activity as a teacher. It will
+automatically send the grade of every user who clicked at least once on the
+activity to the LMS.
+
+***Caution :*** Only the grade of the **user who clicked at least once** on the link corresponding
+to the worksheet / exam will have their grade sent to the LMS. If an user
+has completed an <font color='blue'>**activity B**</font> using the LTI link of
+<font color='red'>**activity A**</font> (which is possible since the user is free to move once
+connected to WIMS), WIMS-LTI will not be able to sent his grade
+of <font color='blue'>**activity B**</font>.
+
+***However***, if the user click on the LTI link of <font color='blue'>**activity B**</font>,
+even after finishing it through the LTI link of <font color='red'>**activity A**</font>,
+WIMS-LTI will be able to sent the correct grade of <font color='blue'>**activity B**</font>.
+
+
+## Get the grade of an already existing WIMS class
+
+It is not possible to send the grade of an already existing WIMS class (not created
+through WIMS-LTI) to a LMS because, as stated above, their is no way to link WIMS'
+existing user to your LMS' user through LTI.
