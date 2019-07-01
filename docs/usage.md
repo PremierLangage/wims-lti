@@ -1,6 +1,6 @@
 ## Creating classes
 
-#### New Class
+***New Class***
 
 To create a new class through LTI, teacher only need to create an **LTI activity** on their LMS' course.
 The WIMS' class will be automatically created as soon as a **teacher** of the LMS' course click
@@ -31,7 +31,7 @@ WIMS server has not been added to WIMS-LTI or it does not have authorized your L
 contact your WIMS-LTI administrator to solve this problem.
 
 
-#### Copying an Existing Class
+***Copying an Existing Class***
 
 It is (for now) not possible to duplicate an existing class when creating a new class through LTI.
 A workaround is to create a backup if your existing class through
@@ -46,7 +46,7 @@ Once your backup is created, create a new class through LTI as above, go back to
 and choose your backup archive.
 
 
-#### Custom LTI Parameters:
+***Custom LTI Parameters: ***
 
 When creating a new class, a number of custom LTI parameters can be added to change some
 of the settings of the created class and its supervisor:
@@ -57,7 +57,7 @@ of the settings of the created class and its supervisor:
     * `custom_class_email` - Email of the class (default to the creator's email)
     * `custom_class_lang` - Language of the class (en, fr, es, it, etc - default to the LMS' language).
     * `custom_class_expiration` - Expiration date (yyyymmdd - default to 11 months).
-    * `custom_class_limit` - Maximum number of participants in the class (from 10 to 300, default to 150).
+    * `custom_class_limit` - Maximum number of participants in the class (from 10 to 500, default to 150).
     * `custom_class_level` - Level of the class (E1, ..., E6, H1, ..., H6, U1, ..., U5, G, R - default to U1).
     * `custom_class_css` - CSSfile (must exists on the WIMS server).
 
@@ -95,11 +95,10 @@ this class, and their respective LTI URL :
 With these LTI URLs, you can now create LTI activities on your LMS.
 
 To send the grade of the worksheet / exam from WIMS to the LMS, you only
-need to click on the corresponding LTI activity as a teacher. It will
-automatically send the grade of every user who clicked at least once on the
-activity to the LMS.
+need to click on the corresponding LTI activity as a teacher. In other words, WIMS-LTI will send
+the grade of every user who clicked on *activity A* every time a teacher click on *activity A*.
 
-***Caution :*** Only the grade of the **user who clicked at least once** on the link corresponding
+*Caution :* Only the grade of the **user who clicked at least once** on the link corresponding
 to the worksheet / exam will have their grade sent to the LMS. If an user
 has completed an <font color='blue'>**activity B**</font> using the LTI link of
 <font color='red'>**activity A**</font> (which is possible since the user is free to move once
