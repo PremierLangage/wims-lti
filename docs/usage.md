@@ -109,6 +109,12 @@ of <font color='blue'>**activity B**</font>.
 even after finishing it through the LTI link of <font color='red'>**activity A**</font>,
 WIMS-LTI will be able to sent the correct grade of <font color='blue'>**activity B**</font>.
 
+___
+
+For worksheets, the grade sent back to the LMS can differs according to the version of your WIMS server. For versions 
+prior to, and including 4.18, it is the `cumul` value (*i0*), for the latest version, it is the score computed according
+to the formula chosen by the teacher at the worksheet's creation.
+
 
 ## Get the grade of an already existing WIMS class
 
