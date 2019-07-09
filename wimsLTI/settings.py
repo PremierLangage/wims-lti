@@ -126,8 +126,8 @@ LOGGING = {
             'level':    'INFO',
         },
         'django.request': {
-            'handlers': ['console'],
-        	'level': 'INFO',
+            'handlers': ['console', 'mail_admins'],
+        	'level': 'ERROR',
         }
     },
 }
