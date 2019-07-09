@@ -99,13 +99,9 @@ LOGGING = {
         },
     },
     'formatters':               {
-        'verbose': {
-            'format':  '[%(asctime)-15s] %(levelname)s -- '
-                       'File: %(pathname)s line n°%(lineno)d -- %(message)s',
-            'datefmt': '%Y/%m/%d %H:%M:%S'
-        },
         'simple':  {
-            'format':  ("[%(asctime)-15s] [%(filename)s:%(funcName)s:%(lineno)d]"
+            'format':  ("[%(asctime)-15s] [%(pathname)s]"
+                        "[%(filename)s:%(funcName)s:%(lineno)d]"
                         " %(levelname)s -- %(message)s"),
             'datefmt': '%Y/%m/%d %H:%M:%S'
         },
@@ -121,7 +117,7 @@ LOGGING = {
             'level':        'WARNING',
             'class':        'django.utils.log.AdminEmailHandler',
             'include_html': True,
-            'formatter':    'verbose'
+            'formatter':    'simple'
         }
     },
     'loggers':                  {
@@ -129,6 +125,10 @@ LOGGING = {
             'handlers': ['console', 'mail_admins'],
             'level':    'INFO',
         },
+        'django.request': {
+            'handlers': ['console'],
+        	'level': 'INFO',
+        }
     },
 }
 
