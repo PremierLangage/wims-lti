@@ -41,14 +41,13 @@ class Role(Enum):
                 role - (str) The role string retrieved from the LTI request."""
         ret = []
         roles = [
-            r.replace("urn:lti:instrole:ims/lis/", "") \
-             .replace("urn:lti:sysrole:ims/lis/", "") \
-             .replace("urn:lti:role:ims/lis/", "") \
-             .strip()
+            (r.replace("urn:lti:instrole:ims/lis/", "")
+             .replace("urn:lti:sysrole:ims/lis/", "")
+             .replace("urn:lti:role:ims/lis/", "")
+             .strip())
             for r in role.split(",")
         ]
-        roles = [r.replace("urn:lti:instrole:ims/lis/", "") for r in roles]
-        for r in [r.replace("urn:lti:instrole:ims/lis/", "").strip() for r in role.split(",")]:
+        for r in roles:
             try:
                 ret.append(Role(r.title()))
             except ValueError:
