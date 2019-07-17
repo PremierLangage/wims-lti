@@ -71,7 +71,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
         },
-        
     },
 ]
 
@@ -126,8 +125,8 @@ LOGGING = {
             'level':    'INFO',
         },
         'django.request': {
-            'handlers': ['console', 'mail_admins'],
-            'level': 'ERROR',
+            'handlers': ['console'],
+        	'level': 'WARNING',
         }
     },
 }
