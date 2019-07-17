@@ -387,9 +387,14 @@ def activities(request, lms_pk, wims_pk, wclass_pk):
         return HttpResponseNotFound("WimsClass of ID %d Was not found on the server." % wclass_pk)
     
     try:
-        wclass = wimsapi.Class.get(class_srv.wims.url, class_srv.wims.ident, class_srv.wims.passwd,
-                                   class_srv.qclass, class_srv.wims.rclass)
-        
+        try:
+            wclass = wimsapi.Class.get(class_srv.wims.url, class_srv.wims.ident, class_srv.wims.passwd,
+                                       class_srv.qclass, class_srv.wims.rclass)
+        except wimsapi.AdmRawError as e:  # WIMS server responded with ERROR (pragma: no cover)
+            # Delete the class if it does not exists on the server anymore
+            if "class %s not existing" % str(class_srv.qclass) in str(e):
+                class_srv.delete()
+            raise
         sheets = wclass.listitem(wimsapi.Sheet)
         mode = ["pending", "active", "expired", "hidden"]
         for s in sheets:
