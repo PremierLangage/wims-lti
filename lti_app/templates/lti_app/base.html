@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -10,11 +11,11 @@
               href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
               integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
               crossorigin="anonymous">
-        <link rel="stylesheet" href="{% static 'css/lti_app.css' %}"/>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
               integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay"
               crossorigin="anonymous">
-        
+        <link rel="stylesheet" href="{% static 'css/lti_app.css' %}"/>
+
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
                 integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
                 crossorigin="anonymous"></script>
@@ -26,7 +27,7 @@
                 crossorigin="anonymous"></script>
     </head>
 
-    <body>
+    <body onload="pageLoaded()">
         <div class="container table-hover">
             {% for message in messages %}
                 <div class="alert {{ message.tags }} alert-dismissible" role="alert">
@@ -50,6 +51,43 @@
             });
         </script>
 
+        <script type="text/javascript">
+            function pageLoaded() {
+                let filterInput = document.getElementById('filter');
+                // Set the cursor into the filter-<input>
+                filterInput.focus();
+                filterInput.select();
+                // Call filtering method on every keyup
+                filterInput.onkeyup = function () {
+                    filterTable(filterInput.value);
+                };
+
+
+                // Filter the table for a given search-string
+                function filterTable(value) {
+                    let rows = document.getElementsByTagName('tr');
+                    let rowsLength = rows.length;
+
+                    for (let i = 0; i < rowsLength; ++i) {
+                        if (value === '') {
+                            rows[i].className = 'show';
+                        } else {
+                            let tds = rows[i].getElementsByTagName('td');
+                            let tdsLength = tds.length;
+
+                            rows[i].className = 'hide';
+
+                            for (let tdsCounter = 0; tdsCounter < tdsLength; ++tdsCounter) {
+                                if (tds[tdsCounter].innerText.indexOf(value) > -1) {
+                                    tds[tdsCounter].parentNode.className = 'show';
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
         {% block end_script %}{% endblock %}
     </body>
 </html>

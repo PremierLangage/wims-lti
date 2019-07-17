@@ -12,10 +12,13 @@
         </ol>
     </nav>
     {% if WIMS %}
+        <div id="filter-container" class="md-form active-cyan-2 mb-3">
+            <input id="filter" class="form-control" type="text" placeholder="Search" aria-label="Search">
+        </div>
         <table class="table table-striped">
             <thead class="thead-dark">
                 <tr>
-                	<th scope="col">#</th>
+                    <th scope="col"><i class="fas fa-graduation-cap"></i></th>
                     <th scope="col">WIMS</th>
                     <th scope="col">Name</th>
                     <th scope="col">URL</th>

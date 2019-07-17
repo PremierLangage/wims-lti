@@ -17,6 +17,11 @@
             <li class="breadcrumb-item active">{{ class.name }}</li>
         </ol>
     </nav>
+    {%  if sheets or exams %}
+        <div id="filter-container" class="md-form active-cyan-2 mb-3">
+            <input id="filter" class="form-control" type="text" placeholder="Search" aria-label="Search">
+        </div>
+    {% endif %}
     {% if sheets %}
         <table class="table table-striped">
             <thead class="thead-dark">
