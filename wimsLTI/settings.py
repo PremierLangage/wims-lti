@@ -71,7 +71,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
         },
-        
     },
 ]
 
@@ -99,13 +98,9 @@ LOGGING = {
         },
     },
     'formatters':               {
-        'verbose': {
-            'format':  '[%(asctime)-15s] %(levelname)s -- '
-                       'File: %(pathname)s line n°%(lineno)d -- %(message)s',
-            'datefmt': '%Y/%m/%d %H:%M:%S'
-        },
-        'simple':  {
-            'format':  ("[%(asctime)-15s] [%(filename)s:%(funcName)s:%(lineno)d]"
+        'simple': {
+            'format':  ("[%(asctime)-15s] [%(pathname)s]"
+                        "[%(filename)s:%(funcName)s:%(lineno)d]"
                         " %(levelname)s -- %(message)s"),
             'datefmt': '%Y/%m/%d %H:%M:%S'
         },
@@ -121,14 +116,18 @@ LOGGING = {
             'level':        'WARNING',
             'class':        'django.utils.log.AdminEmailHandler',
             'include_html': True,
-            'formatter':    'verbose'
+            'formatter':    'simple'
         }
     },
     'loggers':                  {
-        '': {
+        '':               {
             'handlers': ['console', 'mail_admins'],
             'level':    'INFO',
         },
+        'django.request': {
+            'handlers': ['console'],
+            'level':    'ERROR',
+        }
     },
 }
 
@@ -185,7 +184,6 @@ STATIC_URL = '/static/'
 
 # Directory containing mail's title and body
 MAIL_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mail")
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/

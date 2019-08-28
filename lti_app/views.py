@@ -10,10 +10,9 @@ import logging
 
 import requests
 import wimsapi
-from django.conf import settings
 from django.contrib import messages
-from django.http import (Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed,
-                         HttpResponseNotFound)
+from django.http import (Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
+                         HttpResponseNotAllowed, HttpResponseNotFound)
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET
@@ -21,8 +20,9 @@ from django.views.decorators.http import require_GET
 from lti_app.enums import Role
 from lti_app.exceptions import BadRequestException
 from lti_app.models import GradeLinkExam, GradeLinkSheet, LMS, WIMS, WimsClass
-from lti_app.utils import (check_custom_parameters, check_parameters, get_exam, get_or_create_class,
-                           get_or_create_user, get_sheet, is_valid_request, parse_parameters)
+from lti_app.utils import (MODE, check_custom_parameters, check_parameters, get_exam,
+                           get_or_create_class, get_or_create_user, get_sheet, is_teacher,
+                           is_valid_request, parse_parameters)
 
 
 logger = logging.getLogger(__name__)
@@ -184,30 +184,33 @@ def wims_sheet(request, wims_pk, sheet_pk):
         user_db, user = get_or_create_user(wclass_db, wclass, parameters)
         
         # Check whether the sheet already exists, creating it otherwise
-        sheet, sheet_db = get_sheet(wclass_db, wclass, sheet_pk, parameters)
+        sheet_db, sheet = get_sheet(wclass_db, wclass, sheet_pk, parameters)
+        if int(sheet.sheetmode) != 1:
+            return HttpResponseForbidden("This WIMS sheet (%s) is currently unavailable (%s)"
+                                         % (str(sheet.qsheet), MODE[int(sheet.sheetmode)]))
         
         # Storing the URL and ID to send the grade back to the LMS
         try:
-            gl = GradeLinkSheet.objects.get(user=user_db, sheet=sheet)
+            gl = GradeLinkSheet.objects.get(user=user_db, sheet=sheet_db)
             gl.sourcedid = parameters["lis_result_sourcedid"]
             gl.url = parameters["lis_outcome_service_url"]
             gl.save()
         except GradeLinkSheet.DoesNotExist:
-            GradeLinkSheet.objects.create(user=user_db, sheet=sheet, lms=lms,
+            GradeLinkSheet.objects.create(user=user_db, sheet=sheet_db, lms=lms,
                                           sourcedid=parameters["lis_result_sourcedid"],
                                           url=parameters["lis_outcome_service_url"])
         
         # If user is a teacher, send all grade back to the LMS
         role = Role.parse_role_lti(parameters["roles"])
-        if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
-            GradeLinkSheet.send_back_all(wclass_db, sheet)
+        if is_teacher(role):
+            GradeLinkSheet.send_back_all(wclass_db, sheet_db)
         
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
         if not bol:  # pragma: no cover
             raise wimsapi.AdmRawError(response['message'])
         
-        params = "&lang=%s&module=adm%%2Fsheet&sh=%s" % (wclass.lang, str(sheet_db.qsheet))
+        params = "&lang=%s&module=adm%%2Fsheet&sh=%s" % (wclass.lang, str(sheet.qsheet))
         url = response["home_url"] + params
     
     except WimsClass.DoesNotExist as e:
@@ -305,23 +308,26 @@ def wims_exam(request, wims_pk, exam_pk):
         user_db, user = get_or_create_user(wclass_db, wclass, parameters)
         
         # Check whether the exam already exists, creating it otherwise
-        exam, exam_db = get_exam(wclass_db, wclass, exam_pk, parameters)
+        exam_db, exam = get_exam(wclass_db, wclass, exam_pk, parameters)
+        if int(exam.exammode) != 1:
+            return HttpResponseForbidden("This exam (%s) is currently unavailable (%s)"
+                                         % (str(exam.qexam), MODE[int(exam.exammode)]))
         
         # Storing the URL and ID to send the grade back to the LMS
         try:
-            gl = GradeLinkExam.objects.get(user=user_db, exam=exam)
+            gl = GradeLinkExam.objects.get(user=user_db, exam=exam_db)
             gl.sourcedid = parameters["lis_result_sourcedid"]
             gl.url = parameters["lis_outcome_service_url"]
             gl.save()
         except GradeLinkExam.DoesNotExist:
-            GradeLinkExam.objects.create(user=user_db, exam=exam, lms=lms,
+            GradeLinkExam.objects.create(user=user_db, exam=exam_db, lms=lms,
                                          sourcedid=parameters["lis_result_sourcedid"],
                                          url=parameters["lis_outcome_service_url"])
         
         # If user is a teacher, send all grade back to the LMS
         role = Role.parse_role_lti(parameters["roles"])
-        if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
-            GradeLinkExam.send_back_all(wclass_db, exam)
+        if is_teacher(role):
+            GradeLinkExam.send_back_all(wclass_db, exam_db)
         
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
@@ -329,7 +335,7 @@ def wims_exam(request, wims_pk, exam_pk):
             raise wimsapi.AdmRawError(response['message'])
         
         params = ("&lang=%s&module=adm%%2Fclass%%2Fexam&+job=student&+exam=%s"
-                  % (wclass.lang, str(exam_db.qexam)))
+                  % (wclass.lang, str(exam.qexam)))
         url = response["home_url"] + params
     
     except WimsClass.DoesNotExist as e:
@@ -387,23 +393,30 @@ def activities(request, lms_pk, wims_pk, wclass_pk):
         return HttpResponseNotFound("WimsClass of ID %d Was not found on the server." % wclass_pk)
     
     try:
-        wclass = wimsapi.Class.get(class_srv.wims.url, class_srv.wims.ident, class_srv.wims.passwd,
-                                   class_srv.qclass, class_srv.wims.rclass)
-        
+        try:
+            wclass = wimsapi.Class.get(
+                class_srv.wims.url, class_srv.wims.ident, class_srv.wims.passwd, class_srv.qclass,
+                class_srv.wims.rclass
+            )
+        except wimsapi.AdmRawError as e:  # WIMS server responded with ERROR (pragma: no cover)
+            # Delete the class if it does not exists on the server anymore
+            if "class %s not existing" % str(class_srv.qclass) in str(e):
+                class_srv.delete()
+            raise
         sheets = wclass.listitem(wimsapi.Sheet)
-        mode = ["pending", "active", "expired", "hidden"]
+        
         for s in sheets:
             s.lti_url = request.build_absolute_uri(
                 reverse("lti:wims_sheet", args=[wims_pk, s.qsheet])
             )
-            s.sheetmode = mode[int(s.sheetmode)]
+            s.sheetmode = MODE[int(s.sheetmode)]
         
         exams = wclass.listitem(wimsapi.Exam)
         for s in exams:
             s.lti_url = request.build_absolute_uri(
                 reverse("lti:wims_exam", args=[wims_pk, s.qexam])
             )
-            s.exammode = mode[int(s.exammode)]
+            s.exammode = MODE[int(s.exammode)]
         
         return render(request, "lti_app/activities.html", {
             "LMS":    LMS.objects.get(pk=lms_pk),

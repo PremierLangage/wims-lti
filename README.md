@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/PremierLangage/wims-lti.svg?branch=master)](https://travis-ci.org/PremierLangage/wims-lti)
 [![codecov](https://codecov.io/gh/PremierLangage/wims-lti/branch/master/graph/badge.svg)](https://codecov.io/gh/PremierLangage/wims-lti)
+[![Documentation Status](https://readthedocs.org/projects/wims-lti/badge/?version=latest)](https://wims-lti.readthedocs.io/?badge=latest)
 [![GPLv3](https://img.shields.io/badge/license-GPLv3-brightgreen.svg)](#)
 
 

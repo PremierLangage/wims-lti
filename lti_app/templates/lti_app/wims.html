@@ -12,9 +12,13 @@
         </ol>
     </nav>
     {% if WIMS %}
+        <div id="filter-container" class="md-form active-cyan-2 mb-3">
+            <input id="filter" class="form-control" type="text" placeholder="Search" aria-label="Search">
+        </div>
         <table class="table table-striped">
             <thead class="thead-dark">
                 <tr>
+                    <th scope="col"><i class="fas fa-graduation-cap"></i></th>
                     <th scope="col">WIMS</th>
                     <th scope="col">Name</th>
                     <th scope="col">URL</th>
@@ -24,6 +28,7 @@
             <tbody>
                 {% for item in WIMS %}
                     <tr>
+                        <td data-href="{% url 'lti:classes' LMS.pk item.pk %}"><i class="fas fa-caret-down"></i></td>
                         <td data-href="{% url 'lti:classes' LMS.pk item.pk %}">{{ item.pk }}</td>
                         <td data-href="{% url 'lti:classes' LMS.pk item.pk %}">{{ item.name }}</td>
                         <td><code>{{ item.url }}</code></td>

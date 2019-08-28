@@ -171,7 +171,7 @@ class GradeLinkBase(models.Model):
         c = Client(client_key=self.lms.key, client_secret=self.lms.secret)
         uri, headers, body = c.sign(self.url, "POST", body=content, headers=headers)
         response = requests.post(uri, data=body, headers=headers)
-
+        
         ident = activity.qsheet if isinstance(activity, WimsSheet) else activity.qexam
         try:
             root = ElementTree.fromstring(response.text)

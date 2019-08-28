@@ -22,14 +22,18 @@
                 <td>
                     <code>{{ request.scheme }}://{{ request.get_host }}{% url 'lti:wims_class' WIMS.pk %}</code>
                 </td>
-            </tr>        
+            </tr>
         </tbody>
-    </table> 
-                                                  
+    </table>
+
     {% if classes %}
+        <div id="filter-container" class="md-form active-cyan-2 mb-3">
+            <input id="filter" class="form-control" type="text" placeholder="Search" aria-label="Search">
+        </div>
         <table class="table table-striped">
             <thead class="thead-dark">
                 <tr>
+                    <th scope="col"><i class="fas fa-graduation-cap"></i></th>
                     <th scope="col">Classe</th>
                     <th scope="col">Name</th>
                     <th scope="col">ID LMS</th>
@@ -39,6 +43,7 @@
             <tbody>
                 {% for item in classes %}
                     <tr data-href="{% url 'lti:sheets' LMS.pk WIMS.pk item.pk %}">
+                        <td><i class="fas fa-caret-down"></i></td>
                         <td>{{ item.pk }}</td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.lms_guid }}</td>
