@@ -98,7 +98,7 @@ LOGGING = {
         },
     },
     'formatters':               {
-        'simple':  {
+        'simple': {
             'format':  ("[%(asctime)-15s] [%(pathname)s]"
                         "[%(filename)s:%(funcName)s:%(lineno)d]"
                         " %(levelname)s -- %(message)s"),
@@ -120,13 +120,13 @@ LOGGING = {
         }
     },
     'loggers':                  {
-        '': {
+        '':               {
             'handlers': ['console', 'mail_admins'],
             'level':    'INFO',
         },
         'django.request': {
             'handlers': ['console'],
-        	'level': 'WARNING',
+            'level':    'WARNING',
         }
     },
 }
@@ -184,7 +184,6 @@ STATIC_URL = '/static/'
 
 # Directory containing mail's title and body
 MAIL_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mail")
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/

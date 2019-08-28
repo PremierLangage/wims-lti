@@ -51,9 +51,9 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
-        uri = oauth_signature.normalize_base_string_uri(
+        uri = oauth_signature.base_string_uri(
             "https://testserver" + reverse("lti:wims_class", args=[1]))
-        base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
+        base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
@@ -90,9 +90,9 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
-        uri = oauth_signature.normalize_base_string_uri(
+        uri = oauth_signature.base_string_uri(
             "https://testserver" + reverse("lti:wims_class", args=[1]))
-        base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
+        base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
@@ -128,9 +128,9 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
-        uri = oauth_signature.normalize_base_string_uri(
+        uri = oauth_signature.base_string_uri(
             "https://testserver" + reverse("lti:wims_class", args=[1]))
-        base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
+        base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret2", None)
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
@@ -163,9 +163,9 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
-        uri = oauth_signature.normalize_base_string_uri(
+        uri = oauth_signature.base_string_uri(
             "https://testserver" + reverse("lti:wims_class", args=[1]))
-        base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
+        base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret2", None)
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
@@ -198,9 +198,9 @@ class IsValidRequestTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
-        uri = oauth_signature.normalize_base_string_uri(
+        uri = oauth_signature.base_string_uri(
             "https://testserver" + reverse("lti:wims_class", args=[1]))
-        base_string = oauth_signature.construct_base_string("POST", uri, norm_params)
+        base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         request = RequestFactory().post(reverse("lti:wims_class", args=[1]), secure=True)
