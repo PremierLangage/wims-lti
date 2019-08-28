@@ -126,7 +126,7 @@ LOGGING = {
         },
         'django.request': {
             'handlers': ['console'],
-            'level':    'WARNING',
+            'level':    'ERROR',
         }
     },
 }
