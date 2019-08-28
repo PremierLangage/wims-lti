@@ -32,6 +32,6 @@ EMAIL_PORT = 25
 SERVER_EMAIL = "no-reply@u-pem.fr"
 
 ADMINS = [
-			("Coumes Quentin",   "qcoumes@etud.u-pem.fr"),
-			("Calle Christophe", "ccalle@etud.u-pem.fr"),
-		]
+    ("Coumes Quentin", "qcoumes@etud.u-pem.fr"),
+    ("Calle Christophe", "ccalle@etud.u-pem.fr"),
+]
