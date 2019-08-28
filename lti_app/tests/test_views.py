@@ -12,6 +12,7 @@ from lti_app import views
 # URL to the WIMS server used for tests, the server must recogned ident 'myself' and passwd 'toto'
 from lti_app.enums import Role
 from lti_app.models import LMS, WIMS, WimsClass
+from lti_app.tests.utils import untar_archive
 
 
 WIMS_URL = os.getenv("WIMS_URL") or "http://localhost:7777/wims/wims.cgi"
@@ -667,12 +668,62 @@ class WimsSheetTestCase(TestCase):
         wclass.save(WIMS_URL, "myself", "toto")
         WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
                                  name="test1")
-        wclass.additem(Sheet("Titre", "Description", sheetmode=1))
-        
+        sheet = Sheet("Titre", "Description", sheetmode=1)
+        wclass.additem(sheet)
         r = views.wims_sheet(request, 1, 1)
         
         self.assertIn(WIMS_URL, r.url)
         self.assertIn("sh=1", r.url)
+    
+    
+    def test_wims_sheet_forbidden(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-FR',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            '77',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'Doe',
+            'lis_person_name_given':              'Jhon',
+            'lis_result_sourcedid':               "14821455",
+            'lis_outcome_service_url':            "http://www.outcom.com",
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 KEY,
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              Role.LEARNER.value,
+        }
+        
+        norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
+        
+        uri = oauth_signature.base_string_uri(
+            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+        base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
+        
+        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
+        request = RequestFactory().post(reverse("lti:wims_sheet", args=[1, 1]), secure=True)
+        request.POST = params
+        
+        wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
+                                   rclass="myclass")
+        lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM", key="provider1", secret="secret1")
+        supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
+        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password", supervisor,
+                       lang="fr")
+        wclass.save(WIMS_URL, "myself", "toto")
+        WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
+                                 name="test1")
+        sheet = Sheet("Titre", "Description", sheetmode=0)
+        wclass.additem(sheet)
+        r = views.wims_sheet(request, 1, 1)
+        
+        self.assertEqual(403, r.status_code)
     
     
     def test_wims_sheet_ok_overwrite_sourcedid(self):
@@ -768,13 +819,10 @@ class WimsExamTestCase(TestCase):
                                    rclass="myclass")
         lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM", key="provider1", secret="secret1")
-        supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
-        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password", supervisor,
-                       lang="fr")
-        wclass.save(WIMS_URL, "myself", "toto")
+        qclass = untar_archive()
+        wclass = Class.get(WIMS_URL, "myself", "toto", qclass, "myclass")
         WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
                                  name="test1")
-        wclass.additem(Exam("Titre", "Description", exammode=1))
         
         r = views.wims_exam(request, 1, 1)
         
@@ -1113,18 +1161,63 @@ class WimsExamTestCase(TestCase):
                                    rclass="myclass")
         lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM", key="provider1", secret="secret1")
+        qclass = untar_archive()
+        wclass = Class.get(WIMS_URL, "myself", "toto", qclass, "myclass")
+        WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
+                                 name="test1")
+        r = views.wims_exam(request, 1, 1)
+        
+        self.assertIn(WIMS_URL, r.url)
+        self.assertIn("exam=1", r.url)
+    
+    
+    def test_wims_exam_forbidden_student(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-FR',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            '77',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'Doe',
+            'lis_person_name_given':              'Jhon',
+            'lis_result_sourcedid':               "14821455",
+            'lis_outcome_service_url':            "http://www.outcom.com",
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 KEY,
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              Role.LEARNER.value,
+        }
+        
+        norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
+        
+        uri = oauth_signature.base_string_uri(
+            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+        base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
+        
+        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
+        request = RequestFactory().post(reverse("lti:wims_exam", args=[1, 1]), secure=True)
+        request.POST = params
+        
+        wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
+                                   rclass="myclass")
+        lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM", key="provider1", secret="secret1")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password", supervisor,
                        lang="fr")
         wclass.save(WIMS_URL, "myself", "toto")
         WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
                                  name="test1")
-        wclass.additem(Exam("Titre", "Description", exammode=1))
-        
+        exam = Exam("Titre", "Description", exammode=1)
+        wclass.additem(exam)
         r = views.wims_exam(request, 1, 1)
-        
-        self.assertIn(WIMS_URL, r.url)
-        self.assertIn("exam=1", r.url)
+        self.assertEqual(403, r.status_code)
     
     
     def test_wims_exam_ok_overwrite_sourcedid(self):
@@ -1165,13 +1258,10 @@ class WimsExamTestCase(TestCase):
                                    rclass="myclass")
         lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM", key="provider1", secret="secret1")
-        supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
-        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password", supervisor,
-                       lang="fr")
-        wclass.save(WIMS_URL, "myself", "toto")
+        qclass = untar_archive()
+        wclass = Class.get(WIMS_URL, "myself", "toto", qclass, "myclass")
         WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
                                  name="test1")
-        wclass.additem(Exam("Titre", "Description", exammode=1))
         
         views.wims_exam(request, 1, 1)
         r = views.wims_exam(request, 1, 1)
