@@ -29,6 +29,14 @@ from lti_app.validator import CustomParameterValidator, RequestValidator, valida
 
 logger = logging.getLogger(__name__)
 
+MODE = ["pending", "active", "expired", "hidden"]
+
+
+
+def is_teacher(role):
+    """Returns whether role is considered as a teacher."""
+    return not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS)
+
 
 
 def is_valid_request(request):
@@ -287,7 +295,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
     
     except WimsClass.DoesNotExist:
         role = Role.parse_role_lti(parameters["roles"])
-        if set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
+        if not is_teacher(role):
             logger.warning(str(role))
             msg = ("You must have at least one of these roles to create a Wims class: %s. Your "
                    "roles: %s")
@@ -350,7 +358,7 @@ def get_or_create_user(wclass_db, wclass, parameters):
     user an instance of wimsapi.User."""
     try:
         role = Role.parse_role_lti(parameters["roles"])
-        if not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS):
+        if is_teacher(role):
             user_db = WimsUser.objects.get(lms_guid=None, wclass=wclass_db)
         else:
             user_db = WimsUser.objects.get(lms_guid=parameters['user_id'], wclass=wclass_db)
