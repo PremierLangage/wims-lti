@@ -17,7 +17,7 @@ python:
 
 
 before_install:
-  - git clone --single-branch --branch wims-19a https://github.com/qcoumes/docker-wims-minimal.git
+  - git clone --single-branch --branch wims-4.19a https://github.com/qcoumes/docker-wims-minimal.git
   - docker build -t wims-minimal docker-wims-minimal/
   - docker run -itd -p 7777:80 --name wims wims-minimal
   - docker container start wims
