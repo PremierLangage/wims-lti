@@ -62,7 +62,7 @@ class LMS(models.Model):
         ]
     
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "%s (%s)" % (self.name, self.url)
 
 
@@ -97,7 +97,7 @@ class WIMS(models.Model):
         verbose_name_plural = "WIMS"
     
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "%s (%s)" % (self.name, self.url)
 
 
@@ -117,7 +117,7 @@ class WimsClass(models.Model):
         unique_together = (("lms", "lms_guid", "wims"), ("wims", "qclass"),)
     
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "lms guid: %s - wims guid: %s" % (self.name, self.qclass)
 
 
@@ -135,7 +135,7 @@ class WimsUser(models.Model):
         unique_together = (("quser", "wclass"),)
     
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "lms guid: %s - wims guid: %s" % (self.lms_guid, self.quser)
 
 
@@ -152,7 +152,7 @@ class WimsSheet(models.Model):
         unique_together = (("qsheet", "wclass"),)
     
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "lms guid: %s - wims guid: %s" % (self.lms_guid, self.qsheet)
 
 
@@ -169,7 +169,7 @@ class WimsExam(models.Model):
         unique_together = (("qexam", "wclass"),)
     
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "lms guid: %s - wims guid: %s" % (self.lms_guid, self.qexam)
 
 
@@ -190,12 +190,12 @@ class GradeLinkBase(models.Model):
     
     
     @property
-    def ident(self):  # pragma: no cover
+    def ident(self) -> str:  # pragma: no cover
         """Return the identifier of this activity on its WIMS server."""
         raise NotImplementedError()
     
     
-    def send_back(self, grade):
+    def send_back(self, grade: float) -> bool:
         """Send the given grade back to the lms."""
         content = (
                 settings.XML_REPLACE
@@ -258,13 +258,13 @@ class GradeLinkSheet(GradeLinkBase):
     
     
     @property
-    def ident(self):
+    def ident(self) -> str:
         """Return the identifier of this activity on its WIMS server."""
         return self.activity.qsheet
     
     
     @classmethod
-    def send_back_all(cls, sheet):
+    def send_back_all(cls, sheet: WimsSheet) -> int:
         """Send the score of the sheet of every user back to the LMS. The score used
         it the the one set by the teacher at the sheet creation for WIMS > 4.18, else
         the cumul score."""
@@ -304,13 +304,13 @@ class GradeLinkExam(GradeLinkBase):
     
     
     @property
-    def ident(self):
+    def ident(self) -> str:
         """Return the identifier of this activity on its WIMS server."""
         return self.activity.qexam
     
     
     @classmethod
-    def send_back_all(cls, exam):
+    def send_back_all(cls, exam: WimsExam) -> int:
         """Send the score of the exam of every user back to the LMS."""
         try:
             wclass = exam.wclass

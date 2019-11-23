@@ -11,8 +11,8 @@ import logging
 import requests
 import wimsapi
 from django.contrib import messages
-from django.http import (Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
-                         HttpResponseNotAllowed, HttpResponseNotFound)
+from django.http import (Http404, HttpRequest, HttpResponse, HttpResponseBadRequest,
+                         HttpResponseForbidden, HttpResponseNotAllowed, HttpResponseNotFound)
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 
-def wims_class(request, wims_pk):
+def wims_class(request: HttpRequest, wims_pk: int) -> HttpResponse:
     """Redirect the client to the WIMS server corresponding to <pk>.
 
     Will retrieve/create the right WIMS' class/user according to informations in request.POST.
@@ -105,7 +105,7 @@ def wims_class(request, wims_pk):
 
 
 
-def wims_sheet(request, wims_pk, sheet_pk):
+def wims_sheet(request: HttpRequest, wims_pk: int, sheet_pk: int) -> HttpResponse:
     """Redirect the client to the WIMS server corresponding to <wims_pk> and sheet <sheet_pk>.
 
         Will retrieve/create the right WIMS' class/user according to informations in request.POST.
@@ -229,7 +229,7 @@ def wims_sheet(request, wims_pk, sheet_pk):
 
 
 
-def wims_exam(request, wims_pk, exam_pk):
+def wims_exam(request: HttpRequest, wims_pk: int, exam_pk: int) -> HttpResponse:
     """Redirect the client to the WIMS server corresponding to <wims_pk> and exam <exam_pk>.
 
         Will retrieve/create the right WIMS' class/user according to informations in request.POST.
@@ -355,7 +355,7 @@ def wims_exam(request, wims_pk, exam_pk):
 
 
 @require_GET
-def lms(request):
+def lms(request) -> HttpResponse:
     """Display the list of available LMS."""
     return render(request, "lti_app/lms.html", {
         "LMS": LMS.objects.all(),
@@ -364,7 +364,7 @@ def lms(request):
 
 
 @require_GET
-def wims(request, lms_pk):
+def wims(request: HttpRequest, lms_pk: int) -> HttpResponse:
     """Display the list of available WIMS server that authorized <lms_pk>."""
     return render(request, "lti_app/wims.html", {
         "LMS":  LMS.objects.get(pk=lms_pk),
@@ -374,7 +374,7 @@ def wims(request, lms_pk):
 
 
 @require_GET
-def classes(request, lms_pk, wims_pk):
+def classes(request: HttpRequest, lms_pk: int, wims_pk: int) -> HttpResponse:
     """Display the list the WIMS classes on the <wims_pk> server."""
     return render(request, "lti_app/classes.html", {
         "LMS":     LMS.objects.get(pk=lms_pk),
@@ -385,7 +385,7 @@ def classes(request, lms_pk, wims_pk):
 
 
 @require_GET
-def activities(request, lms_pk, wims_pk, wclass_pk):
+def activities(request: HttpRequest, lms_pk: int, wims_pk: int, wclass_pk: int) -> HttpResponse:
     """Display the list of WIMS worksheet and exam in <wclass_pk> WIMS class."""
     try:
         class_srv = WimsClass.objects.get(pk=wclass_pk)

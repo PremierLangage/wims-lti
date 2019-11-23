@@ -12,18 +12,20 @@ import random
 import string
 from datetime import datetime
 from string import ascii_letters, digits
+from typing import Any, Dict, Tuple
 
 import oauth2
 import wimsapi
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
+from django.http import HttpRequest
 from lti.contrib.django import DjangoToolProvider
 from wimsapi import Exam, Sheet
 
 from lti_app.enums import Role
 from lti_app.exceptions import BadRequestException
-from lti_app.models import WimsClass, WimsExam, WimsSheet, WimsUser
+from lti_app.models import LMS, WIMS, WimsClass, WimsExam, WimsSheet, WimsUser
 from lti_app.validator import CustomParameterValidator, RequestValidator, validate
 
 
@@ -33,13 +35,13 @@ MODE = ["pending", "active", "expired", "hidden"]
 
 
 
-def is_teacher(role):
+def is_teacher(role: Role) -> bool:
     """Returns whether role is considered as a teacher."""
     return not set(role).isdisjoint(settings.ROLES_ALLOWED_CREATE_WIMS_CLASS)
 
 
 
-def is_valid_request(request):
+def is_valid_request(request: HttpRequest) -> bool:
     """Check whether the request is valid and is accepted by oauth2.
 
     Raises:
@@ -62,10 +64,11 @@ def is_valid_request(request):
         logger.debug("LTI Authentification aborted: signature check failed with parameters : %s",
                      parameters)
         raise PermissionDenied("Invalid request: signature check failed.")
+    return True
 
 
 
-def check_parameters(param):
+def check_parameters(param: Dict[str, Any]) -> None:
     """Check that mandatory parameters are present (either by LTI
     specification or required by this app)
 
@@ -83,7 +86,7 @@ def check_parameters(param):
 
 
 
-def check_custom_parameters(params):
+def check_custom_parameters(params: Dict[str, Any]) -> None:
     """Checks that custom parameters, if given, are properly formatted.
 
     Raises api.exceptions.BadRequestException if this is not the case."""
@@ -115,7 +118,7 @@ def check_custom_parameters(params):
 
 
 
-def parse_parameters(p):
+def parse_parameters(p: Dict[str, Any]) -> Dict[str, Any]:
     """Returns the a dictionnary of the LTI request parameters,
     replacing missing parameters with None.
 
@@ -193,7 +196,7 @@ def parse_parameters(p):
 
 
 
-def create_supervisor(params):
+def create_supervisor(params: Dict[str, Any]) -> wimsapi.User:
     """Create an instance of wimapi.User corresponding to the class' supervisor with the given LTI
     request's parameters."""
     supervisor = {
@@ -208,7 +211,7 @@ def create_supervisor(params):
 
 
 
-def create_class(wclass_db, params):
+def create_class(wims_srv: WIMS, params: Dict[str, Any]) -> wimsapi.Class:
     """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
     
     wclass_dic = {
@@ -219,19 +222,19 @@ def create_class(wclass_db, params):
             "lis_person_contact_email_primary"],
         "lang":        params["custom_class_lang"] or params["launch_presentation_locale"][:2],
         "expiration":  (params["custom_class_expiration"]
-                        or (datetime.now() + wclass_db.expiration).strftime("%Y%m%d")),
-        "limit":       params["custom_class_limit"] or wclass_db.class_limit,
+                        or (datetime.now() + wims_srv.expiration).strftime("%Y%m%d")),
+        "limit":       params["custom_class_limit"] or wims_srv.class_limit,
         "level":       params["custom_class_level"] or "H4",
         "css":         params["custom_class_css"] or "",
         "password":    ''.join(random.choice(ascii_letters + digits) for _ in range(10)),
         "supervisor":  create_supervisor(params),
-        "rclass":      wclass_db.rclass,
+        "rclass":      wims_srv.rclass,
     }
     return wimsapi.Class(**wclass_dic)
 
 
 
-def generate_mail(wclass_db, wclass):
+def generate_mail(wclass_db: WimsClass, wclass: wimsapi.Class) -> Tuple[str, str]:
     """Returns the title and the body of the credentials mail corresponding to
     the language of the class."""
     
@@ -265,7 +268,8 @@ def generate_mail(wclass_db, wclass):
 
 
 
-def get_or_create_class(lms, wims_srv, wims, parameters):
+def get_or_create_class(lms: LMS, wims_srv: WIMS, wapi: wimsapi.WimsAPI,
+                        parameters: Dict[str, Any]) -> Tuple[WimsClass, wimsapi.Class]:
     """Get the WIMS' class database and wimsapi.Class instances, create them if they does not
     exists.
 
@@ -282,7 +286,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
                                           lms_guid=parameters['context_id'])
         
         try:
-            wclass = wimsapi.Class.get(wims.url, wims.ident, wims.passwd, wclass_db.qclass,
+            wclass = wimsapi.Class.get(wapi.url, wapi.ident, wapi.passwd, wclass_db.qclass,
                                        wims_srv.rclass)
         except wimsapi.AdmRawError as e:
             if "not existing" in str(e):  # Class was deleted on the WIMS server
@@ -304,7 +308,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
             raise PermissionDenied(msg)
         
         wclass = create_class(wims_srv, parameters)
-        wclass.save(wims.url, wims.ident, wims.passwd)
+        wclass.save(wapi.url, wapi.ident, wapi.passwd)
         wclass_db = WimsClass.objects.create(
             lms=lms, lms_guid=parameters["context_id"],
             wims=wims_srv, qclass=wclass.qclass, name=wclass.name
@@ -330,7 +334,7 @@ def get_or_create_class(lms, wims_srv, wims, parameters):
 
 
 
-def create_user(parameters):
+def create_user(parameters: Dict[str, Any]) -> wimsapi.User:
     """Create an instance of wimsapi.User with the given LTI request's parameters."""
     password = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     lastname = parameters['lis_person_name_family']
@@ -343,7 +347,8 @@ def create_user(parameters):
 
 
 
-def get_or_create_user(wclass_db, wclass, parameters):
+def get_or_create_user(wclass_db: WimsClass, wclass: wimsapi.Class, parameters: Dict[str, Any]
+                       ) -> Tuple[WimsUser, wimsapi.User]:
     """Get the WIMS' user database and wimsapi.User instances, create them if they does not
     exists.
 
@@ -396,7 +401,8 @@ def get_or_create_user(wclass_db, wclass, parameters):
 
 
 
-def get_sheet(wclass_db, wclass, qsheet, parameters):
+def get_sheet(wclass_db: WimsClass, wclass: wimsapi.Class, qsheet: int, parameters: Dict[str, Any]
+              ) -> Tuple[WimsSheet, wimsapi.Sheet]:
     """Get the WIMS' sheet database and wimsapi.Sheet instances, create them if they does not
     exists.
 
@@ -424,7 +430,8 @@ def get_sheet(wclass_db, wclass, qsheet, parameters):
 
 
 
-def get_exam(wclass_db, wclass, qexam, parameters):
+def get_exam(wclass_db: WimsClass, wclass: wimsapi.Class, qexam: int, parameters: Dict[str, Any]
+             ) -> Tuple[WimsExam, wimsapi.Exam]:
     """Get the WIMS' exam database and wimsapi.Exam instances, create them if they does not
     exists.
 

@@ -34,7 +34,7 @@ class Role(Enum):
     
     
     @classmethod
-    def parse_role_lti(cls, role):
+    def parse_role_lti(cls, role: str) -> 'Role':
         """Returns the list of Roles' enums corresponding to the LTI roles.
     
             Parameter:
