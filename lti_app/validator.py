@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#  validator.py
+#  validators.py
 #
 #  Authors:
 #       - Coumes Quentin <coumes.quentin@gmail.com>

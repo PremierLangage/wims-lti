@@ -1,4 +1,11 @@
-import os
+# -*- coding: utf-8 -*-
+#
+#  test_views.py
+#
+#  Authors:
+#       - Coumes Quentin <coumes.quentin@gmail.com>
+#
+
 
 import oauth2
 import oauthlib.oauth1.rfc5849.signature as oauth_signature
@@ -9,17 +16,10 @@ from django.test import Client, RequestFactory, TestCase
 from wimsapi import Class, Exam, Sheet, User
 
 from lti_app import views
-# URL to the WIMS server used for tests, the server must recogned ident 'myself' and passwd 'toto'
 from lti_app.enums import Role
 from lti_app.models import LMS, WIMS, WimsClass
-from lti_app.tests.utils import untar_archive
-
-
-WIMS_URL = os.getenv("WIMS_URL") or "http://localhost:7777/wims/wims.cgi"
-
-KEY = 'provider1'
-SECRET = 'secret1'
-PASSWORD = "password"
+from lti_app.tests.utils import (BaseLinksViewTestCase, KEY, SECRET, WIMS_URL, untar_archive,
+                                 TEST_SERVER)
 
 
 
@@ -51,7 +51,7 @@ class WimsClassTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_class", args=[1]))
+            TEST_SERVER + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -137,7 +137,7 @@ class WimsClassTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_class", args=[1]))
+            TEST_SERVER + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -176,7 +176,7 @@ class WimsClassTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_class", args=[1]))
+            TEST_SERVER + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -219,7 +219,7 @@ class WimsClassTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_class", args=[1]))
+            TEST_SERVER + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         
@@ -261,7 +261,7 @@ class WimsClassTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_class", args=[1]))
+            TEST_SERVER + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         
@@ -306,7 +306,7 @@ class WimsSheetTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_sheet", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -357,7 +357,7 @@ class WimsSheetTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_sheet", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -449,7 +449,7 @@ class WimsSheetTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_sheet", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -486,7 +486,7 @@ class WimsSheetTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_sheet", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -527,7 +527,7 @@ class WimsSheetTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_sheet", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         
@@ -567,7 +567,7 @@ class WimsSheetTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_sheet", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         
@@ -609,7 +609,7 @@ class WimsSheetTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_sheet", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -651,7 +651,7 @@ class WimsSheetTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_sheet", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -702,7 +702,7 @@ class WimsSheetTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_sheet", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -719,7 +719,7 @@ class WimsSheetTestCase(TestCase):
         wclass.save(WIMS_URL, "myself", "toto")
         WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
                                  name="test1")
-        sheet = Sheet("Titre", "Description", sheetmode=0)
+        sheet = Sheet("Titre", "Description")
         wclass.additem(sheet)
         r = views.wims_sheet(request, 1, 1)
         
@@ -752,7 +752,7 @@ class WimsSheetTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_sheet", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_sheet", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -808,7 +808,7 @@ class WimsExamTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -856,7 +856,7 @@ class WimsExamTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -948,7 +948,7 @@ class WimsExamTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -985,7 +985,7 @@ class WimsExamTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -1026,7 +1026,7 @@ class WimsExamTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         
@@ -1066,7 +1066,7 @@ class WimsExamTestCase(TestCase):
         
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
         
@@ -1108,7 +1108,7 @@ class WimsExamTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -1150,7 +1150,53 @@ class WimsExamTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
+        base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
+        
+        params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
+        request = RequestFactory().post(reverse("lti:wims_exam", args=[1, 1]), secure=True)
+        request.POST = params
+        
+        wims = WIMS.objects.create(url=WIMS_URL, name="WIMS UPEM", ident="myself", passwd="toto",
+                                   rclass="myclass")
+        lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM", key="provider1", secret="secret1")
+        qclass = untar_archive()
+        wclass = Class.get(WIMS_URL, "myself", "toto", qclass, "myclass")
+        WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims, qclass=wclass.qclass,
+                                 name="test1")
+        r = views.wims_exam(request, 1, 1)
+        
+        self.assertIn(WIMS_URL, r.url)
+        self.assertIn("exam=1", r.url)
+    
+    def test_wims_exam_ok_teacher(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-FR',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            '77',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             'Doe',
+            'lis_person_name_given':              'Jhon',
+            'lis_result_sourcedid':               "14821455",
+            'lis_outcome_service_url':            "http://www.outcom.com",
+            'tool_consumer_instance_description': 'UPEM',
+            'tool_consumer_instance_guid':        "elearning.upem.fr",
+            'oauth_consumer_key':                 KEY,
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              Role.INSTRUCTOR.value,
+        }
+        
+        norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
+        
+        uri = oauth_signature.base_string_uri(
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -1197,7 +1243,7 @@ class WimsExamTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -1246,7 +1292,7 @@ class WimsExamTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_exam", args=[1, 1]))
+            TEST_SERVER + reverse("lti:wims_exam", args=[1, 1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -1268,50 +1314,6 @@ class WimsExamTestCase(TestCase):
         
         self.assertIn(WIMS_URL, r.url)
         self.assertIn("exam=1", r.url)
-
-
-
-class BaseLinksViewTestCase(TestCase):
-    
-    @classmethod
-    def setUpTestData(cls):
-        cls.client = Client()
-        cls.lms1 = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
-                                      name="No WIMS", key="provider1", secret="secret1")
-        cls.lms2 = LMS.objects.create(guid="elearning.test.fr", url="https://elearning.test.fr/",
-                                      name="One WIMS", key="provider2", secret="secret1")
-        cls.lms3 = LMS.objects.create(guid="elearning.test.fr", url="https://elearning.test.fr/",
-                                      name="Two WIMS", key="provider3", secret="secret1")
-        
-        cls.wims1 = WIMS.objects.create(url="www.lti_app.com", name="One", ident="myself",
-                                        passwd="toto", rclass="myclass")
-        cls.wims2 = WIMS.objects.create(url=WIMS_URL, name="Two", ident="myself", passwd="toto",
-                                        rclass="myclass")
-        
-        cls.wims1.allowed_lms.add(cls.lms2)
-        cls.wims1.allowed_lms.add(cls.lms3)
-        cls.wims2.allowed_lms.add(cls.lms3)
-        
-        c1 = Class("myclass", "Classe 1", "Institution", "email", PASSWORD,
-                   User("supervisor", "First", "Last", PASSWORD))
-        c2 = Class("myclass", "Classe 2", "Institution", "email", PASSWORD,
-                   User("supervisor", "First", "Last", PASSWORD))
-        c1.save(cls.wims2.url, cls.wims2.ident, cls.wims2.passwd)
-        c2.save(cls.wims2.url, cls.wims2.ident, cls.wims2.passwd)
-        cls.class1 = WimsClass.objects.create(lms=cls.lms3, wims=cls.wims2, lms_guid=1,
-                                              qclass=c1.qclass, name=c1.name)
-        cls.class2 = WimsClass.objects.create(lms=cls.lms3, wims=cls.wims2, lms_guid=2,
-                                              qclass=c2.qclass, name=c2.name)
-        
-        cls.sheet1 = Sheet("Sheet1", "Desc1")
-        cls.sheet2 = Sheet("Sheet2", "Desc2")
-        c2.additem(cls.sheet1)
-        c2.additem(cls.sheet2)
-        
-        cls.exam1 = Exam("Exam1", "Desc1")
-        cls.exam2 = Exam("Exam2", "Desc2")
-        c2.additem(cls.exam1)
-        c2.additem(cls.exam2)
 
 
 

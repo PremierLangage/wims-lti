@@ -1,4 +1,11 @@
-import os
+# -*- coding: utf-8 -*-
+#
+#  test_utils.py
+#
+#  Authors:
+#       - Coumes Quentin <coumes.quentin@gmail.com>
+#
+
 import time
 import traceback
 from datetime import date, datetime, timedelta
@@ -15,14 +22,8 @@ from wimsapi import Class, Exam, Sheet, User, WimsAPI
 from lti_app import utils
 from lti_app.exceptions import BadRequestException
 from lti_app.models import LMS, WIMS, WimsClass, WimsUser
+from lti_app.tests.utils import KEY, SECRET, WIMS_URL, TEST_SERVER
 from lti_app.utils import parse_parameters
-
-
-KEY = 'provider1'
-SECRET = 'secret1'
-
-# URL to the WIMS server used for tests, the server must recogned ident 'myself' and passwd 'toto'
-WIMS_URL = os.getenv("WIMS_URL") or "http://localhost:7777/wims/wims.cgi"
 
 
 
@@ -52,7 +53,7 @@ class IsValidRequestTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_class", args=[1]))
+            TEST_SERVER + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -91,7 +92,7 @@ class IsValidRequestTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_class", args=[1]))
+            TEST_SERVER + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)
@@ -129,7 +130,7 @@ class IsValidRequestTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_class", args=[1]))
+            TEST_SERVER + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret2", None)
@@ -164,7 +165,7 @@ class IsValidRequestTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_class", args=[1]))
+            TEST_SERVER + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, "secret2", None)
@@ -199,7 +200,7 @@ class IsValidRequestTestCase(TestCase):
         norm_params = oauth_signature.normalize_parameters([(k, v) for k, v in params.items()])
         
         uri = oauth_signature.base_string_uri(
-            "https://testserver" + reverse("lti:wims_class", args=[1]))
+            TEST_SERVER + reverse("lti:wims_class", args=[1]))
         base_string = oauth_signature.signature_base_string("POST", uri, norm_params)
         
         params['oauth_signature'] = oauth_signature.sign_hmac_sha1(base_string, SECRET, None)

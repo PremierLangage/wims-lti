@@ -191,19 +191,19 @@ def wims_sheet(request, wims_pk, sheet_pk):
         
         # Storing the URL and ID to send the grade back to the LMS
         try:
-            gl = GradeLinkSheet.objects.get(user=user_db, sheet=sheet_db)
+            gl = GradeLinkSheet.objects.get(user=user_db, activity=sheet_db)
             gl.sourcedid = parameters["lis_result_sourcedid"]
             gl.url = parameters["lis_outcome_service_url"]
             gl.save()
         except GradeLinkSheet.DoesNotExist:
-            GradeLinkSheet.objects.create(user=user_db, sheet=sheet_db, lms=lms,
+            GradeLinkSheet.objects.create(user=user_db, activity=sheet_db, lms=lms,
                                           sourcedid=parameters["lis_result_sourcedid"],
                                           url=parameters["lis_outcome_service_url"])
         
         # If user is a teacher, send all grade back to the LMS
         role = Role.parse_role_lti(parameters["roles"])
         if is_teacher(role):
-            GradeLinkSheet.send_back_all(wclass_db, sheet_db)
+            GradeLinkSheet.send_back_all(sheet_db)
         
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
@@ -315,19 +315,19 @@ def wims_exam(request, wims_pk, exam_pk):
         
         # Storing the URL and ID to send the grade back to the LMS
         try:
-            gl = GradeLinkExam.objects.get(user=user_db, exam=exam_db)
+            gl = GradeLinkExam.objects.get(user=user_db, activity=exam_db)
             gl.sourcedid = parameters["lis_result_sourcedid"]
             gl.url = parameters["lis_outcome_service_url"]
             gl.save()
         except GradeLinkExam.DoesNotExist:
-            GradeLinkExam.objects.create(user=user_db, exam=exam_db, lms=lms,
+            GradeLinkExam.objects.create(user=user_db, activity=exam_db, lms=lms,
                                          sourcedid=parameters["lis_result_sourcedid"],
                                          url=parameters["lis_outcome_service_url"])
         
         # If user is a teacher, send all grade back to the LMS
         role = Role.parse_role_lti(parameters["roles"])
         if is_teacher(role):
-            GradeLinkExam.send_back_all(wclass_db, exam_db)
+            GradeLinkExam.send_back_all(exam_db)
         
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
