@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+#  test_enums.py
+#
+#  Authors:
+#       - Coumes Quentin <coumes.quentin@gmail.com>
+#
+
 from unittest import mock
 
 from django.test import TestCase

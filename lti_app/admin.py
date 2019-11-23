@@ -45,13 +45,13 @@ class ActivityAdmin(admin.ModelAdmin):
 
 @admin.register(models.GradeLinkSheet)
 class GradeLinkSheetAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'sheet', 'sourcedid', 'url')
+    list_display = ('id', 'user', 'activity', 'sourcedid', 'url')
 
 
 
 @admin.register(models.GradeLinkExam)
 class GradeLinkSheetExam(admin.ModelAdmin):
-    list_display = ('id', 'user', 'exam', 'sourcedid', 'url')
+    list_display = ('id', 'user', 'activity', 'sourcedid', 'url')
 
 
 

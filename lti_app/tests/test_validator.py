@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+#  test_validators.py
+#
+#  Authors:
+#       - Coumes Quentin <coumes.quentin@gmail.com>
+#
+
 import datetime
 
 from django.core.exceptions import ValidationError
