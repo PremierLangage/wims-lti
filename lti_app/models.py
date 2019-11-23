@@ -215,10 +215,10 @@ class GradeLinkSheet(GradeLinkBase):
             raise  # pragma: no cover
         
         for grade in grades:
-            user = WimsUser.objects.get(wclass=wclass, quser=grade.user.quser)
             try:
+                user = WimsUser.objects.get(wclass=wclass, quser=grade.user.quser)
                 gl = GradeLinkSheet.objects.get(user=user, sheet=sheet)
-            except GradeLinkSheet.DoesNotExist:
+            except (GradeLinkSheet.DoesNotExist, WimsUser.DoesNotExist):
                 continue
             score = grade.score / 10 if grade.score != -1 else grade.best / 100
             gl.send_back(score, gl.sheet)
@@ -247,10 +247,10 @@ class GradeLinkExam(GradeLinkBase):
             raise
         
         for grade in grades:
-            user = WimsUser.objects.get(wclass=wclass, quser=grade.user.quser)
             try:
+                user = WimsUser.objects.get(wclass=wclass, quser=grade.user.quser)
                 gl = GradeLinkExam.objects.get(user=user, exam=exam)
-            except GradeLinkExam.DoesNotExist:
+            except (GradeLinkExam.DoesNotExist, WimsUser.DoesNotExist):
                 continue
             score = grade.score / 10
             gl.send_back(score, gl.exam)
