@@ -20,7 +20,9 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+import sys
 
+from apscheduler.triggers.cron import CronTrigger
 from django.contrib.messages import constants as messages
 
 from lti_app.enums import Role
@@ -34,6 +36,9 @@ SECRET_KEY = '-qj!o^8$@!&7))^77^z8(-5rp*5x=7q(736)05x$h(inkfm^1#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+# Set to true when 'python3 manage.py test' is used
+TESTING = sys.argv[1:2] == ['test']
 
 # Application definition
 INSTALLED_APPS = [
@@ -192,6 +197,23 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+
+# XML used to sent grade back to the LMS
+with open(os.path.join(BASE_DIR, "lti_app/ressources/replace.xml"), encoding="utf-8") as f:
+    XML_REPLACE = f.read()
+
+# The CronTrigger triggering the job sending every grade of the WIMS server to the LMS, see
+# https://apscheduler.readthedocs.io/en/latest/modules/triggers/cron.html for more information.
+SEND_GRADE_BACK_CRON_TRIGGER = CronTrigger(
+    year="*",
+    month="*",
+    day="*",
+    week="*",
+    day_of_week="*",
+    hour="1,7,19",
+    minute="0",
+    second="0",
+)
 
 # Allow the file 'wimsLTI/config.py' to override these settings.
 from wimsLTI.config import *  # noqa: E402 F401 F403

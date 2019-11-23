@@ -24,14 +24,53 @@ For more informations, see:
  - Deployment checklist | https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 """
 
-DEBUG = False
-ALLOWED_HOSTS = ["wims-lti.u-pem.fr", "127.0.0.1"]
+from apscheduler.triggers.cron import CronTrigger
 
-EMAIL_HOST = "smtp.u-pem.fr"
+
+#  A boolean that turns on/off debug mode.
+# Never deploy a site into production with DEBUG turned on.
+# See https://docs.djangoproject.com/en/2.1/ref/settings/#debug
+DEBUG = True
+
+# A secret key for a particular Django installation. This is used to provide cryptographic signing,
+# and should be set to a unique, unpredictable value.
+# See https://docs.djangoproject.com/en/2.1/ref/settings/#secret-key
+SECRET_KEY = '-qj!o^8$@!&7))^77^z8(-5rp*5x=7q(736)05x$h(inkfm^1#'
+
+
+#  A list of strings representing the host/domain names that this Django site can serve. This is a
+# security measure to prevent HTTP Host header attacks, which are possible even under many
+# seemingly-safe web server configurations.
+
+#  When DEBUG is True and ALLOWED_HOSTS is empty, the host is validated against
+# ['localhost', '127.0.0.1', '[::1]'].
+# See https://docs.djangoproject.com/en/2.1/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = []
+
+# Port to use for the SMTP server defined in EMAIL_HOST.
 EMAIL_PORT = 25
-SERVER_EMAIL = "no-reply@u-pem.fr"
+# The host to use for sending email.
+EMAIL_HOST = "localhost"
+# The email address that error messages come from, such as those sent to ADMINS and MANAGERS.
+SERVER_EMAIL = "root@localhost"
 
-ADMINS = [
-    ("Coumes Quentin", "qcoumes@etud.u-pem.fr"),
-    ("Calle Christophe", "ccalle@etud.u-pem.fr"),
-]
+# A list of all the people who get code error notifications. When DEBUG=False and AdminEmailHandler
+# is configured in LOGGING (done by default), Django emails these people the details of
+# exceptions raised in the request/response cycle.
+
+# Each item in the list should be a tuple of (Full name, email address) Example:
+# [('John', 'john@example.com'), ('Mary', 'mary@example.com')]
+ADMINS = []
+
+# The CronTrigger triggering the job sending every grade of the WIMS server to the LMS, see
+# https://apscheduler.readthedocs.io/en/latest/modules/triggers/cron.html for more information.
+SEND_GRADE_BACK_CRON_TRIGGER = CronTrigger(
+    year="*",
+    month="*",
+    day="*",
+    week="*",
+    day_of_week="*",
+    hour="1,7,19",
+    minute="0",
+    second="0",
+)
