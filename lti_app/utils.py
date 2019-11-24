@@ -276,7 +276,7 @@ def get_or_create_class(lms: LMS, wims_srv: WIMS, wapi: wimsapi.WimsAPI,
     Raises:
         - exceptions.PermissionDenied if the class does not exists and none of the roles in
             the LTI request's parameters is in ROLES_ALLOWED_CREATE_WIMS_CLASS.
-        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - wimsapi.WimsAPIError if the WIMS' server denied a request.
         - requests.RequestException if the WIMS server could not be joined.
 
     Returns a tuple (wclass_db, wclass) where wclas_db is an instance of models.WimsClass and
@@ -288,7 +288,7 @@ def get_or_create_class(lms: LMS, wims_srv: WIMS, wapi: wimsapi.WimsAPI,
         try:
             wclass = wimsapi.Class.get(wapi.url, wapi.ident, wapi.passwd, wclass_db.qclass,
                                        wims_srv.rclass)
-        except wimsapi.AdmRawError as e:
+        except wimsapi.WimsAPIError as e:
             if "not existing" in str(e):  # Class was deleted on the WIMS server
                 logger.info(("Deleting class (id : %d - wims id : %s - lms id : %s) as it was"
                              "deleted from the WIMS server.")
@@ -356,7 +356,7 @@ def get_or_create_user(wclass_db: WimsClass, wclass: wimsapi.Class, parameters: 
     ROLES_ALLOWED_CREATE_WIMS_CLASS, the user will be connected as supervisor.
 
     Raises:
-        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - wimsapi.WimsAPIError if the WIMS' server denied a request.
         - requests.RequestException if the WIMS server could not be joined.
 
     Returns a tuple (user_db, user) where user_db is an instance of models.WimsUser and
@@ -376,7 +376,7 @@ def get_or_create_user(wclass_db: WimsClass, wclass: wimsapi.Class, parameters: 
             try:
                 wclass.additem(user)
                 break
-            except wimsapi.AdmRawError as e:
+            except wimsapi.WimsAPIError as e:
                 # Raised if an user with the same quser already exists,
                 # in this case, keep trying by appending integer to quser (jdoe, jdoe1,
                 # jdoe2, ...), stopping after 100 tries.
@@ -407,7 +407,7 @@ def get_sheet(wclass_db: WimsClass, wclass: wimsapi.Class, qsheet: int, paramete
     exists.
 
     Raises:
-        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - wimsapi.WimsAPIError if the WIMS' server denied a request.
         - requests.RequestException if the WIMS server could not be joined.
 
     Returns a tuple (sheet_db, sheet) where sheet_db is an instance of models.WimsSheet and
@@ -436,7 +436,7 @@ def get_exam(wclass_db: WimsClass, wclass: wimsapi.Class, qexam: int, parameters
     exists.
 
     Raises:
-        - wimsapi.AdmRawError if the WIMS' server denied a request.
+        - wimsapi.WimsAPIError if the WIMS' server denied a request.
         - requests.RequestException if the WIMS server could not be joined.
 
     Returns a tuple (exam_db, exam) where exam_db is an instance of models.WimsExam and
