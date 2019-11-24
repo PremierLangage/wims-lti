@@ -426,6 +426,10 @@ def activities(request: HttpRequest, lms_pk: int, wims_pk: int, wclass_pk: int) 
             "exams":  exams,
         })
     
+    except wimsapi.InvalidResponseError as e:  # WIMS server responded with ERROR (pragma: no cover)
+        logger.info(str(e), str(e.response))
+        messages.error(request, 'The WIMS server returned an error: ' + str(e))
+    
     except wimsapi.WimsAPIError as e:  # WIMS server responded with ERROR (pragma: no cover)
         logger.info(str(e))
         messages.error(request, 'The WIMS server returned an error: ' + str(e))
