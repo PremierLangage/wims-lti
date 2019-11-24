@@ -79,7 +79,7 @@ def wims_class(request: HttpRequest, wims_pk: int) -> HttpResponse:
         # Check that the WIMS server is available
         bol, response = wapi.checkident(verbose=True)
         if not bol:
-            raise wimsapi.AdmRawError(response['message'])
+            raise wimsapi.WimsAPIError(response['message'])
         
         # Check whether the class already exists, creating it otherwise
         wclass_db, wclass = get_or_create_class(lms, wims_srv, wapi, parameters)
@@ -90,10 +90,10 @@ def wims_class(request: HttpRequest, wims_pk: int) -> HttpResponse:
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
         if not bol:  # pragma: no cover
-            raise wimsapi.AdmRawError(response['message'])
+            raise wimsapi.WimsAPIError(response['message'])
         url = response["home_url"] + ("&lang=%s" % wclass.lang)
     
-    except wimsapi.AdmRawError as e:  # WIMS server responded with ERROR
+    except wimsapi.WimsAPIError as e:  # WIMS server responded with ERROR
         logger.info(str(e))
         return HttpResponse(str(e), status=502)
     
@@ -155,7 +155,7 @@ def wims_sheet(request: HttpRequest, wims_pk: int, sheet_pk: int) -> HttpRespons
         # Check that the WIMS server is available
         bol, response = wapi.checkident(verbose=True)
         if not bol:
-            raise wimsapi.AdmRawError(response['message'])
+            raise wimsapi.WimsAPIError(response['message'])
         
         # Get the class
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
@@ -164,7 +164,7 @@ def wims_sheet(request: HttpRequest, wims_pk: int, sheet_pk: int) -> HttpRespons
         try:
             wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
                                        wclass_db.qclass, wims_srv.rclass)
-        except wimsapi.AdmRawError as e:
+        except wimsapi.WimsAPIError as e:
             if "not existing" in str(e):  # Class was deleted on the WIMS server
                 qclass = wclass_db.qclass
                 logger.info(("Deleting class (id : %d - wims id : %s - lms id : %s) as it was"
@@ -208,7 +208,7 @@ def wims_sheet(request: HttpRequest, wims_pk: int, sheet_pk: int) -> HttpRespons
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
         if not bol:  # pragma: no cover
-            raise wimsapi.AdmRawError(response['message'])
+            raise wimsapi.WimsAPIError(response['message'])
         
         params = "&lang=%s&module=adm%%2Fsheet&sh=%s" % (wclass.lang, str(sheet.qsheet))
         url = response["home_url"] + params
@@ -217,7 +217,7 @@ def wims_sheet(request: HttpRequest, wims_pk: int, sheet_pk: int) -> HttpRespons
         logger.info(str(e))
         return HttpResponseNotFound("Could not find class of id '%s'" % parameters['context_id'])
     
-    except wimsapi.AdmRawError as e:  # WIMS server responded with ERROR
+    except wimsapi.WimsAPIError as e:  # WIMS server responded with ERROR
         logger.info(str(e))
         return HttpResponse(str(e), status=502)
     
@@ -279,7 +279,7 @@ def wims_exam(request: HttpRequest, wims_pk: int, exam_pk: int) -> HttpResponse:
         # Check that the WIMS server is available
         bol, response = wapi.checkident(verbose=True)
         if not bol:
-            raise wimsapi.AdmRawError(response['message'])
+            raise wimsapi.WimsAPIError(response['message'])
         
         # Get the class
         wclass_db = WimsClass.objects.get(wims=wims_srv, lms=lms,
@@ -288,7 +288,7 @@ def wims_exam(request: HttpRequest, wims_pk: int, exam_pk: int) -> HttpResponse:
         try:
             wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
                                        wclass_db.qclass, wims_srv.rclass)
-        except wimsapi.AdmRawError as e:
+        except wimsapi.WimsAPIError as e:
             if "not existing" in str(e):  # Class was deleted on the WIMS server
                 qclass = wclass_db.qclass
                 logger.info(("Deleting class (id : %d - wims id : %s - lms id : %s) as it was"
@@ -332,7 +332,7 @@ def wims_exam(request: HttpRequest, wims_pk: int, exam_pk: int) -> HttpResponse:
         # Trying to authenticate the user on the WIMS server
         bol, response = wapi.authuser(wclass.qclass, wclass.rclass, user.quser)
         if not bol:  # pragma: no cover
-            raise wimsapi.AdmRawError(response['message'])
+            raise wimsapi.WimsAPIError(response['message'])
         
         params = ("&lang=%s&module=adm%%2Fclass%%2Fexam&+job=student&+exam=%s"
                   % (wclass.lang, str(exam.qexam)))
@@ -342,7 +342,7 @@ def wims_exam(request: HttpRequest, wims_pk: int, exam_pk: int) -> HttpResponse:
         logger.info(str(e))
         return HttpResponseNotFound("Could not find class of id '%s'" % parameters['context_id'])
     
-    except wimsapi.AdmRawError as e:  # WIMS server responded with ERROR
+    except wimsapi.WimsAPIError as e:  # WIMS server responded with ERROR
         logger.info(str(e))
         return HttpResponse(str(e), status=502)
     
@@ -398,7 +398,7 @@ def activities(request: HttpRequest, lms_pk: int, wims_pk: int, wclass_pk: int) 
                 class_srv.wims.url, class_srv.wims.ident, class_srv.wims.passwd, class_srv.qclass,
                 class_srv.wims.rclass
             )
-        except wimsapi.AdmRawError as e:  # WIMS server responded with ERROR (pragma: no cover)
+        except wimsapi.WimsAPIError as e:  # WIMS server responded with ERROR (pragma: no cover)
             # Delete the class if it does not exists on the server anymore
             if "class %s not existing" % str(class_srv.qclass) in str(e):
                 class_srv.delete()
@@ -426,7 +426,7 @@ def activities(request: HttpRequest, lms_pk: int, wims_pk: int, wclass_pk: int) 
             "exams":  exams,
         })
     
-    except wimsapi.AdmRawError as e:  # WIMS server responded with ERROR (pragma: no cover)
+    except wimsapi.WimsAPIError as e:  # WIMS server responded with ERROR (pragma: no cover)
         logger.info(str(e))
         messages.error(request, 'The WIMS server returned an error: ' + str(e))
         return redirect('lti:classes', lms_pk=lms_pk, wims_pk=wims_pk)
