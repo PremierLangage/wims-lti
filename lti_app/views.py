@@ -417,25 +417,25 @@ def activities(request: HttpRequest, lms_pk: int, wims_pk: int, wclass_pk: int) 
                 reverse("lti:wims_exam", args=[wims_pk, s.qexam])
             )
             s.exammode = MODE[int(s.exammode)]
-        
-        return render(request, "lti_app/activities.html", {
-            "LMS":    LMS.objects.get(pk=lms_pk),
-            "WIMS":   WIMS.objects.get(pk=wims_pk),
-            "class":  WimsClass.objects.get(pk=wclass_pk),
-            "sheets": sheets,
-            "exams":  exams,
-        })
     
     except wimsapi.InvalidResponseError as e:  # WIMS server responded with ERROR (pragma: no cover)
         logger.info(str(e), str(e.response))
-        messages.error(request, 'The WIMS server returned an error: ' + str(e))
+        messages.error(request, 'The WIMS server returned a badly formatted response: ' + str(e))
     
     except wimsapi.WimsAPIError as e:  # WIMS server responded with ERROR (pragma: no cover)
         logger.info(str(e))
         messages.error(request, 'The WIMS server returned an error: ' + str(e))
-        return redirect('lti:classes', lms_pk=lms_pk, wims_pk=wims_pk)
     
     except requests.RequestException:  # WIMS server responded with ERROR (pragma: no cover)
         logger.exception("Could not join the WIMS server '%s'" % class_srv.wims.url)
         messages.error(request, 'Could not join the WIMS server')
-        return redirect('lti:classes', lms_pk=lms_pk, wims_pk=wims_pk)
+    
+    else:
+        return render(request, "lti_app/activities.html", {
+             "LMS":    LMS.objects.get(pk=lms_pk),
+             "WIMS":   WIMS.objects.get(pk=wims_pk),
+             "class":  WimsClass.objects.get(pk=wclass_pk),
+             "sheets": sheets,
+             "exams":  exams,
+         })
+    return redirect('lti:classes', lms_pk=lms_pk, wims_pk=wims_pk)
