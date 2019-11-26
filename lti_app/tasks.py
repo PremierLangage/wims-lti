@@ -7,6 +7,7 @@
 
 import logging
 
+import wimsapi
 from django.apps import apps
 
 
@@ -22,7 +23,10 @@ def send_back_all_sheets_grades() -> int:
     
     logger.info("Sending grades of every User of every WimsSheet to their LMS")
     for sheet in WimsSheet.objects.all():
-        total = + GradeLinkSheet.send_back_all(sheet)
+        try:
+            total = + GradeLinkSheet.send_back_all(sheet)
+        except wimsapi.WimsAPIError:  # pragma: no cover
+            logger.exception("Failed to send grade for sheet '%s'" % str(sheet))
     logger.info("Done sending grades of every User of every WimsSheet to their LMS (%d sent)"
                 % total)
     return total
@@ -37,7 +41,10 @@ def send_back_all_exams_grades() -> int:
     
     logger.info("Sending grades of every User of every WimsExam to their LMS")
     for exam in WimsExam.objects.all():
-        total = + GradeLinkExam.send_back_all(exam)
+        try:
+            total = + GradeLinkExam.send_back_all(exam)
+        except wimsapi.WimsAPIError:  # pragma: no cover
+            logger.exception("Failed to send grade for exam '%s'" % str(exam))
     logger.info("Done sending grades of every User of every WimsExam to their LMS (%d sent)"
                 % total)
     return total
