@@ -185,7 +185,7 @@ def wims_sheet(request: HttpRequest, wims_pk: int, sheet_pk: int) -> HttpRespons
         
         # Check whether the sheet already exists, creating it otherwise
         sheet_db, sheet = get_sheet(wclass_db, wclass, sheet_pk, parameters)
-        if int(sheet.sheetmode) != 1:
+        if int(sheet.sheetmode) not in [1, 2]:  # not active or expired
             return HttpResponseForbidden("This WIMS sheet (%s) is currently unavailable (%s)"
                                          % (str(sheet.qsheet), MODE[int(sheet.sheetmode)]))
         
@@ -309,7 +309,7 @@ def wims_exam(request: HttpRequest, wims_pk: int, exam_pk: int) -> HttpResponse:
         
         # Check whether the exam already exists, creating it otherwise
         exam_db, exam = get_exam(wclass_db, wclass, exam_pk, parameters)
-        if int(exam.exammode) != 1:
+        if int(exam.exammode) not in [1, 2]:  # not active or expired
             return HttpResponseForbidden("This exam (%s) is currently unavailable (%s)"
                                          % (str(exam.qexam), MODE[int(exam.exammode)]))
         
@@ -412,11 +412,11 @@ def activities(request: HttpRequest, lms_pk: int, wims_pk: int, wclass_pk: int) 
             s.sheetmode = MODE[int(s.sheetmode)]
         
         exams = wclass.listitem(wimsapi.Exam)
-        for s in exams:
-            s.lti_url = request.build_absolute_uri(
-                reverse("lti:wims_exam", args=[wims_pk, s.qexam])
+        for e in exams:
+            e.lti_url = request.build_absolute_uri(
+                reverse("lti:wims_exam", args=[wims_pk, e.qexam])
             )
-            s.exammode = MODE[int(s.exammode)]
+            e.exammode = MODE[int(e.exammode)]
     
     except wimsapi.InvalidResponseError as e:  # WIMS server responded with ERROR (pragma: no cover)
         logger.info(str(e), str(e.response))
