@@ -18,8 +18,8 @@ from wimsapi import Class, Exam, Sheet, User
 from lti_app import views
 from lti_app.enums import Role
 from lti_app.models import LMS, WIMS, WimsClass
-from lti_app.tests.utils import (BaseLinksViewTestCase, KEY, SECRET, WIMS_URL, untar_archive,
-                                 TEST_SERVER)
+from lti_app.tests.utils import (BaseLinksViewTestCase, KEY, SECRET, TEST_SERVER, WIMS_URL,
+                                 untar_archive)
 
 
 
@@ -73,8 +73,7 @@ class WimsClassTestCase(TestCase):
     
     def test_wims_class_invalid_method_get(self):
         r = Client().get(reverse("lti:wims_class", args=[1]))
-        self.assertContains(r, "405 Method Not Allowed: 'GET'. Did you forget trailing '/' ?",
-                            status_code=405)
+        self.assertContains(r, "405 Method Not Allowed: 'GET'", status_code=405)
     
     
     def test_wims_class_invalid_lti(self):
@@ -389,8 +388,7 @@ class WimsSheetTestCase(TestCase):
     
     def test_wims_class_invalid_method_get(self):
         r = Client().get(reverse("lti:wims_sheet", args=[1, 1]))
-        self.assertContains(r, "405 Method Not Allowed: 'GET'. Did you forget trailing '/' ?",
-                            status_code=405)
+        self.assertContains(r, "405 Method Not Allowed: 'GET'", status_code=405)
     
     
     def test_wims_class_invalid_lti(self):
@@ -888,8 +886,7 @@ class WimsExamTestCase(TestCase):
     
     def test_wims_class_invalid_method_get(self):
         r = Client().get(reverse("lti:wims_exam", args=[1, 1]))
-        self.assertContains(r, "405 Method Not Allowed: 'GET'. Did you forget trailing '/' ?",
-                            status_code=405)
+        self.assertContains(r, "405 Method Not Allowed: 'GET'", status_code=405)
     
     
     def test_wims_class_invalid_lti(self):
@@ -1169,6 +1166,7 @@ class WimsExamTestCase(TestCase):
         
         self.assertIn(WIMS_URL, r.url)
         self.assertIn("exam=1", r.url)
+    
     
     def test_wims_exam_ok_teacher(self):
         params = {

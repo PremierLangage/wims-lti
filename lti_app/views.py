@@ -27,6 +27,15 @@ from lti_app.utils import (MODE, check_custom_parameters, check_parameters, get_
 
 logger = logging.getLogger(__name__)
 
+GET_ERROR_MSG = """405 Method Not Allowed: 'GET'<br><br>
+This is usually caused by one of the following reason:
+<ul>
+    <li>Missing trailing slash '/' at the end of the URL
+        (eg: "%s" instead of "%s").</li>
+    <li>Used this URL outside of an LTI activity.</li>
+</ul>
+"""
+
 
 
 def wims_class(request: HttpRequest, wims_pk: int) -> HttpResponse:
@@ -46,8 +55,8 @@ def wims_class(request: HttpRequest, wims_pk: int) -> HttpResponse:
         - HttpResponse(status=502) if an error occured while communicating with the WIMS server.
         - HttpResponse(status=504) if the WIMS server could not be joined."""
     if request.method == "GET":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
-                                                "trailing '/' ?")
+        uri = request.build_absolute_uri()
+        return HttpResponseNotAllowed(["POST"], GET_ERROR_MSG % (uri[:-1], uri))
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
     
@@ -122,8 +131,8 @@ def wims_sheet(request: HttpRequest, wims_pk: int, sheet_pk: int) -> HttpRespons
             - HttpResponse(status=502) if an error occured while communicating with the WIMS.
             - HttpResponse(status=504) if the WIMS server could not be joined."""
     if request.method == "GET":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
-                                                "trailing '/' ?")
+        uri = request.build_absolute_uri()
+        return HttpResponseNotAllowed(["POST"], GET_ERROR_MSG % (uri[:-1], uri))
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
     
@@ -246,8 +255,8 @@ def wims_exam(request: HttpRequest, wims_pk: int, exam_pk: int) -> HttpResponse:
             - HttpResponse(status=502) if an error occured while communicating with the WIMS.
             - HttpResponse(status=504) if the WIMS server could not be joined."""
     if request.method == "GET":
-        return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: 'GET'. Did you forget "
-                                                "trailing '/' ?")
+        uri = request.build_absolute_uri()
+        return HttpResponseNotAllowed(["POST"], GET_ERROR_MSG % (uri[:-1], uri))
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"], "405 Method Not Allowed: '%s'" % request.method)
     
@@ -430,12 +439,14 @@ def activities(request: HttpRequest, lms_pk: int, wims_pk: int, wclass_pk: int) 
         logger.exception("Could not join the WIMS server '%s'" % class_srv.wims.url)
         messages.error(request, 'Could not join the WIMS server')
     
-    else:
+    else:  # No exception occured
         return render(request, "lti_app/activities.html", {
-             "LMS":    LMS.objects.get(pk=lms_pk),
-             "WIMS":   WIMS.objects.get(pk=wims_pk),
-             "class":  WimsClass.objects.get(pk=wclass_pk),
-             "sheets": sheets,
-             "exams":  exams,
-         })
-    return redirect('lti:classes', lms_pk=lms_pk, wims_pk=wims_pk)
+            "LMS":    LMS.objects.get(pk=lms_pk),
+            "WIMS":   WIMS.objects.get(pk=wims_pk),
+            "class":  WimsClass.objects.get(pk=wclass_pk),
+            "sheets": sheets,
+            "exams":  exams,
+        })
+    
+    # An exception occured
+    return redirect('lti:classes', lms_pk=lms_pk, wims_pk=wims_pk)  # pragma: no cover
