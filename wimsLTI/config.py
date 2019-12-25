@@ -62,6 +62,7 @@ SERVER_EMAIL = "root@localhost"
 # [('John', 'john@example.com'), ('Mary', 'mary@example.com')]
 ADMINS = []
 
+
 # The CronTrigger triggering the job sending every grade of the WIMS server to the LMS, see
 # https://apscheduler.readthedocs.io/en/latest/modules/triggers/cron.html for more information.
 SEND_GRADE_BACK_CRON_TRIGGER = CronTrigger(
@@ -70,7 +71,21 @@ SEND_GRADE_BACK_CRON_TRIGGER = CronTrigger(
     day="*",
     week="*",
     day_of_week="*",
-    hour="1,7,19",
+    hour="7,19",
+    minute="0",
+    second="0",
+)
+
+# The CronTrigger triggering the job checking that for every class registered on wims-lti, the
+# corresponding class exists on its WIMS server, deleting the instance on wims-lti if not, see
+# # https://apscheduler.readthedocs.io/en/latest/modules/triggers/cron.html for more information.
+CHECK_CLASSES_EXISTS_CRON_TRIGGER = CronTrigger(
+    year="*",
+    month="*",
+    day="*",
+    week="*",
+    day_of_week="*",
+    hour="7, 19",
     minute="0",
     second="0",
 )

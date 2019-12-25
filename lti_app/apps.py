@@ -12,7 +12,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from django.apps import AppConfig
 from django.conf import settings
 
-from lti_app.tasks import send_back_all_exams_grades, send_back_all_sheets_grades
+from lti_app import tasks
 
 
 
@@ -69,8 +69,10 @@ class LtiAppConfig(AppConfig):
             'max_instances':      1,
             'misfire_grace_time': 60 * 10,
         })
-        scheduler.add_job(send_back_all_sheets_grades,
+        scheduler.add_job(tasks.send_back_all_sheets_grades,
                           trigger=settings.SEND_GRADE_BACK_CRON_TRIGGER)
-        scheduler.add_job(send_back_all_exams_grades,
+        scheduler.add_job(tasks.send_back_all_exams_grades,
                           trigger=settings.SEND_GRADE_BACK_CRON_TRIGGER)
+        scheduler.add_job(tasks.check_classes_exists,
+                          trigger=settings.CHECK_CLASSES_EXISTS_CRON_TRIGGER)
         scheduler.start()

@@ -6,6 +6,7 @@
 #       - Coumes Quentin <coumes.quentin@gmail.com>
 
 import logging
+import traceback
 
 import wimsapi
 from django.apps import apps
@@ -26,7 +27,8 @@ def send_back_all_sheets_grades() -> int:
         try:
             total = + GradeLinkSheet.send_back_all(sheet)
         except wimsapi.WimsAPIError:  # pragma: no cover
-            logger.exception("Failed to send grade for sheet '%s'" % str(sheet))
+            logger.info("Failed to send grade for sheet '%s'" % str(sheet))
+            logger.info(traceback.format_exc())
     logger.info("Done sending grades of every User of every WimsSheet to their LMS (%d sent)"
                 % total)
     return total
@@ -44,7 +46,41 @@ def send_back_all_exams_grades() -> int:
         try:
             total = + GradeLinkExam.send_back_all(exam)
         except wimsapi.WimsAPIError:  # pragma: no cover
-            logger.exception("Failed to send grade for exam '%s'" % str(exam))
+            logger.info("Failed to send grade for exam '%s'" % str(exam))
+            logger.info(traceback.format_exc())
     logger.info("Done sending grades of every User of every WimsExam to their LMS (%d sent)"
                 % total)
     return total
+
+
+
+def check_classes_exists() -> int:
+    """Checks that the corresponding class exists on its WIMS server for every WimsClass. Delete
+    the instance of WimsClass if not."""
+    WimsClass = apps.get_model("lti_app", "WimsClass")
+    
+    deleted = 0
+    for c in WimsClass.objects.all():
+        try:
+            wimsapi.Class.get(
+                c.wims.url, c.wims.ident, c.wims.passwd, c.qclass, c.wims.rclass
+            )
+        except wimsapi.WimsAPIError as e:
+            # Delete the class if it does not exists on the server anymore
+            if "class %s not existing" % str(c.qclass) in str(e):
+                logger.info(
+                    (
+                        "Deleting class of pk '%s' has the corresponding class of id '%s' does not "
+                        "exists on the WIMS server '%s'  anymore")
+                    % (str(c.pk), str(c.qclass), c.wims.url)
+                )
+                c.delete()
+                deleted += 1
+            else:  # pragma: no cover
+                logger.info(
+                    "An error occurred checking for class of pk '%s' (qclass '%s', server '%s')"
+                    % (str(c.pk), str(c.qclass), c.wims.url)
+                )
+                logger.info(traceback.format_exc())
+    
+    return deleted

@@ -1377,3 +1377,18 @@ class ActivitiesTestCase(BaseLinksViewTestCase):
             reverse("lti:sheets", args=[self.lms3.pk, self.wims2.pk, 99999]),
         )
         self.assertEqual(404, response.status_code)
+    
+    
+    def test_activities_class_not_found_on_wims(self):
+        w = WimsClass.objects.create(
+            lms=self.lms1, lms_guid="1337", wims=self.wims2, qclass="1337", name="test1"
+        )
+        before = WimsClass.objects.all().count()
+        
+        response = self.client.get(
+            reverse("lti:sheets", args=[self.lms1.pk, self.wims2.pk, w.pk]), follow=True
+        )
+        
+        self.assertTemplateUsed(response, 'lti_app/base.html')
+        self.assertTemplateUsed(response, 'lti_app/classes.html')
+        self.assertEqual(before - 1, WimsClass.objects.all().count())

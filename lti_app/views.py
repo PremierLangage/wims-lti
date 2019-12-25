@@ -407,11 +407,17 @@ def activities(request: HttpRequest, lms_pk: int, wims_pk: int, wclass_pk: int) 
                 class_srv.wims.url, class_srv.wims.ident, class_srv.wims.passwd, class_srv.qclass,
                 class_srv.wims.rclass
             )
-        except wimsapi.WimsAPIError as e:  # WIMS server responded with ERROR (pragma: no cover)
+        except wimsapi.WimsAPIError as e:
             # Delete the class if it does not exists on the server anymore
             if "class %s not existing" % str(class_srv.qclass) in str(e):
+                logger.info(
+                    (
+                        "Deleting class of pk'%s' has the corresponding class of id '%s' does not "
+                        "exists on the WIMS server '%s'  anymore")
+                    % (str(class_srv.pk), str(class_srv.qclass), class_srv.wims.url)
+                )
                 class_srv.delete()
-            raise
+            raise  # WIMS server responded with ERROR (pragma: no cover)
         sheets = wclass.listitem(wimsapi.Sheet)
         
         for s in sheets:

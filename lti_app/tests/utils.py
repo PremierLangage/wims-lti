@@ -45,6 +45,8 @@ def command(cmd):
 
 
 def untar_archive():
+    """Deploy the archive 'resources/6948902.tgz' into the WIMS class (assuming its running in a
+    container called 'wims') and return its qclass."""
     archive = os.path.join(os.path.dirname(__file__), "resources/6948902.tgz")
     command("docker cp %s wims:/home/wims/log/classes/" % archive)
     command('docker exec wims bash -c '
