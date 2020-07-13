@@ -11,6 +11,8 @@ import traceback
 import wimsapi
 from django.apps import apps
 
+from wimsLTI import settings
+
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +65,8 @@ def check_classes_exists() -> int:
     for c in WimsClass.objects.all():
         try:
             wimsapi.Class.get(
-                c.wims.url, c.wims.ident, c.wims.passwd, c.qclass, c.wims.rclass
+                c.wims.url, c.wims.ident, c.wims.passwd, c.qclass, c.wims.rclass,
+                timeout=settings.WIMSAPI_TIMEOUT
             )
         except wimsapi.WimsAPIError as e:
             # Delete the class if it does not exists on the server anymore

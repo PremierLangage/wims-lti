@@ -272,7 +272,8 @@ class GradeLinkSheet(GradeLinkBase):
             wclass = sheet.wclass
             wims = wclass.wims
             grades = Class.get(
-                wims.url, wclass.wims.ident, wims.passwd, wclass.qclass, wims.rclass
+                wims.url, wclass.wims.ident, wims.passwd, wclass.qclass, wims.rclass,
+                timeout=settings.WIMSAPI_TIMEOUT
             ).getitem(sheet.qsheet, Sheet).scores()
         except AdmRawError as e:  # pragma: no cover
             if "There is no user in this class" in str(e):
@@ -316,7 +317,8 @@ class GradeLinkExam(GradeLinkBase):
             wclass = exam.wclass
             wims = wclass.wims
             grades = Class.get(
-                wims.url, wclass.wims.ident, wims.passwd, wclass.qclass, wims.rclass
+                wims.url, wclass.wims.ident, wims.passwd, wclass.qclass, wims.rclass,
+                timeout=settings.WIMSAPI_TIMEOUT
             ).getitem(exam.qexam, Exam).scores()
         except AdmRawError as e:  # pragma: no cover
             if "There's no user in this class" in str(e):
