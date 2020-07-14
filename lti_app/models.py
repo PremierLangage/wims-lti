@@ -197,10 +197,8 @@ class GradeLinkBase(models.Model):
     
     def send_back(self, grade: float) -> bool:
         """Send the given grade back to the lms."""
-        content = (
-                settings.XML_REPLACE
-                % (random.randint(1, 99999999), self.sourcedid, str(grade))
-        ).encode()
+        content = settings.XML_REPLACE % (random.randint(1, 99999999), self.sourcedid, str(grade))
+        content = content.encode()
         
         headers = {
             "Content-Type":   "application/xml",
