@@ -229,5 +229,9 @@ CHECK_CLASSES_EXISTS_CRON_TRIGGER = CronTrigger(
     second="0",
 )
 
+# Time before requests sent to a WIMS server from wims-lti time out. Should be increased
+# if some WIMS server contains a lot of classes / users.
+WIMSAPI_TIMEOUT = 5
+
 # Allow the file 'wimsLTI/config.py' to override these settings.
 from wimsLTI.config import *  # noqa: E402 F401 F403

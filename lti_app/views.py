@@ -10,6 +10,7 @@ import logging
 
 import requests
 import wimsapi
+from django.conf import settings
 from django.contrib import messages
 from django.http import (Http404, HttpRequest, HttpResponse, HttpResponseBadRequest,
                          HttpResponseForbidden, HttpResponseNotAllowed, HttpResponseNotFound)
@@ -171,8 +172,10 @@ def wims_sheet(request: HttpRequest, wims_pk: int, sheet_pk: int) -> HttpRespons
                                           lms_guid=parameters['context_id'])
         
         try:
-            wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
-                                       wclass_db.qclass, wims_srv.rclass)
+            wclass = wimsapi.Class.get(
+                wims_srv.url, wims_srv.ident, wims_srv.passwd, wclass_db.qclass, wims_srv.rclass,
+                timeout=settings.WIMSAPI_TIMEOUT
+            )
         except wimsapi.WimsAPIError as e:
             if "not existing" in str(e):  # Class was deleted on the WIMS server
                 qclass = wclass_db.qclass
@@ -295,8 +298,10 @@ def wims_exam(request: HttpRequest, wims_pk: int, exam_pk: int) -> HttpResponse:
                                           lms_guid=parameters['context_id'])
         
         try:
-            wclass = wimsapi.Class.get(wims_srv.url, wims_srv.ident, wims_srv.passwd,
-                                       wclass_db.qclass, wims_srv.rclass)
+            wclass = wimsapi.Class.get(
+                wims_srv.url, wims_srv.ident, wims_srv.passwd, wclass_db.qclass, wims_srv.rclass,
+                timeout=settings.WIMSAPI_TIMEOUT
+            )
         except wimsapi.WimsAPIError as e:
             if "not existing" in str(e):  # Class was deleted on the WIMS server
                 qclass = wclass_db.qclass
@@ -405,7 +410,7 @@ def activities(request: HttpRequest, lms_pk: int, wims_pk: int, wclass_pk: int) 
         try:
             wclass = wimsapi.Class.get(
                 class_srv.wims.url, class_srv.wims.ident, class_srv.wims.passwd, class_srv.qclass,
-                class_srv.wims.rclass
+                class_srv.wims.rclass, timeout=settings.WIMSAPI_TIMEOUT
             )
         except wimsapi.WimsAPIError as e:
             # Delete the class if it does not exists on the server anymore
