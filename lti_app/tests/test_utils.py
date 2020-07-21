@@ -682,6 +682,22 @@ class GetOrCreateClassTestCase(TestCase):
 
 class GetOrCreateUserTestCase(TestCase):
     
+    def test_wims_username(self):
+        self.assertEqual("jdoe", utils.wims_username("Jhon", "Doe"))
+        
+        # Strip to 22 first character
+        self.assertEqual(
+            "jhaveasurnamewithwayto",
+            utils.wims_username("Jhon", "HaveASurnameWithWayTooMuchCharacter")
+        )
+        
+        # Translate accented letter to their ASCII counterpart
+        self.assertEqual("jlefevre", utils.wims_username("Jean", "Lefèvre"))
+        self.assertEqual(
+            "jaaaceeeiiiooouuuu", utils.wims_username("Jean", "àâäçéêëíìïóòôúùûü")
+        )
+    
+    
     def test_get_or_create_user_create_ok(self):
         params = {
             'lti_message_type':                   'basic-lti-launch-request',

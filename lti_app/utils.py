@@ -350,13 +350,26 @@ def wimsLogin(firstname: str, lastname: str) -> str:
             
     
 
+def wims_username(firstname: str, lastname: str) -> str:
+    """Create a valid login identifier for WIMS, taking care of translating
+    accented characters to their ASCII counterpart.
+    
+    Replace some other character with underscores."""
+    src = "áàâäçéèêëíìîïóòôöúùûü'- "
+    dst = "aaaaceeeeiiiioooouuuu___"
+    translation = str.maketrans(src, dst)
+    quser = (firstname[0] + lastname).lower()[:22]
+    return quser.translate(translation)
+
+
+
 def create_user(parameters: Dict[str, Any]) -> wimsapi.User:
     """Create an instance of wimsapi.User with the given LTI request's parameters."""
     password = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(20))
     lastname = parameters['lis_person_name_family']
     firstname = parameters['lis_person_name_given']
     mail = parameters["lis_person_contact_email_primary"]
-    quser =  wimsLogin(firstname, lastname)
+    quser = wims_username(firstname, lastname)
     
     return wimsapi.User(quser, lastname, firstname, password, mail,
                         regnum=parameters["user_id"])
