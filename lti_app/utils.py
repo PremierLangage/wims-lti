@@ -332,22 +332,6 @@ def get_or_create_class(lms: LMS, wims_srv: WIMS, wapi: wimsapi.WimsAPI,
     
     return wclass_db, wclass
 
-
-def wimsLogin(firstname: str, lastname: str) -> str:
-    """Create a login identifier for Wims, taking care of accented characters"""
-
-    accented    = "áàâäçéèêëíìîïóòôöúùûü'- "
-    replacement = "aaaaceeeeiiiioooouuuu___"
-
-    quser = (firstname[0] + lastname).lower()[:22]
-    result = ""
-    for c in quser:
-        if c in accented:
-            result += replacement[accented.index(c)]
-        else:
-            result += c
-    return result
-            
     
 
 def wims_username(firstname: str, lastname: str) -> str:
