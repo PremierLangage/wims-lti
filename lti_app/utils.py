@@ -308,7 +308,7 @@ def get_or_create_class(lms: LMS, wims_srv: WIMS, wapi: wimsapi.WimsAPI,
             raise PermissionDenied(msg)
         
         wclass = create_class(wims_srv, parameters)
-        wclass.save(wapi.url, wapi.ident, wapi.passwd)
+        wclass.save(wapi.url, wapi.ident, wapi.passwd, timeout=settings.WIMSAPI_TIMEOUT)
         wclass_db = WimsClass.objects.create(
             lms=lms, lms_guid=parameters["context_id"],
             wims=wims_srv, qclass=wclass.qclass, name=wclass.name

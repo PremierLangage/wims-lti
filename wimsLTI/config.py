@@ -37,7 +37,6 @@ DEBUG = True
 # See https://docs.djangoproject.com/en/2.1/ref/settings/#secret-key
 SECRET_KEY = '-qj!o^8$@!&7))^77^z8(-5rp*5x=7q(736)05x$h(inkfm^1#'
 
-
 #  A list of strings representing the host/domain names that this Django site can serve. This is a
 # security measure to prevent HTTP Host header attacks, which are possible even under many
 # seemingly-safe web server configurations.
@@ -62,7 +61,6 @@ SERVER_EMAIL = "root@localhost"
 # [('John', 'john@example.com'), ('Mary', 'mary@example.com')]
 ADMINS = []
 
-
 # The CronTrigger triggering the job sending every grade of the WIMS server to the LMS, see
 # https://apscheduler.readthedocs.io/en/latest/modules/triggers/cron.html for more information.
 SEND_GRADE_BACK_CRON_TRIGGER = CronTrigger(
@@ -85,7 +83,11 @@ CHECK_CLASSES_EXISTS_CRON_TRIGGER = CronTrigger(
     day="*",
     week="*",
     day_of_week="*",
-    hour="7, 19",
+    hour="7,19",
     minute="0",
     second="0",
 )
+
+# Time before requests sent to a WIMS server from wims-lti time out. Should be increased
+# if some WIMS server contains a lot of classes / users.
+WIMSAPI_TIMEOUT = 1
