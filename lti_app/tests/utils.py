@@ -48,13 +48,13 @@ def untar_archive():
     """Deploy the archive 'resources/6948902.tgz' into the WIMS class (assuming its running in a
     container called 'wims') and return its qclass."""
     archive = os.path.join(os.path.dirname(__file__), "resources/6948902.tgz")
-    command("docker cp %s wims:/home/wims/log/classes/" % archive)
-    command('docker exec wims bash -c '
+    command("docker cp %s wims-minimal:/home/wims/log/classes/" % archive)
+    command('docker exec wims-minimal bash -c '
             '"tar -xzf /home/wims/log/classes/6948902.tgz -C /home/wims/log/classes/"')
-    command('docker exec wims bash -c "chmod 644 /home/wims/log/classes/6948902/.def"')
-    command('docker exec wims bash -c "chown wims:wims /home/wims/log/classes/6948902 -R"')
-    command('docker exec wims bash -c "rm /home/wims/log/classes/6948902.tgz"')
-    command("docker exec wims bash -c "
+    command('docker exec wims-minimal bash -c "chmod 644 /home/wims/log/classes/6948902/.def"')
+    command('docker exec wims-minimal bash -c "chown wims:wims /home/wims/log/classes/6948902 -R"')
+    command('docker exec wims-minimal bash -c "rm /home/wims/log/classes/6948902.tgz"')
+    command("docker exec wims-minimal bash -c "
             "\"echo ':6948902,20200626,Institution,test,en,0,H4,dmi,S S,+myself/myclass+,' "
             '>> /home/wims/log/classes/.index"')
     return 6948902

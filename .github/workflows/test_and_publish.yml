@@ -12,7 +12,7 @@ on:
       - dev
       - '*.*.*'
   schedule:
-    - cron:  '0 6 * * 1'
+    - cron:  '0 8 * * 1'
 
 jobs:
   test:
@@ -31,12 +31,9 @@ jobs:
 
       - name: Setup the WIMS server
         run: |
-          git clone https://github.com/qcoumes/docker-wims-minimal.git wims
-          docker build -t wims-minimal wims/
-          docker run -id -p 7777:80 --name wims wims-minimal
-          docker container start wims
-          docker exec -i wims ./bin/apache-config
-          docker exec -i wims service apache2 restart
+          docker run -itd --cpuset-cpus=$(($(cat /proc/cpuinfo | grep -e "processor\s*:\s*\d*" | wc -l) - 1)) -p 7777:80 --name wims-minimal qcoumes/wims-minimal
+          docker exec -it wims-minimal ./bin/apache-config
+          docker exec -it wims-minimal service apache2 restart
 
       - name: Install Tox and any other packages
         run: |
