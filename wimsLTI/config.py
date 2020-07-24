@@ -69,7 +69,7 @@ SEND_GRADE_BACK_CRON_TRIGGER = CronTrigger(
     day="*",
     week="*",
     day_of_week="*",
-    hour="7,19",
+    hour="7, 19",
     minute="0",
     second="0",
 )
@@ -83,7 +83,7 @@ CHECK_CLASSES_EXISTS_CRON_TRIGGER = CronTrigger(
     day="*",
     week="*",
     day_of_week="*",
-    hour="7,19",
+    hour="7, 19",
     minute="0",
     second="0",
 )
