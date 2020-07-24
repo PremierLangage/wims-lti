@@ -86,37 +86,6 @@ def check_parameters(param: Dict[str, Any]) -> None:
 
 
 
-def check_custom_parameters(params: Dict[str, Any]) -> None:
-    """Checks that custom parameters, if given, are properly formatted.
-
-    Raises api.exceptions.BadRequestException if this is not the case."""
-    validate(
-        CustomParameterValidator.email_validator, params['custom_class_email'],
-        "Invalid parameter 'custom_class_email' (%s): invalid email" % params['custom_class_email']
-    )
-    validate(
-        CustomParameterValidator.lang_validator, params['custom_class_lang'],
-        ("Invalid parameter 'custom_class_lang' ('%s'):  not a valid 'ISO 3166-1 alpha-2' code"
-         % params['custom_class_lang'])
-    )
-    validate(
-        CustomParameterValidator.level_validator, params['custom_class_level'],
-        ("Invalid parameter 'custom_class_level' ('%s'): not one of %s"
-         % (params['custom_class_level'], wimsapi.wclass.LEVEL))
-    )
-    validate(
-        CustomParameterValidator.expiration_syntax_validator, params['custom_class_expiration'],
-        ("Invalid parameter 'custom_class_expiration' ('%s'): must be formatted as 'YYYYMMDD'"
-         % params['custom_class_expiration'])
-    )
-    validate(
-        CustomParameterValidator.limit_validator, params['custom_class_limit'],
-        ("Invalid parameter 'custom_class_limit' ('%s'): Must be in [1, 300]"
-         % params['custom_class_limit'])
-    )
-
-
-
 def parse_parameters(p: Dict[str, Any]) -> Dict[str, Any]:
     """Returns the a dictionnary of the LTI request parameters,
     replacing missing parameters with None.
@@ -210,14 +179,45 @@ def create_supervisor(params: Dict[str, Any]) -> wimsapi.User:
 
 
 
-def create_class(wims_srv: WIMS, params: Dict[str, Any]) -> wimsapi.Class:
-    """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
+def check_custom_parameters(params: Dict[str, Any]) -> None:
+    """Checks that custom parameters, if given, are properly formatted.
+
+    Raises api.exceptions.BadRequestException if this is not the case."""
+    validate(
+        CustomParameterValidator.email_validator, params['custom_class_email'],
+        "Invalid parameter 'custom_class_email' (%s): invalid email" % params['custom_class_email']
+    )
+    validate(
+        CustomParameterValidator.lang_validator, params['custom_class_lang'],
+        ("Invalid parameter 'custom_class_lang' ('%s'):  not a valid 'ISO 3166-1 alpha-2' code"
+         % params['custom_class_lang'])
+    )
+    validate(
+        CustomParameterValidator.level_validator, params['custom_class_level'],
+        ("Invalid parameter 'custom_class_level' ('%s'): not one of %s"
+         % (params['custom_class_level'], wimsapi.wclass.LEVEL))
+    )
+    validate(
+        CustomParameterValidator.expiration_syntax_validator, params['custom_class_expiration'],
+        ("Invalid parameter 'custom_class_expiration' ('%s'): must be formatted as 'YYYYMMDD'"
+         % params['custom_class_expiration'])
+    )
     validate(
         CustomParameterValidator.expiration_date_validator, params['custom_class_expiration'],
         ("Invalid parameter 'custom_class_expiration' ('%s'): Must be more than a month and"
          " less than a year from now") % params['custom_class_expiration']
     )
-    
+    validate(
+        CustomParameterValidator.limit_validator, params['custom_class_limit'],
+        ("Invalid parameter 'custom_class_limit' ('%s'): Must be in [1, 300]"
+         % params['custom_class_limit'])
+    )
+
+
+
+def create_class(wims_srv: WIMS, params: Dict[str, Any]) -> wimsapi.Class:
+    """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
+    check_custom_parameters(params)
     wclass_dic = {
         "name":        params["custom_class_name"] or params["context_title"],
         "institution": (params["custom_class_institution"]
