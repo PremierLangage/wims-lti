@@ -105,9 +105,8 @@ def check_custom_parameters(params: Dict[str, Any]) -> None:
          % (params['custom_class_level'], wimsapi.wclass.LEVEL))
     )
     validate(
-        CustomParameterValidator.expiration_validator, params['custom_class_expiration'],
-        (("Invalid parameter 'custom_class_expiration' ('%s'): must be formatted as 'YYYYMMDD' and "
-          "be more than a month and  less than a year from now")
+        CustomParameterValidator.expiration_syntax_validator, params['custom_class_expiration'],
+        ("Invalid parameter 'custom_class_expiration' ('%s'): must be formatted as 'YYYYMMDD'"
          % params['custom_class_expiration'])
     )
     validate(
@@ -213,6 +212,11 @@ def create_supervisor(params: Dict[str, Any]) -> wimsapi.User:
 
 def create_class(wims_srv: WIMS, params: Dict[str, Any]) -> wimsapi.Class:
     """Create an instance of wimsapi.Class with the given LTI request's parameters and wclass_db."""
+    validate(
+        CustomParameterValidator.expiration_date_validator, params['custom_class_expiration'],
+        ("Invalid parameter 'custom_class_expiration' ('%s'): Must be more than a month and"
+         " less than a year from now") % params['custom_class_expiration']
+    )
     
     wclass_dic = {
         "name":        params["custom_class_name"] or params["context_title"],

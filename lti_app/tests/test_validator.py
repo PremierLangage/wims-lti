@@ -42,8 +42,13 @@ class CustomParameterValidatorTestCase(TestCase):
         self.assertFalse(CustomParameterValidator.limit_validator("0"))
         self.assertFalse(CustomParameterValidator.limit_validator("999999999"))
     
+    def test_expiration_syntax_validator(self):
+        self.assertTrue(CustomParameterValidator.expiration_syntax_validator("20200101"))
+        # DDMMYY
+        self.assertFalse(CustomParameterValidator.expiration_syntax_validator("01012020"))
+        self.assertFalse(CustomParameterValidator.expiration_syntax_validator("Wrong format"))
     
-    def test_expiration_validator(self):
+    def test_expiration_date_validator(self):
         now = datetime.date.today()
         less_than_a_month = (now + datetime.timedelta(days=30)).strftime("%Y%m%d")
         month = (now + datetime.timedelta(days=31)).strftime("%Y%m%d")
@@ -51,12 +56,12 @@ class CustomParameterValidatorTestCase(TestCase):
         year = (now + datetime.timedelta(days=365)).strftime("%Y%m%d")
         more_than_a_year = (now + datetime.timedelta(days=366)).strftime("%Y%m%d")
         
-        self.assertTrue(CustomParameterValidator.expiration_validator(month))
-        self.assertTrue(CustomParameterValidator.expiration_validator(months))
-        self.assertTrue(CustomParameterValidator.expiration_validator(year))
-        self.assertFalse(CustomParameterValidator.expiration_validator(less_than_a_month))
-        self.assertFalse(CustomParameterValidator.expiration_validator(more_than_a_year))
-        self.assertFalse(CustomParameterValidator.expiration_validator("Wrong format"))
+        self.assertTrue(CustomParameterValidator.expiration_date_validator(month))
+        self.assertTrue(CustomParameterValidator.expiration_date_validator(months))
+        self.assertTrue(CustomParameterValidator.expiration_date_validator(year))
+        self.assertFalse(CustomParameterValidator.expiration_date_validator(less_than_a_month))
+        self.assertFalse(CustomParameterValidator.expiration_date_validator(more_than_a_year))
+        
     
     
     def test_validate(self):

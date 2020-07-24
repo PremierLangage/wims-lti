@@ -58,16 +58,22 @@ class CustomParameterValidator:
     
     
     @staticmethod
-    def expiration_validator(expiration: Optional[str]) -> bool:
+    def expiration_syntax_validator(expiration: Optional[str]) -> bool:
         if expiration is not None:
             try:
-                date = datetime.datetime.strptime(expiration, "%Y%m%d").date()
-                now = datetime.date.today()
-                start = now + datetime.timedelta(days=31)
-                end = now + datetime.timedelta(days=365)
-                return start <= date <= end
+                datetime.datetime.strptime(expiration, "%Y%m%d").date()
             except ValueError:
                 return False
+        return True
+    
+    @staticmethod
+    def expiration_date_validator(expiration: Optional[str]) -> bool:
+        if expiration is not None:
+            date = datetime.datetime.strptime(expiration, "%Y%m%d").date()
+            now = datetime.date.today()
+            start = now + datetime.timedelta(days=31)
+            end = now + datetime.timedelta(days=365)
+            return start <= date <= end
         return True
     
     
@@ -94,8 +100,9 @@ class ModelsValidator:
         test = now + expiration
         end = now + datetime.timedelta(days=365)
         if not (start <= test <= end):
-            raise ValidationError("Expiration date must be between '31 00:00:00' and"
-                                  "'365 00:00:00'")
+            raise ValidationError(
+                "Expiration date must be between '31 00:00:00' and '365 00:00:00'"
+            )
 
 
 
