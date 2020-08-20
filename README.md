@@ -19,3 +19,7 @@ A single instance of **WIMS-LTI** can handle a lot of LMS and WIMS servers.
 
 The documentation is available on readsthedoc :
 [https://wims-lti.readthedocs.io/](https://wims-lti.readthedocs.io/).
+
+
+This project was paid by the PSI “Wévo” (WIMS évolution), and contributions from PLaTOn (PremierLangage) projet from Université Gustave Eiffel. 
+
