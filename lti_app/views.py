@@ -65,7 +65,6 @@ def wims_class(request: HttpRequest, wims_pk: int) -> HttpResponse:
         parameters = parse_parameters(request.POST)
         logger.info("Request received from '%s'" % request.META.get('HTTP_REFERER', "Unknown"))
         check_parameters(parameters)
-        check_custom_parameters(parameters)
         is_valid_request(request)
     except BadRequestException as e:
         logger.info(str(e))
@@ -141,7 +140,6 @@ def wims_sheet(request: HttpRequest, wims_pk: int, sheet_pk: int) -> HttpRespons
         parameters = parse_parameters(request.POST)
         logger.info("Request received from '%s'" % request.META.get('HTTP_REFERER', "Unknown"))
         check_parameters(parameters)
-        check_custom_parameters(parameters)
         is_valid_request(request)
     except BadRequestException as e:
         logger.info(str(e))
@@ -267,7 +265,6 @@ def wims_exam(request: HttpRequest, wims_pk: int, exam_pk: int) -> HttpResponse:
         parameters = parse_parameters(request.POST)
         logger.info("Request received from '%s'" % request.META.get('HTTP_REFERER', "Unknown"))
         check_parameters(parameters)
-        check_custom_parameters(parameters)
         is_valid_request(request)
     except BadRequestException as e:
         logger.info(str(e))
