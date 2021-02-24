@@ -698,6 +698,50 @@ class GetOrCreateUserTestCase(TestCase):
         )
     
     
+    def test_get_or_create_user_create_invalid_character_adapt(self):
+        params = {
+            'lti_message_type':                   'basic-lti-launch-request',
+            'lti_version':                        'LTI-1p0',
+            'launch_presentation_locale':         'fr-BE',
+            'resource_link_id':                   'X',
+            'context_id':                         '77777',
+            'context_title':                      "A title",
+            'user_id':                            '77',
+            'lis_person_contact_email_primary':   'test@email.com',
+            'lis_person_name_family':             "De L'Arbre",
+            'lis_person_name_given':              'Jean',
+            'tool_consumer_instance_description': 'UPEM',
+            'oauth_consumer_key':                 'provider1',
+            'oauth_signature_method':             'HMAC-SHA1',
+            'oauth_timestamp':                    str(oauth2.generate_timestamp()),
+            'oauth_nonce':                        oauth2.generate_nonce(),
+            'roles':                              "None",
+        }
+        params = parse_parameters(params)
+        
+        wims = WIMS.objects.create(url="https://wims.u-pem.fr/",
+                                   name="WIMS UPEM",
+                                   ident="X", passwd="X", rclass="myclass")
+        lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
+                                 name="Moodle UPEM", key="provider1", secret="secret1")
+        wclass_db = WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims,
+                                             qclass="60002", name="test1")
+        supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
+        wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
+                       supervisor, lang="fr", qclass=wclass_db.qclass)
+        wclass.save(WIMS_URL, "myself", "toto")
+        
+        user_db, user = utils.get_or_create_user(wclass_db, wclass, params)
+        
+        self.assertEqual(user_db.lms_guid, params["user_id"])
+        self.assertEqual(user_db.wclass, wclass_db)
+        self.assertEqual(user_db.quser, "jdelarbre")
+        
+        self.assertEqual(user.quser, "jdelarbre")
+        self.assertEqual(user.lastname, params["lis_person_name_family"])
+        self.assertEqual(user.firstname, params["lis_person_name_given"])
+        self.assertEqual(user.email, params["lis_person_contact_email_primary"])
+    
     def test_get_or_create_user_create_ok(self):
         params = {
             'lti_message_type':                   'basic-lti-launch-request',
@@ -725,7 +769,7 @@ class GetOrCreateUserTestCase(TestCase):
         lms = LMS.objects.create(guid="elearning.upem.fr", url="https://elearning.u-pem.fr/",
                                  name="Moodle UPEM", key="provider1", secret="secret1")
         wclass_db = WimsClass.objects.create(lms=lms, lms_guid="77777", wims=wims,
-                                             qclass="60002", name="test1")
+                                             qclass="61002", name="test1")
         supervisor = User("supervisor", "Supervisor", "", "password", "test@email.com")
         wclass = Class(wims.rclass, "A title", "UPEM", "test@email.com", "password",
                        supervisor, lang="fr", qclass=wclass_db.qclass)

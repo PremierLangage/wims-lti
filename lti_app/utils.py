@@ -343,10 +343,10 @@ def wims_username(firstname: str, lastname: str) -> str:
     accented characters to their ASCII counterpart.
     
     Replace some other character with underscores."""
-    src = "áàâäçéèêëíìîïóòôöúùûü'- "
-    dst = "aaaaceeeeiiiioooouuuu___"
+    src = "áàâäçéèêëíìîïóòôöúùûü"
+    dst = "aaaaceeeeiiiioooouuuu"
     translation = str.maketrans(src, dst)
-    quser = (firstname[0] + lastname).lower()[:22]
+    quser = (firstname[0] + lastname).lower()[:22].replace(" ", "")
     return quser.translate(translation)
 
 
