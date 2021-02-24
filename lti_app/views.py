@@ -105,6 +105,10 @@ def wims_class(request: HttpRequest, wims_pk: int) -> HttpResponse:
     except wimsapi.WimsAPIError as e:  # WIMS server responded with ERROR
         logger.info(str(e))
         return HttpResponse(str(e), status=502)
+
+    except BadRequestException as e:
+        logger.info(str(e))
+        return HttpResponseBadRequest(str(e))
     
     except requests.RequestException:
         logger.exception("Could not join the WIMS server '%s'" % wims_srv.url)
