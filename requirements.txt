@@ -1,9 +1,9 @@
 apscheduler~=3.7.0
 defusedxml~=0.6.0
-django~=3.1.7
+django~=3.2.15
 lti~=0.9.5
 markdown~=3.3.3
 oauth2~=1.9.0.post1
-oauthlib~=3.1.0
+oauthlib~=3.2.1
 requests~=2.25.1
 wimsapi~=0.5.10
