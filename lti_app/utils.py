@@ -341,13 +341,38 @@ def get_or_create_class(lms: LMS, wims_srv: WIMS, wapi: wimsapi.WimsAPI,
 def wims_username(firstname: str, lastname: str) -> str:
     """Create a valid login identifier for WIMS, taking care of translating
     accented characters to their ASCII counterpart.
-    
-    Replace some other character with underscores."""
+
+    Replace some other character with underscores.
+
+    Append an integer suffix the length of the would be less than 4."""
     src = "áàâäçéèêëíìîïóòôöúùûü"
     dst = "aaaaceeeeiiiioooouuuu"
     translation = str.maketrans(src, dst)
     quser = (firstname[0] + lastname).lower()[:22].replace(" ", "")
+    if len(quser) < 4:
+        quser += "1".rjust(4 - len(quser), "0")
     return quser.translate(translation)
+
+
+
+def increment_wims_username(quser: str) -> str:
+    """Increment the integer suffix at the end of the `quser`.
+
+    The length of the suffix is preserved.
+
+    >>> increment_wims_username("jdoe")
+    jdoe1
+    >>> increment_wims_username("jdoe12")
+    jdoe13
+    >>> increment_wims_username("jdoe0120")
+    jdoe0121
+    """
+    suffix_length = len(quser) - len(quser.rstrip(string.digits))
+    # No existing suffix
+    if not suffix_length:
+        return quser + "1"
+    incremented = str(int(quser[-suffix_length:]) + 1).rjust(suffix_length, "0")
+    return quser[:-suffix_length] + incremented
 
 
 
@@ -398,16 +423,12 @@ def get_or_create_user(wclass_db: WimsClass, wclass: wimsapi.Class, parameters: 
                 # in this case, keep trying by appending integer to quser (jdoe, jdoe1,
                 # jdoe2, ...), stopping after 100 tries.
                 
-                # Can also be raised if an error occured while communicating with the
+                # Can also be raised if an error occurred while communicating with the
                 # WIMS server, hence the following test.
                 if "user already exists" not in str(e) or i >= 100:  # pragma: no cover
                     raise
-                
-                if i:
-                    user.quser = user.quser[:-len(str(i))]
-                i += 1
-                user.quser += str(i)
-        
+                user.quser = increment_wims_username(user.quser)
+    
         user_db = WimsUser.objects.create(
             lms_guid=parameters["user_id"], wclass=wclass_db, quser=user.quser
         )
