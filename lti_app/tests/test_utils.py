@@ -696,6 +696,10 @@ class GetOrCreateUserTestCase(TestCase):
         self.assertEqual(
             "jaaaceeeiiiooouuuu", utils.wims_username("Jean", "àâäçéêëíìïóòôúùûü")
         )
+        
+        # Add suffix so that length > 4
+        self.assertEqual("ab01", utils.wims_username("a", "b"))
+        self.assertEqual("abb1", utils.wims_username("a", "bb"))
     
     
     def test_get_or_create_user_create_invalid_character_adapt(self):
